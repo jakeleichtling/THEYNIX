@@ -9,6 +9,7 @@
   Process Control Block: A struct for keeping track of the various data associated with a given
   user process.
 */
+typedef struct PCB PCB;
 struct PCB {
      UserContext *user_context;
      KernelContext *kernel_context;
@@ -39,7 +40,5 @@ struct PCB {
 
     int pipe_read_len;
 };
-
-typedef struct PCB PCB;
 
 #endif
