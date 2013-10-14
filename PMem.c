@@ -5,7 +5,7 @@
 /*
   Returns a pointer to a new UnusedFrames object with all of the frames initially unused.
 */
-UnusedFrames NewUnusedFrames(unsigned int pmem_size) {
+UnusedFrames NewUnusedFrames(unsigned int pmem_size, unsigned int lowest_unused_page) {
     assert(pmem_size > 0);
 
     unsigned int num_pages = pmem_size / PAGESIZE;
@@ -13,7 +13,11 @@ UnusedFrames NewUnusedFrames(unsigned int pmem_size) {
 
     unsigned int i;
     for (i = 0; i < num_pages; i++) {
-        unused_frames[i] = true;
+        if (i >= lowest_unused_page) {
+            unused_frames[i] = true;
+        } else {
+            unused_frames[i] = false;
+        }
     }
 }
 

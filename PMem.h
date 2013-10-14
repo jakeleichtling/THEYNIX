@@ -12,7 +12,7 @@ typedef bool *UnusedFrames;
 /*
   Returns a pointer to a new UnusedFrames object with all of the frames initially unused.
 */
-UnusedFrames NewUnusedFrames(unsigned int pmem_size);
+UnusedFrames NewUnusedFrames(unsigned int pmem_size, unsigned int lowest_unused_page);
 
 /*
   Returns the physical frame number of an unused frame and marks it as used,
