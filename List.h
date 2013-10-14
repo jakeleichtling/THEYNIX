@@ -4,7 +4,7 @@
 /*
   A general purpose linked list.
 */
-typedef struct List {
+typedef struct {
     List *next;
     List *prev;
 
