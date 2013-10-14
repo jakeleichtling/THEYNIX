@@ -1,8 +1,10 @@
 #include "List.h"
 #include <stdlib.h>
 #include <assert.h>
+#include <stdio.h>
 
 int main(int argc, char ** argv) {
+    printf("======List Test ========\n");
     List *list = ListNewList();
     assert(ListEmpty(list));
 
@@ -39,6 +41,7 @@ int main(int argc, char ** argv) {
     assert(ListEmpty(list));
     ListDestroy(list);
 
+    printf("=====LIST TEST SUCCESS!========\n");
     return 0;
 }
 

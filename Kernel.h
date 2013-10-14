@@ -4,29 +4,38 @@
 #include <stdbool.h>
 
 #include "include/hardware.h"
+#include "List.h"
+#include "PCB.h"
+#include "PMem.h"
+#include "Tty.h"
+
+/* Macros */
+#define ADDR_TO_PAGE(addr) ((((unsigned int) addr) & PAGEMASK) >> PAGESHIFT)
 
 /* Global Variables */
 
 List *locks;
 List *cvars;
 List *pipes;
+
 Tty *ttys;
 
 PCB *current_proc;
 List *ready_queue;
 List *clock_block_procs;
 
-UsedFrames used_frames;
-
-bool virtual_memory_enabled = false;
+UnusedFrames unused_frames;
+bool virtual_memory_enabled;
 
 // The lowest page number not in use by the kernel's data segment. Starting at
 // kernel_data_start_page and covering up to, but not including, this page should have
 // PROT_READ | PROT_WRITE permissions.
 int kernel_brk_page;
-// The lowest page number used by the kernel's data segment. The pages covering up to,
-// but not including, this page should have PROT_READ | PROT_EXEC permissions.
+// The lowest page number used by the kernel's data segment.
 int kernel_data_start_page;
+// The lowest page number not in use by the kernel's text segment. The pages covering up to,
+// and including, this page should have PROT_READ | PROT_EXEC permissions.
+int kernel_text_end_page;
 
 /* Function Prototypes */
 

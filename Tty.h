@@ -5,6 +5,12 @@
   Code for the Yalnix TTYs.
 */
 
+/* Type Defs */
+typedef struct Tty Tty;
+typedef struct LineBuffer LineBuffer;
+
+/* Structs */
+
 /*
   A structure to keep track of the TTY state, as well as processes that are blocked on it.
 */
@@ -17,10 +23,8 @@ struct Tty {
 
     // A list of procs waiting to transmit.
     // The first proc has transmitted and is waiting for a TRAP_TTY_TRANSMIT interrupt.
-    PCB *waiting_to_transmit;
+    List *waiting_to_transmit;
 };
-
-typedef struct Tty Tty;
 
 /*
   A structure to hold a string and its length.
@@ -30,6 +34,11 @@ struct LineBuffer {
     int length;
 };
 
-typedef struct LineBuffer LineBuffer;
+/* Function Prototypes */
+
+/*
+  Initializes allocated memory pointed to by the given Tty *.
+*/
+void TtyInit(Tty *tty);
 
 #endif
