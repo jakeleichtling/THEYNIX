@@ -28,7 +28,6 @@ KERNEL_OBJS = Kernel.o SystemCalls.o
 #List all of the header files necessary for your kernel
 KERNEL_INCS = CVar.h Kernel.h List.h Lock.h PCB.h PMem.h Pipe.h SystemCalls.h Traps.h Tty.h include/hardware.h
 
-
 #List all user programs here.
 USER_APPS = 
 #List all user program source files here.  SHould be the same as the previous list, with ".c" added to each file
@@ -106,6 +105,10 @@ kill:
 
 no-core:
 	rm -f core.*
+
+test: List.c List.h
+	gcc -g -Wall -o list_test List.c List.h
+	./list_test
 
 $(KERNEL_ALL): $(KERNEL_OBJS) $(KERNEL_LIBS) $(KERNEL_INCS)
 	$(LINK_KERNEL) -o $@ $(KERNEL_OBJS) $(KERNEL_LDFLAGS)
