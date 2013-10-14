@@ -1,10 +1,14 @@
+#include <assert.h>
+
 /*
   Initializes allocated memory pointed to by the given Tty *.
 */
 void TtyInit(Tty *tty) {
-  line_buffers = NewList();
+    assert(tty);
 
-  waiting_to_receive = NewList();
+    tty->line_buffers = NewList();
 
-  waitingToTransmit = NewList();
+    tty->waiting_to_receive = NewList();
+
+    tty->waitingToTransmit = NewList();
 }

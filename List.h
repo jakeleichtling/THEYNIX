@@ -3,7 +3,6 @@
 
 #include <stdbool.h>
 
-
 /*
   A general purpose linked list.
 */

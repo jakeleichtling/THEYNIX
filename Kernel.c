@@ -10,9 +10,9 @@ void SetKernelData(void *_KernelDataStart, void *_KernelDataEnd) {
 
 void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {
     // Initialize the kernel's data structures.
-    // locks = NewList();
-    // cvars = NewList();
-    // pipes = NewList();
+    locks = ListNewList();
+    cvars = ListNewList();
+    pipes = ListNewList();
 
     ttys = (Tty *) malloc(NUM_TERMINALS * sizeof(Tty));
     int i;
@@ -21,15 +21,17 @@ void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {
     }
 
     //current_proc =
-    // ready_queue = NewList();
-    // clock_block_procs = NewList();
+    ready_queue = ListNewList();
+    clock_block_procs = ListNewList();
 
-    unused_frames = NewUnusedFrames(pmem_size);
+    unused_frames = NewUnusedFrames(pmem_size, kernel_brk_page);
     virtual_memory_enabled = false;
 
-    // Initialize the interrupt vector and point to it in REG_VECTOR_BASE
+    // Initialize the interrupt vector table.
 
-    // Build the initial page table for region 0 and region 1 such that physical address =
+    // Initialize the REG_VECTOR_BASE register to point to the interrupt vector table.
+
+    // Build the initial page table for regions 0 and 1 such that physical address =
     // virtual address for all used frames, and initialize REG_PTBR0,
     // REG_PTLR0, REG_PTBR1, and REG_PTLR1
 
