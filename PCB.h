@@ -18,8 +18,8 @@ struct PCB {
     struct pte *region_1_page_table;
 
     PCB *live_parent;
-    PCBList *live_children;
-    PCBList *zombie_children;
+    List *live_children;
+    List *zombie_children;
 
     bool waiting_on_children;
 
