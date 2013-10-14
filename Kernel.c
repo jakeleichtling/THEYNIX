@@ -1,3 +1,5 @@
+#include "Kernel.h"
+
 void SetKernelData(void *_KernelDataStart, void *_KernelDataEnd) {
     // Set kernel_brk_page to page of _KernelDataEnd
     // Set kernel_data_start_page to page of _KernelDataStart

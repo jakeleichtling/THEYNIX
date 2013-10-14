@@ -1,3 +1,5 @@
+#include "include/hardware.h"
+
 /* Global Variables */
 
 List *locks;
