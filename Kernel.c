@@ -1,6 +1,7 @@
 #include <assert.h>
 
 #include "Kernel.h"
+#include "PMem.h"
 
 void SetKernelData(void *_KernelDataStart, void *_KernelDataEnd) {
     kernel_brk_page = ADDR_TO_PAGE(((unsigned int) _KernelDataEnd) - 1) + 1;
@@ -10,9 +11,9 @@ void SetKernelData(void *_KernelDataStart, void *_KernelDataEnd) {
 
 void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {
     // Initialize the kernel's data structures.
-    locks = ListNewList();
-    cvars = ListNewList();
-    pipes = ListNewList();
+    // locks = ListNewList();
+    // cvars = ListNewList();
+    // pipes = ListNewList();
 
     ttys = malloc(NUM_TERMINALS * sizeof(TTY));
     int i;
@@ -21,8 +22,8 @@ void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {
     }
 
     //current_proc =
-    ready_queue = ListNewList();
-    clock_block_procs = ListNewList();
+    // ready_queue = ListNewList();
+    // clock_block_procs = ListNewList();
 
     unused_frames = NewUnusedFrames(pmem_size);
     virtual_memory_enabled = false;

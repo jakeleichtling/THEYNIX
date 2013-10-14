@@ -4,6 +4,7 @@
 #include <stdbool.h>
 
 #include "include/hardware.h"
+#include "List.h"
 
 /* Macros */
 #define ADDR_TO_PAGE(addr) ((((unsigned int) addr) & PAGEMASK) >> PAGESHIFT)
