@@ -17,7 +17,7 @@ void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {
     ttys = (Tty *) malloc(NUM_TERMINALS * sizeof(Tty));
     int i;
     for (i = 0; i < NUM_TERMINALS; i++) {
-        TtyInit(ttys[i]);
+        TtyInit(&ttys[i]);
     }
 
     //current_proc =
