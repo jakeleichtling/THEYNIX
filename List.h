@@ -4,13 +4,14 @@
 /*
   A general purpose linked list.
 */
-typedef struct {
+typedef struct List List;
+struct List {
     List *next;
     List *prev;
 
     int id;
     void *data;
-} List;
+};
 
 void Enqueue(List *list, void *data, int id);
 void *Dequeue(List *list);
