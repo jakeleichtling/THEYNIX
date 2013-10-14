@@ -93,6 +93,7 @@ all: $(ALL)
 
 clean:
 	rm -f *.o *~ TTYLOG* TRACE $(YALNIX_OUTPUT) $(USER_APPS)  core.*
+	rm -f TestDriver
 
 count:
 	wc $(KERNEL_SRCS) $(USER_SRCS)
@@ -106,9 +107,8 @@ kill:
 no-core:
 	rm -f core.*
 
-test: List.c List.h
-	gcc -g -Wall -o list_test List.c List.h
-	./list_test
+test: List.c List.h TestDriver.c
+	gcc -g -Wall -o TestDriver List.c List.h TestDriver.c
 
 $(KERNEL_ALL): $(KERNEL_OBJS) $(KERNEL_LIBS) $(KERNEL_INCS)
 	$(LINK_KERNEL) -o $@ $(KERNEL_OBJS) $(KERNEL_LDFLAGS)

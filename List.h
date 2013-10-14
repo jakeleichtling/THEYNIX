@@ -44,4 +44,7 @@ void *ListDequeue(List *list);
 // Return first element with the given id.
 void *ListFindById(List *list, int id);
 
+// Test driver. Returns true on success.
+bool ListTestList();
+
 #endif
