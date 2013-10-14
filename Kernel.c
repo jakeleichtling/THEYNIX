@@ -15,7 +15,7 @@ void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {
     // cvars = NewlIst();
     // pipes = NewlIst();
 
-    ttys = malloc(NUM_TERMINALS * sizeof(TTY));
+    ttys = malloc(NUM_TERMINALS * sizeof(Tty));
     int i;
     for (i = 0; i < NUM_TERMINALS; i++) {
         TtyInit(ttys[i]);
