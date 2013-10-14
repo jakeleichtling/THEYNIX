@@ -1,3 +1,6 @@
+#ifndef _TTY_H_
+#define _TTY_H_
+
 /*
   Code for the Yalnix TTYs.
 */
@@ -28,3 +31,5 @@ struct LineBuffer {
 };
 
 typedef struct LineBuffer LineBuffer;
+
+#endif

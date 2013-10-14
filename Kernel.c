@@ -1,8 +1,8 @@
 #include "Kernel.h"
 
 void SetKernelData(void *_KernelDataStart, void *_KernelDataEnd) {
-    // Set kernel_brk_page to page of _KernelDataEnd
-    // Set kernel_data_start_page to page of _KernelDataStart
+    kernel_brk_page = UP_TO_PAGE(_KernelDataEnd);
+    kernel_data_start_page = DOWN_TO_PAGE(_KernelDataStart);
 }
 
 void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {

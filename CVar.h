@@ -1,3 +1,6 @@
+#ifndef _CVAR_H_
+#define _CVAR_H_
+
 /*
   Code for condition variables.
 */
@@ -11,3 +14,5 @@ struct CVar {
 };
 
 typedef struct Lock Lock;
+
+#endif

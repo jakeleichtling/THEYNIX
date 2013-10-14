@@ -1,3 +1,6 @@
+#ifndef _PCB_H
+#define _PCB_H
+
 #include <stdbool.h>
 
 #include "hardware.h"
@@ -38,3 +41,5 @@ struct PCB {
 };
 
 typedef struct PCB PCB;
+
+#endif

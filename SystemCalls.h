@@ -1,3 +1,6 @@
+#ifndef _SYSTEMCALLS_H_
+#define _SYSTEMCALLS_H_
+
 /*
   Prototypes for the Yalnix system calls.
 */
@@ -41,3 +44,5 @@ int CvarBroadcast(int cvar_id);
 int CvarWait(int cvar_id, int lock_id);
 
 int Reclaim(int id);
+
+#endif

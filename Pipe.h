@@ -1,3 +1,6 @@
+#ifndef _PIPE_H_
+#define _PIPE_H_
+
 /*
   Code for pipes.
 */
@@ -14,3 +17,5 @@ struct Pipe {
 };
 
 typedef struct Pipe Pipe;
+
+#endif

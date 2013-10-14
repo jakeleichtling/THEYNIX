@@ -1,3 +1,6 @@
+#ifndef _LOCK_H_
+#define _LOCK_H_
+
 /*
   Code for mutual exclusion locks.
 */
@@ -10,3 +13,5 @@ struct Lock {
 };
 
 typedef struct Lock Lock;
+
+#endif

@@ -1,3 +1,6 @@
+#ifndef _TRAPS_H_
+#define _TRAPS_H_
+
 /*
 
 TRAP_KERNEL:
@@ -35,3 +38,5 @@ tty_transmit_len -= TERMINAL_MAX_LINE, tty_transmit_pointer += TERMINAL_MAX_LINE
 call TtyTransmit with new len and pointer, and return.
 
 */
+
+#endif
