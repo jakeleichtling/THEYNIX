@@ -6,6 +6,7 @@
 #include "include/hardware.h"
 #include "List.h"
 #include "PCB.h"
+#include "PMem.h"
 #include "Tty.h"
 
 /* Macros */

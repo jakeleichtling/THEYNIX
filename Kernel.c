@@ -1,7 +1,6 @@
 #include <assert.h>
 
 #include "Kernel.h"
-#include "PMem.h"
 
 void SetKernelData(void *_KernelDataStart, void *_KernelDataEnd) {
     kernel_brk_page = ADDR_TO_PAGE(((unsigned int) _KernelDataEnd) - 1) + 1;
