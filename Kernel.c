@@ -10,9 +10,9 @@ void SetKernelData(void *_KernelDataStart, void *_KernelDataEnd) {
 
 void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {
     // Initialize the kernel's data structures.
-    // locks = NewlIst();
-    // cvars = NewlIst();
-    // pipes = NewlIst();
+    // locks = NewList();
+    // cvars = NewList();
+    // pipes = NewList();
 
     ttys = (Tty *) malloc(NUM_TERMINALS * sizeof(Tty));
     int i;
@@ -21,8 +21,8 @@ void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {
     }
 
     //current_proc =
-    // ready_queue = NewlIst();
-    // clock_block_procs = NewlIst();
+    // ready_queue = NewList();
+    // clock_block_procs = NewList();
 
     unused_frames = NewUnusedFrames(pmem_size);
     virtual_memory_enabled = false;
