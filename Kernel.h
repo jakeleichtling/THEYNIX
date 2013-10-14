@@ -5,6 +5,8 @@
 
 #include "include/hardware.h"
 #include "List.h"
+#include "PCB.h"
+#include "Tty.h"
 
 /* Macros */
 #define ADDR_TO_PAGE(addr) ((((unsigned int) addr) & PAGEMASK) >> PAGESHIFT)
