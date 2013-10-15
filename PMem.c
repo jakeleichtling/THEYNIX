@@ -1,7 +1,12 @@
-#include <assert.h>
-
 #include "PMem.h"
 
+#include <stdlib.h>
+#include <assert.h>
+
+#include "include/hardware.h"
+#include "Log.h"
+
+unsigned int num_pages = 0;
 /*
   Returns a pointer to a new UnusedFrames object with all of the frames initially unused.
 */
@@ -11,12 +16,11 @@ UnusedFrames NewUnusedFrames(unsigned int pmem_size) {
 
     assert(pmem_size > 0);
 
-    unsigned int num_pages = pmem_size / PAGESIZE;
+    num_pages = pmem_size / PAGESIZE;
     UnusedFrames unused_frames = malloc(num_pages * sizeof(bool));
     assert(unused_frames);
 
-    unsigned int i;
-    for (i = 0; i < num_pages; i++) {
+    for (unsigned int i = 0; i < num_pages; i++) {
         unused_frames[i] = true;
     }
 
@@ -32,8 +36,7 @@ int GetUnusedFrame(UnusedFrames unused_frames) {
 
     assert(unused_frames);
 
-    int i;
-    for (i = 0; i < num_pages; i++) {
+    for (unsigned int i = 0; i < num_pages; i++) {
         if (unused_frames[i]) {
             unused_frames[i] = false;
             TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< GetUnusedFrame() --> %d\n\n", i);
@@ -72,5 +75,3 @@ void ReleaseUsedFrame(UnusedFrames unused_frames, unsigned int frame) {
 
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< ReleaseUsedFrame()\n\n");
 }
-
-#endif

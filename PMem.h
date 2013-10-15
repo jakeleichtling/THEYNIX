@@ -1,6 +1,8 @@
 #ifndef _PMEM_H
 #define _PMEM_H
 
+#include <stdbool.h>
+
 /*
   Code for keeping track of physical memory.
 */
