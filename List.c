@@ -44,8 +44,8 @@ bool ListTestList() {
 }
 
 List *ListNewList() {
-    List *list = calloc(1, sizeof(List));
-    list->sentinel = calloc(1, sizeof(ListNode));
+    List *list = malloc(sizeof(List));
+    list->sentinel = malloc(sizeof(ListNode));
     list->head = list->sentinel;
     return list;
 }
@@ -64,7 +64,7 @@ bool ListEmpty(List *list) {
 void ListEnqueue(List *list, void *data, int id) {
     assert(list);
 
-    ListNode *ln = calloc(1, sizeof(ListNode));
+    ListNode *ln = malloc(sizeof(ListNode));
     list->head->prev = ln;
     ln->next = list->head;
     ln->prev = list->sentinel;

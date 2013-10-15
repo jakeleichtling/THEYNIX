@@ -1,3 +1,5 @@
+#include "PCB.h"
+
 /*
   Returns a PCB with the given model UserContext deep cloned and its lists initialized.
 */
@@ -12,4 +14,8 @@ PCB *NewBlankPCB(UserContext *model_user_context) {
     // Initialize lists.
     new_pcb->live_children = ListNewList();
     new_pcb->zombie_children = ListNewList();
+}
+
+void KillCurrentProc() {
+    // TODO
 }
