@@ -66,7 +66,7 @@ int SetKernelBrk(void *addr) {
     unsigned int new_kernel_brk_page = ADDR_TO_PAGE(addr - 1) + 1;
 
     // Ensure we aren't imposing on kernel stack limits.
-    if (addr > (unsigned int) KERNEL_STACK_BASE) {
+    if (((unsigned int) addr) > KERNEL_STACK_BASE) {
         TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM,
                 "Address passed to SetKernelBrk() (%p) is greater than kernel stack base (%p).\n",
                 addr, KERNEL_STACK_BASE);
