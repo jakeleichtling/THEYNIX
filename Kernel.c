@@ -31,7 +31,7 @@ void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {
     pipes = ListNewList();
 
     ttys = (Tty *) malloc(NUM_TERMINALS * sizeof(Tty));
-    int i;
+    unsigned int i;
     for (i = 0; i < NUM_TERMINALS; i++) {
         TtyInit(&ttys[i]);
     }
@@ -46,6 +46,27 @@ void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {
     // Initialize the interrupt vector table.
 
     // Initialize the REG_VECTOR_BASE register to point to the interrupt vector table.
+
+    // Build the initial page table for region 0 such that page = frame for all valid pages.
+    region_0_page_table = malloc(VMEM_0_SIZE * sizeof(struct pte));
+    for (i = 0; i < VMEM_0_SIZE / PAGESIZE; i++) {
+        region_0_page_table[i].valid = 0;
+    }
+    for (i = 0; i < kernel_brk_page; i++) {
+        region_0_page_table[i].valid = 1;
+        region_0_page_table[i].pfn = i;
+
+        unsigned int prot = PROT_NONE;
+        if (i > kernel_data_start_page) {
+            prot |= PROT_READ | PROT_WRITE;
+        }
+        if (i <= kernel_text_end_page) {
+            prot |= PROT_READ | PROT_EXEC;
+        }
+        region_0_page_table[i].prot = prot;
+
+        MarkFrameAsUsed(unused_frames, i);
+    }
 
     // Build the initial page table for regions 0 and 1 such that physical address =
     // virtual address for all used frames, and initialize REG_PTBR0,
@@ -73,28 +94,30 @@ int SetKernelBrk(void *addr) {
         return -1;
     }
 
-    // Give the kernel heap more frames or take some away.
-    unsigned int kernel_stack_base_frame = ADDR_TO_PAGE(KERNEL_STACK_BASE);
-    if (new_kernel_brk_page > kernel_brk_page) {
-        unsigned int new_page;
-        for (new_page = kernel_brk_page;
-                new_page < new_kernel_brk_page && new_page < kernel_stack_base_frame;
-                new_page++) {
-            int rc = MapNewFrame(new_page);
-            if (rc == EXIT_FAILURE) {
-                TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM,
-                        "MapNewFrame(%u) failed.", new_page);
-                return EXIT_FAILURE;
+    // If virtual memory is enabled, give the kernel heap more frames or take some away.
+    if (virtual_memory_enabled) {
+        unsigned int kernel_stack_base_frame = ADDR_TO_PAGE(KERNEL_STACK_BASE);
+        if (new_kernel_brk_page > kernel_brk_page) {
+            unsigned int new_page;
+            for (new_page = kernel_brk_page;
+                    new_page < new_kernel_brk_page && new_page < kernel_stack_base_frame;
+                    new_page++) {
+                int rc = MapNewFrame(new_page);
+                if (rc == EXIT_FAILURE) {
+                    TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM,
+                            "MapNewFrame(%u) failed.", new_page);
+                    return EXIT_FAILURE;
+                }
             }
+        } else if (new_kernel_brk_page < kernel_brk_page) {
+            unsigned int page_to_free;
+            for (page_to_free = kernel_brk_page - 1;
+                    page_to_free >= new_kernel_brk_page;
+                    page_to_free--)
+                if (page_to_free < kernel_stack_base_frame) {
+                    UnmapUsedFrame(page_to_free);
+                }
         }
-    } else if (new_kernel_brk_page < kernel_brk_page) {
-        unsigned int page_to_free;
-        for (page_to_free = kernel_brk_page - 1;
-                page_to_free >= new_kernel_brk_page;
-                page_to_free--)
-            if (page_to_free < kernel_stack_base_frame) {
-                UnmapUsedFrame(page_to_free);
-            }
     }
 
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< SetKernelBrk()\n\n");
@@ -115,4 +138,5 @@ int MapNewFrame(unsigned int page_numer) {
 */
 int UnmapUsedFrame(unsigned int page_number) {
     // TODO
+    // Don't forget to flush!
 }

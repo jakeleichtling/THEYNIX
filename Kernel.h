@@ -37,6 +37,8 @@ unsigned int kernel_data_start_page;
 // and including, this page should have PROT_READ | PROT_EXEC permissions.
 unsigned int kernel_text_end_page;
 
+struct pte *region_0_page_table;
+
 /* Function Prototypes */
 
 void SetKernelData(void *_KernelDataStart, void *_KernelDataEnd);

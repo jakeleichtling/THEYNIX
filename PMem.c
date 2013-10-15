@@ -5,7 +5,7 @@
 /*
   Returns a pointer to a new UnusedFrames object with all of the frames initially unused.
 */
-UnusedFrames NewUnusedFrames(unsigned int pmem_size, unsigned int lowest_unused_page) {
+UnusedFrames NewUnusedFrames(unsigned int pmem_size) {
     assert(pmem_size > 0);
 
     unsigned int num_pages = pmem_size / PAGESIZE;
@@ -13,11 +13,7 @@ UnusedFrames NewUnusedFrames(unsigned int pmem_size, unsigned int lowest_unused_
 
     unsigned int i;
     for (i = 0; i < num_pages; i++) {
-        if (i >= lowest_unused_page) {
-            unused_frames[i] = true;
-        } else {
-            unused_frames[i] = false;
-        }
+        unused_frames[i] = true;
     }
 }
 
@@ -37,6 +33,16 @@ int GetUnusedFrame(UnusedFrames unused_frames) {
     }
 
     return -1;
+}
+
+/*
+  Marks the given unused frame as used.
+*/
+int MarkFrameAsUsed(UnusedFrames unused_frames, unsigned int frame) {
+    assert(unused_frames);
+    assert(unused_frames[frame]);
+
+    unused_frames[frame] = false;
 }
 
 /*
