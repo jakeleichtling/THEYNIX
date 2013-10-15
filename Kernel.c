@@ -75,9 +75,9 @@ int SetKernelBrk(void *addr) {
 
     // Give the kernel heap more frames or take some away.
     unsigned int kernel_stack_base_frame = ADDR_TO_PAGE(KERNEL_STACK_BASE);
-    if (new_kernel_brk_page > kernel_break_page) {
+    if (new_kernel_brk_page > kernel_brk_page) {
         unsigned int new_page;
-        for (new_page = kernel_break_page;
+        for (new_page = kernel_brk_page;
                 new_page < new_kernel_brk_page && new_page < kernel_stack_base_frame;
                 new_page++) {
             int rc = MapNewFrame(new_page);
@@ -87,9 +87,9 @@ int SetKernelBrk(void *addr) {
                 return EXIT_FAILURE;
             }
         }
-    } else if (new_kernel_brk_page < kernel_break_page) {
+    } else if (new_kernel_brk_page < kernel_brk_page) {
         unsigned int page_to_free;
-        for (page_to_free = kernel_break_page - 1;
+        for (page_to_free = kernel_brk_page - 1;
                 page_to_free >= new_kernel_brk_page;
                 page_to_free--)
             if (page_to_free < kernel_stack_base_frame) {
@@ -98,7 +98,7 @@ int SetKernelBrk(void *addr) {
     }
 
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< SetKernelBrk()\n\n");
-    kernel_break_page = new_kernel_brk_page;
+    kernel_brk_page = new_kernel_brk_page;
     return 0;
 }
 
