@@ -9,12 +9,12 @@
   Retrieves an unused frame, marks it as used, and maps the given region 0 page number
   to the frame. Returns -1 on failure.
 */
-int MapNewFrame(unsigned int page_numer);
+int MapNewFrame(unsigned int page_number);
 
 /*
   Unmaps a valid page, freeing the frame the page was mapped to. Returns -1 on failure.
 */
-int UnmapUsedFrame(unsigned int page_number);
+void UnmapUsedFrame(unsigned int page_number);
 
 /* Function Implementations */
 
@@ -49,12 +49,17 @@ void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {
 
     // Build the initial page table for region 0 such that page = frame for all valid pages.
     region_0_page_table = (struct pte *) malloc(VMEM_0_SIZE * sizeof(struct pte));
+
+    // Clear the valid bit of all PTEs.
     for (i = 0; i < VMEM_0_SIZE / PAGESIZE; i++) {
         region_0_page_table[i].valid = 0;
     }
+
+    // Create the PTEs for the kernel text and data with the proper protections.
     for (i = 0; i < kernel_brk_page; i++) {
         region_0_page_table[i].valid = 1;
         region_0_page_table[i].pfn = i;
+        MarkFrameAsUsed(unused_frames, i);
 
         unsigned int prot = PROT_NONE;
         if (i > kernel_data_start_page) {
@@ -64,9 +69,20 @@ void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {
             prot |= PROT_READ | PROT_EXEC;
         }
         region_0_page_table[i].prot = prot;
-
-        MarkFrameAsUsed(unused_frames, i);
     }
+
+    // Create the PTEs for the original kernel stack with the proper protections.
+    for (i = KERNEL_STACK_BASE; i < KERNEL_STACK_LIMIT; i++) {
+        region_0_page_table[i].valid = 1;
+        region_0_page_table[i].pfn = i;
+        MarkFrameAsUsed(unused_frames, i);
+
+        region_0_page_table[i].prot = PROT_READ | PROT_WRITE;
+    }
+
+    // Set the TLB registers for the region 0 page table.
+    WriteRegister(REG_PTBR0, (unsigned int) region_0_page_table);
+    WriteRegister(REG_PTLR0, VMEM_0_SIZE / PAGESIZE);
 
     // Build the initial page table for regions 0 and 1 such that physical address =
     // virtual address for all used frames, and initialize REG_PTBR0,
@@ -105,7 +121,7 @@ int SetKernelBrk(void *addr) {
                 int rc = MapNewFrame(new_page);
                 if (rc == EXIT_FAILURE) {
                     TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM,
-                            "MapNewFrame(%u) failed.", new_page);
+                            "MapNewFrame(%u) failed.\n", new_page);
                     return EXIT_FAILURE;
                 }
             }
@@ -129,14 +145,42 @@ int SetKernelBrk(void *addr) {
   Retrieves an unused frame, marks it as used, and maps the given region 0 page number
   to the frame. Returns -1 on failure.
 */
-int MapNewFrame(unsigned int page_numer) {
-    // TODO
+int MapNewFrame(unsigned int page_number) {
+    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> MapNewFrame(%u)\n", page_number);
+
+    assert(page_number < VMEM_0_LIMIT / PAGESIZE)
+
+    int new_frame = GetUnusedFrame(unused_frames);
+    if (new_frame == EXIT_FAILURE) {
+        TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "GetUnusedFrame() failed.\n");
+        return EXIT_FAILURE;
+    }
+
+    assert(!region_0_page_table[page_number].valid);
+
+    region_0_page_table[page_number].valid = 1;
+    region_0_page_table[page_number].pfn = new_frame;
+    region_0_page_table[page_number].prot = PROT_READ | PROT_WRITE;
+
+    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< MapNewFrame()\n\n");
+    return EXIT_SUCCESS;
 }
 
 /*
-  Unmaps a valid page, freeing the frame the page was mapped to. Returns -1 on failure.
+  Unmaps a valid page, freeing the frame the page was mapped to.
 */
-int UnmapUsedFrame(unsigned int page_number) {
-    // TODO
-    // Don't forget to flush!
+void UnmapUsedFrame(unsigned int page_number) {
+    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> UnmapUsedFrame(%u)\n", page_number);
+
+    assert(page_number < VMEM_0_LIMIT / PAGESIZE)
+    assert(region_0_page_table[page_number].valid);
+
+    unsigned int used_frame = region_0_page_table[page_number].pfn;
+    ReleaseUsedFrame(unused_frames, used_frame);
+
+    region_0_page_table[page_number].valid = 0;
+    WriteRegister(REG_TLB_FLUSH, &region_0_page_table[page_number]);
+
+    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< UnmapUsedFrame()\n\n");
+    return EXIT_SUCCESS;
 }
