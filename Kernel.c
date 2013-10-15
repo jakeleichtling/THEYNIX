@@ -104,7 +104,7 @@ void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {
     CreateRegion1PageTable(current_proc);
 
     // Set the TLB registers for the region 1 page table.
-    WriteRegister(REG_PTBR1, (unsigned int) pcb->region_1_page_table);
+    WriteRegister(REG_PTBR1, (unsigned int) current_proc->region_1_page_table);
     WriteRegister(REG_PTLR1, VMEM_1_SIZE / PAGESIZE);
 
     // Create the idle process and put it on the ready queue.
