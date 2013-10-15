@@ -86,7 +86,7 @@ void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {
 
         current_proc->kernel_stack_page_table[i].prot = PROT_READ | PROT_WRITE;
     }
-    UseKernelStackForProc(current_proc)
+    UseKernelStackForProc(current_proc);
 
     // Set the TLB registers for the region 0 page table.
     WriteRegister(REG_PTBR0, (unsigned int) region_0_page_table);
