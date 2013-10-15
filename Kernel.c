@@ -40,7 +40,7 @@ void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {
     ready_queue = ListNewList();
     clock_block_procs = ListNewList();
 
-    unused_frames = NewUnusedFrames(pmem_size, kernel_brk_page);
+    unused_frames = NewUnusedFrames(pmem_size);
     virtual_memory_enabled = false;
 
     // Initialize the interrupt vector table.
