@@ -5,6 +5,7 @@
 #include "PCB.h"
 #include "include/hardware.h"
 #include <stdbool.h>
+#include <stdlib.h>
 
 void TrapKernel() {}
 
@@ -32,13 +33,13 @@ void TrapMemory() {
                 int new_frame = GetUnusedFrame(unused_frames);
                 if (new_frame == EXIT_FAILURE) {
                     TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "GetUnusedFrame() failed.\n");
-                    return EXIT_FAILURE;
+                    //TODO: how to handle running out of mem?
                 }
-                assert(!current_proc->region_1_page_table[page_number].valid);
+                assert(!current_proc->region_1_page_table[page_to_alloc].valid);
 
-                current_proc->region_1_page_table[page_number].valid = 1;
-                current_proc->region_1_page_table[page_number].pfn = new_frame;
-                current_proc->region_1_page_table[page_number].prot = PROT_READ | PROT_WRITE;
+                current_proc->region_1_page_table[page_to_alloc].valid = 1;
+                current_proc->region_1_page_table[page_to_alloc].pfn = new_frame;
+                current_proc->region_1_page_table[page_to_alloc].prot = PROT_READ | PROT_WRITE;
 
                 --page_to_alloc;
             }
@@ -52,7 +53,7 @@ void TrapMemory() {
             }
             KillCurrentProc();
         }
-    } else if {YALNIX_ACCERR == code) { // "invalid permissions"
+    } else if (YALNIX_ACCERR == code) { // "invalid permissions"
         TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "Invalid memory permission at %p.\n", addr);
         KillCurrentProc();
     } else {
@@ -72,19 +73,19 @@ void TrapNotDefined() {
 }
 
 void TrapTableInit() {
-    int *table = malloc(sizeof(int) * TRAP_VECTOR_SIZE);
+    unsigned int *table = malloc(sizeof(unsigned int) * TRAP_VECTOR_SIZE);
 
     // Initialize all valid trap vector entries
     for (int *t = table, i = 0; i < TRAP_VECTOR_SIZE; t++, i++) {
-        t[i] = &TrapNotDefined;
+        t[i] = (unsigned int) &TrapNotDefined;
     }
 
-    table[TRAP_KERNEL] = &TrapKernel;
-    table[TRAP_CLOCK] = &TrapClock;
-    table[TRAP_MEMORY] = &TrapMemory;
-    table[TRAP_MATH] = &TrapMath;
-    table[TRAP_TTY_RECIEVE] = &TrapTtyRecieve;
-    table[TRAP_TTY_TRANSMIT] = &TrapTtyTransmit;
+    table[TRAP_KERNEL] = (unsigned int) &TrapKernel;
+    table[TRAP_CLOCK] = (unsigned int) &TrapClock;
+    table[TRAP_MEMORY] = (unsigned int) &TrapMemory;
+    table[TRAP_MATH] = (unsigned int) &TrapMath;
+    table[TRAP_TTY_RECEIVE] = (unsigned int) &TrapTtyRecieve;
+    table[TRAP_TTY_TRANSMIT] = (unsigned int) &TrapTtyTransmit;
 
     WriteRegister(REG_VECTOR_BASE, (unsigned int) table);
 }
