@@ -172,7 +172,7 @@ int MapNewFrame(unsigned int page_number) {
 void UnmapUsedFrame(unsigned int page_number) {
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> UnmapUsedFrame(%u)\n", page_number);
 
-    assert(page_number < VMEM_0_LIMIT / PAGESIZE)
+    assert(page_number < VMEM_0_LIMIT / PAGESIZE);
     assert(region_0_page_table[page_number].valid);
 
     unsigned int used_frame = region_0_page_table[page_number].pfn;
