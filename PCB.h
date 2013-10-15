@@ -41,4 +41,6 @@ struct PCB {
     int pipe_read_len;
 };
 
+void KillCurrentProc();
+
 #endif

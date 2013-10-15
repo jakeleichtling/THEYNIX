@@ -39,4 +39,8 @@ call TtyTransmit with new len and pointer, and return.
 
 */
 
+// Mallocs and inits TRAP table.
+// Writes address to REG_VECTOR_BASE.
+void TrapTableInit();
+
 #endif
