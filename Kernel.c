@@ -89,8 +89,12 @@ void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {
     // REG_PTLR0, REG_PTBR1, and REG_PTLR1
 
     // Enable virtual memory. Wooooo!
+    TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Enabling virtual memory. Wooooo!");
     WriteRegister(REG_VM_ENABLE, 1);
     virtual_memory_enabled = true;
+
+    // Build the initial page table for region 1
+
 
     // Create the idle process and put it on the ready queue.
 
