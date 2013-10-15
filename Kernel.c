@@ -182,5 +182,4 @@ void UnmapUsedFrame(unsigned int page_number) {
     WriteRegister(REG_TLB_FLUSH, (unsigned int) &region_0_page_table[page_number]);
 
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< UnmapUsedFrame()\n\n");
-    return EXIT_SUCCESS;
 }
