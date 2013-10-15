@@ -25,7 +25,6 @@ struct PCB {
 
     int lowest_user_stack_page;
     int user_brk_page;
-    int lowest_kernel_stack_page;
 
     int exit_status;
 
