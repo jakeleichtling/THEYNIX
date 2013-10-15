@@ -14,7 +14,7 @@ struct PCB {
      UserContext *user_context;
      KernelContext *kernel_context;
 
-    struct pte *region_0_page_table;
+    struct pte *kernel_stack_page_table;
     struct pte *region_1_page_table;
 
     PCB *live_parent;
