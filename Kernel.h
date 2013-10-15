@@ -30,12 +30,12 @@ bool virtual_memory_enabled;
 // The lowest page number not in use by the kernel's data segment. Starting at
 // kernel_data_start_page and covering up to, but not including, this page should have
 // PROT_READ | PROT_WRITE permissions.
-int kernel_brk_page;
+unsigned int kernel_brk_page;
 // The lowest page number used by the kernel's data segment.
-int kernel_data_start_page;
+unsigned int kernel_data_start_page;
 // The lowest page number not in use by the kernel's text segment. The pages covering up to,
 // and including, this page should have PROT_READ | PROT_EXEC permissions.
-int kernel_text_end_page;
+unsigned int kernel_text_end_page;
 
 /* Function Prototypes */
 
