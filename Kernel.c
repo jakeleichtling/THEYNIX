@@ -48,7 +48,7 @@ void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {
     // Initialize the REG_VECTOR_BASE register to point to the interrupt vector table.
 
     // Build the initial page table for region 0 such that page = frame for all valid pages.
-    region_0_page_table = malloc(VMEM_0_SIZE * sizeof(struct pte));
+    region_0_page_table = (struct pte *) malloc(VMEM_0_SIZE * sizeof(struct pte));
     for (i = 0; i < VMEM_0_SIZE / PAGESIZE; i++) {
         region_0_page_table[i].valid = 0;
     }
