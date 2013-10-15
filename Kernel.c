@@ -2,6 +2,7 @@
 
 #include "Kernel.h"
 #include "Log.h"
+#include "VMem.h"
 
 /* Function Prototypes */
 
@@ -41,7 +42,6 @@ void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {
         TtyInit(&ttys[i]);
     }
 
-    //current_proc =
     ready_queue = ListNewList();
     clock_block_procs = ListNewList();
 
@@ -51,6 +51,9 @@ void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {
     // Initialize the interrupt vector table.
 
     // Initialize the REG_VECTOR_BASE register to point to the interrupt vector table.
+
+    // Create the current process
+    current_proc = NewBlankPCB(uctxt);
 
     // Build the initial page table for region 0 such that page = frame for all valid pages.
     region_0_page_table = (struct pte *) malloc(VMEM_0_SIZE * sizeof(struct pte));
@@ -76,7 +79,7 @@ void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {
         region_0_page_table[i].prot = prot;
     }
 
-    // Create the PTEs for the original kernel stack with the proper protections.
+    // Create the PTEs for the proc's kernel stack with page = frame and the proper protections.
     current_proc->kernel_stack_page_table =
             (struct pte *) malloc(KERNEL_STACK_MAXSIZE * sizeof(struct pte));
     for (i = 0; i < KERNEL_STACK_MAXSIZE; i++) {
@@ -92,17 +95,17 @@ void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {
     WriteRegister(REG_PTBR0, (unsigned int) region_0_page_table);
     WriteRegister(REG_PTLR0, VMEM_0_SIZE / PAGESIZE);
 
-    // Build the initial page table for regions 0 and 1 such that physical address =
-    // virtual address for all used frames, and initialize REG_PTBR0,
-    // REG_PTLR0, REG_PTBR1, and REG_PTLR1
-
     // Enable virtual memory. Wooooo!
     TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Enabling virtual memory. Wooooo!");
     WriteRegister(REG_VM_ENABLE, 1);
     virtual_memory_enabled = true;
 
-    // Build the initial page table for region 1
-    current_proc->
+    // Create the proc's page table for region 1.
+    CreateRegion1PageTable(current_proc);
+
+    // Set the TLB registers for the region 1 page table.
+    WriteRegister(REG_PTBR1, (unsigned int) pcb->region_1_page_table);
+    WriteRegister(REG_PTLR1, VMEM_1_SIZE / PAGESIZE);
 
     // Create the idle process and put it on the ready queue.
 

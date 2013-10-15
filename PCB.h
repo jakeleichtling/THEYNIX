@@ -5,6 +5,8 @@
 
 #include "hardware.h"
 
+/* Struct */
+
 /*
   Process Control Block: A struct for keeping track of the various data associated with a given
   user process.
@@ -39,5 +41,12 @@ struct PCB {
 
     int pipe_read_len;
 };
+
+/* Function Prototypes */
+
+/*
+  Returns a PCB with the given UserContext deep cloned and its lists initialized.
+*/
+PCB *NewBlankPCB(UserContext *model_user_context);
 
 #endif
