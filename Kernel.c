@@ -16,6 +16,11 @@ int MapNewFrame(unsigned int page_number);
 */
 void UnmapUsedFrame(unsigned int page_number);
 
+/*
+  Copies the given kernel stack page table into the region 0 page table. Does not flush the TLB.
+*/
+void UseKernelStackForProc(struct pte *kernel_stack_page_table);
+
 /* Function Implementations */
 
 void SetKernelData(void *_KernelDataStart, void *_KernelDataEnd) {
@@ -72,13 +77,16 @@ void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {
     }
 
     // Create the PTEs for the original kernel stack with the proper protections.
-    for (i = KERNEL_STACK_BASE; i < KERNEL_STACK_LIMIT; i++) {
-        region_0_page_table[i].valid = 1;
-        region_0_page_table[i].pfn = i;
+    current_proc->kernel_stack_page_table =
+            (struct pte *) malloc(KERNEL_STACK_MAXSIZE * sizeof(struct pte));
+    for (i = 0; i < KERNEL_STACK_MAXSIZE; i++) {
+        current_proc->kernel_stack_page_table[i].valid = 1;
+        current_proc->kernel_stack_page_table[i].pfn = i;
         MarkFrameAsUsed(unused_frames, i);
 
-        region_0_page_table[i].prot = PROT_READ | PROT_WRITE;
+        current_proc->kernel_stack_page_table[i].prot = PROT_READ | PROT_WRITE;
     }
+    UseKernelStackForProc(current_proc)
 
     // Set the TLB registers for the region 0 page table.
     WriteRegister(REG_PTBR0, (unsigned int) region_0_page_table);
@@ -94,7 +102,7 @@ void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {
     virtual_memory_enabled = true;
 
     // Build the initial page table for region 1
-
+    current_proc->
 
     // Create the idle process and put it on the ready queue.
 
@@ -186,4 +194,14 @@ void UnmapUsedFrame(unsigned int page_number) {
     WriteRegister(REG_TLB_FLUSH, (unsigned int) &region_0_page_table[page_number]);
 
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< UnmapUsedFrame()\n\n");
+}
+
+/*
+  Copies the given kernel stack page table into the region 0 page table. Does not flush the TLB.
+*/
+void UseKernelStackForProc(struct pte *kernel_stack_page_table) {
+    unsigned int i;
+    for (i = KERNEL_STACK_BASE; i < KERNEL_STACK_LIMIT; i++) {
+        region_0_page_table[i] = kernel_stack_page_table[i];
+    }
 }
