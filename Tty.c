@@ -8,9 +8,9 @@
 void TtyInit(Tty *tty) {
     assert(tty);
 
-    tty->line_buffers = NewList();
+    tty->line_buffers = ListNewList();
 
-    tty->waiting_to_receive = NewList();
+    tty->waiting_to_receive = ListNewList();
 
-    tty->waitingToTransmit = NewList();
+    tty->waitingToTransmit = ListNewList();
 }
