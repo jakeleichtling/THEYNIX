@@ -120,7 +120,7 @@ void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {
     WriteRegister(REG_PTLR1, VMEM_1_SIZE / PAGESIZE);
 
     // Make the current process the Idle process.
-    current_proc->user_context->pc = &Idle();
+    current_proc->user_context->pc = &Idle;
 
     // Create the first process (see template.c) and load the initial program into it.
 }
