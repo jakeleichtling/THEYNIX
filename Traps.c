@@ -31,7 +31,7 @@ void TrapMemory() {
             unsigned int page_to_alloc = current_proc->lowest_user_stack_page - 1;
             while (page_to_alloc >= addr_page) {
                 int new_frame = GetUnusedFrame(unused_frames);
-                if (new_frame == EXIT_FAILURE) {
+                if (new_frame == THEYNIX_EXIT_FAILURE) {
                     TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "GetUnusedFrame() failed.\n");
                     //TODO: how to handle running out of mem?
                 }
