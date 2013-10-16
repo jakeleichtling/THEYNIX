@@ -1,6 +1,8 @@
-#include <assert.h>
-
 #include "Kernel.h"
+
+#include <assert.h>
+#include <stdlib.h>
+
 #include "Log.h"
 #include "VMem.h"
 
@@ -21,6 +23,11 @@ void UnmapUsedFrame(unsigned int page_number);
   Copies the given kernel stack page table into the region 0 page table. Does not flush the TLB.
 */
 void UseKernelStackForProc(PCB *pcb);
+
+/*
+  Infinite loop that calls Pause() on each iteration.
+*/
+void Idle();
 
 /* Function Implementations */
 
@@ -48,9 +55,9 @@ void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {
     unused_frames = NewUnusedFrames(pmem_size);
     virtual_memory_enabled = false;
 
-    // Initialize the interrupt vector table.
-
-    // Initialize the REG_VECTOR_BASE register to point to the interrupt vector table.
+    // Initialize the interrupt vector table and write the base address
+    // to the REG_VECTOR_BASE register
+    TrapTableInit();
 
     // Create the current process
     current_proc = NewBlankPCB(uctxt);
@@ -107,7 +114,9 @@ void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {
     WriteRegister(REG_PTBR1, (unsigned int) current_proc->region_1_page_table);
     WriteRegister(REG_PTLR1, VMEM_1_SIZE / PAGESIZE);
 
-    // Create the idle process and put it on the ready queue.
+    // Make the current process the Idle process.
+    current_proc->user_context->pc = &Idle;
+    *uctxt = *(current_proc->user_context);
 
     // Create the first process (see template.c) and load the initial program into it.
 }
@@ -134,10 +143,10 @@ int SetKernelBrk(void *addr) {
                     new_page < new_kernel_brk_page && new_page < kernel_stack_base_frame;
                     new_page++) {
                 int rc = MapNewFrame(new_page);
-                if (rc == EXIT_FAILURE) {
+                if (rc == THEYNIX_EXIT_FAILURE) {
                     TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM,
                             "MapNewFrame(%u) failed.\n", new_page);
-                    return EXIT_FAILURE;
+                    return THEYNIX_EXIT_FAILURE;
                 }
             }
         } else if (new_kernel_brk_page < kernel_brk_page) {
@@ -166,9 +175,9 @@ int MapNewFrame(unsigned int page_number) {
     assert(page_number < VMEM_0_LIMIT / PAGESIZE);
 
     int new_frame = GetUnusedFrame(unused_frames);
-    if (new_frame == EXIT_FAILURE) {
+    if (new_frame == THEYNIX_EXIT_FAILURE) {
         TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "GetUnusedFrame() failed.\n");
-        return EXIT_FAILURE;
+        return THEYNIX_EXIT_FAILURE;
     }
 
     assert(!region_0_page_table[page_number].valid);
@@ -178,7 +187,7 @@ int MapNewFrame(unsigned int page_number) {
     region_0_page_table[page_number].prot = PROT_READ | PROT_WRITE;
 
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< MapNewFrame()\n\n");
-    return EXIT_SUCCESS;
+    return THEYNIX_EXIT_SUCCESS;
 }
 
 /*
@@ -206,5 +215,15 @@ void UseKernelStackForProc(PCB *pcb) {
     unsigned int i;
     for (i = KERNEL_STACK_BASE; i < KERNEL_STACK_LIMIT; i++) {
         region_0_page_table[i] = pcb->kernel_stack_page_table[i];
+    }
+}
+
+/*
+  Infinite loop that calls Pause() on each iteration.
+*/
+void Idle() {
+    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> Idle()\n");
+    while (true) {
+        Pause();
     }
 }

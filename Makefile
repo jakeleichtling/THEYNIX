@@ -1,6 +1,6 @@
 #
 #	Sample Makefile for Yalnix kernel and user programs.
-#	
+#
 #	Prepared by Sean Smith and Adam Salem and various Yalnix developers
 #	of years past...
 #
@@ -21,28 +21,28 @@
 ALL = $(KERNEL_ALL) $(USER_APPS)
 KERNEL_ALL = yalnix
 
-#List all kernel source files here.  
-KERNEL_SRCS = Kernel.c SystemCalls.c List.c Traps.c PCB.c PMem.c
+#List all kernel source files here.
+KERNEL_SRCS = Kernel.c PCB.c SystemCalls.c Traps.c VMem.c List.c PMem.c Tty.c
 #List the objects to be formed form the kernel source files here.  Should be the same as the prvious list, replacing ".c" with ".o"
-KERNEL_OBJS = Kernel.o SystemCalls.o List.o Traps.o PCB.o PMem.o
+KERNEL_OBJS = Kernel.o PCB.o SystemCalls.o Traps.o VMem.o List.o PMem.o Tty.o
 #List all of the header files necessary for your kernel
-KERNEL_INCS = CVar.h Kernel.h List.h Lock.h PCB.h PMem.h Pipe.h SystemCalls.h Traps.h Tty.h include/hardware.h
+KERNEL_INCS = CVar.h Lock.h PMem.h Traps.h Kernel.h Log.h Pipe.h Tty.h List.h PCB.h SystemCalls.h VMem.h
 
 #List all user programs here.
-USER_APPS = 
+USER_APPS =
 #List all user program source files here.  SHould be the same as the previous list, with ".c" added to each file
-USER_SRCS = 
+USER_SRCS =
 #List the objects to be formed form the user  source files here.  Should be the same as the prvious list, replacing ".c" with ".o"
-USER_OBJS = 
+USER_OBJS =
 #List all of the header files necessary for your user programs
-USER_INCS = 
+USER_INCS =
 
 #write to output program yalnix
 YALNIX_OUTPUT = yalnix
 
 #
 #	These definitions affect how your kernel is compiled and linked.
-#       The kernel requires -DLINUX, to 
+#       The kernel requires -DLINUX, to
 #	to add something like -g here, that's OK.
 #
 
@@ -57,7 +57,7 @@ INCDIR = $(DDIR58)/include
 ETCDIR = $(DDIR58)/etc
 
 # any extra loading flags...
-LD_EXTRA = 
+LD_EXTRA =
 
 KERNEL_LIBS = $(LIBDIR)/libkernel.a $(LIBDIR)/libhardware.so
 
@@ -74,7 +74,7 @@ LINK_KERNEL = $(LINK.c)
 
 USER_LIBS = $(LIBDIR)/libuser.a
 ASFLAGS = -D__ASM__
-CPPFLAGS= -std=c99 -m32 -fno-builtin -I. -I$(INCDIR) -g -DLINUX 
+CPPFLAGS= -m32 -fno-builtin -I. -I$(INCDIR) -g -DLINUX
 
 
 ##########################
@@ -89,11 +89,10 @@ CPPFLAGS= -std=c99 -m32 -fno-builtin -I. -I$(INCDIR) -g -DLINUX
 # %.o: %.c: rules for setting up dependencies.  Don't use this directly
 # %: %.o: rules for setting up dependencies.  Don't use this directly
 
-all: $(ALL)	
+all: $(ALL)
 
 clean:
 	rm -f *.o *~ TTYLOG* TRACE $(YALNIX_OUTPUT) $(USER_APPS)  core.*
-	rm -f TestDriver
 
 count:
 	wc $(KERNEL_SRCS) $(USER_SRCS)
@@ -106,9 +105,6 @@ kill:
 
 no-core:
 	rm -f core.*
-
-test: List.c List.h TestDriver.c
-	gcc -g -Wall -o TestDriver List.c List.h TestDriver.c
 
 $(KERNEL_ALL): $(KERNEL_OBJS) $(KERNEL_LIBS) $(KERNEL_INCS)
 	$(LINK_KERNEL) -o $@ $(KERNEL_OBJS) $(KERNEL_LDFLAGS)
