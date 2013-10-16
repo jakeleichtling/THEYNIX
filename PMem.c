@@ -19,8 +19,8 @@ UnusedFrames NewUnusedFrames(unsigned int pmem_size) {
     num_pages = pmem_size / PAGESIZE;
     UnusedFrames unused_frames = malloc(num_pages * sizeof(bool));
     assert(unused_frames);
-
-    for (unsigned int i = 0; i < num_pages; i++) {
+    unsigned int i;
+    for (i = 0; i < num_pages; i++) {
         unused_frames[i] = true;
     }
 
@@ -35,8 +35,8 @@ int GetUnusedFrame(UnusedFrames unused_frames) {
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> GetUnusedFrame()\n");
 
     assert(unused_frames);
-
-    for (unsigned int i = 0; i < num_pages; i++) {
+    unsigned int i;
+    for (i = 0; i < num_pages; i++) {
         if (unused_frames[i]) {
             unused_frames[i] = false;
             TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< GetUnusedFrame() --> %d\n\n", i);
