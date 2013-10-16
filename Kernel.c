@@ -27,12 +27,7 @@ void UseKernelStackForProc(PCB *pcb);
 /*
   Infinite loop that calls Pause() on each iteration.
 */
-void Idle() {
-    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> Idle()\n");
-    while (true) {
-        Pause();
-    }
-}
+void Idle();
 
 /* Function Implementations */
 
