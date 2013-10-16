@@ -12,5 +12,5 @@ void TtyInit(Tty *tty) {
 
     tty->waiting_to_receive = ListNewList();
 
-    tty->waitingToTransmit = ListNewList();
+    tty->waiting_to_transmit = ListNewList();
 }
