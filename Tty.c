@@ -1,3 +1,5 @@
+#include "Tty.h"
+
 #include <assert.h>
 
 /*
