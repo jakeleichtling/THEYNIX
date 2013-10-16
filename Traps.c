@@ -78,7 +78,9 @@ void TrapTableInit() {
     unsigned int *table = malloc(sizeof(unsigned int) * TRAP_VECTOR_SIZE);
 
     // Initialize all valid trap vector entries
-    for (int *t = table, i = 0; i < TRAP_VECTOR_SIZE; t++, i++) {
+    unsigned int *t;
+    int i;
+    for (t = table, i = 0; i < TRAP_VECTOR_SIZE; t++, i++) {
         t[i] = (unsigned int) &TrapNotDefined;
     }
 
