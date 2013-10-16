@@ -63,7 +63,7 @@ void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {
     current_proc = NewBlankPCB(uctxt);
 
     // Build the initial page table for region 0 such that page = frame for all valid pages.
-    region_0_page_table = (struct pte *) malloc(VMEM_0_SIZE * sizeof(struct pte));
+    region_0_page_table = (struct pte *) malloc(VMEM_0_SIZE / PAGESIZE * sizeof(struct pte));
 
     // Clear the valid bit of all PTEs.
     for (i = 0; i < VMEM_0_SIZE / PAGESIZE; i++) {
