@@ -1,3 +1,5 @@
+#include "PCB.h"
+
 /*
   Functions for dealing with virtual memory.
 */
