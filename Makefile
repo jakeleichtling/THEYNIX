@@ -74,7 +74,7 @@ LINK_KERNEL = $(LINK.c)
 
 USER_LIBS = $(LIBDIR)/libuser.a
 ASFLAGS = -D__ASM__
-CPPFLAGS= -m32 -fno-builtin -I. -I$(INCDIR) -g -DLINUX
+CPPFLAGS= -m32 -fno-builtin -I. -I$(INCDIR) -g -DLINUX -std=c99
 
 
 ##########################
