@@ -24,6 +24,16 @@ void UnmapUsedFrame(unsigned int page_number);
 */
 void UseKernelStackForProc(PCB *pcb);
 
+/*
+  Infinite loop that calls Pause() on each iteration.
+*/
+void Idle() {
+    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> Idle()\n");
+    while (true) {
+        Pause();
+    }
+}
+
 /* Function Implementations */
 
 void SetKernelData(void *_KernelDataStart, void *_KernelDataEnd) {
@@ -50,9 +60,9 @@ void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {
     unused_frames = NewUnusedFrames(pmem_size);
     virtual_memory_enabled = false;
 
-    // Initialize the interrupt vector table.
-
-    // Initialize the REG_VECTOR_BASE register to point to the interrupt vector table.
+    // Initialize the interrupt vector table and write the base address
+    // to the REG_VECTOR_BASE register
+    TrapTableInit();
 
     // Create the current process
     current_proc = NewBlankPCB(uctxt);
@@ -109,7 +119,8 @@ void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {
     WriteRegister(REG_PTBR1, (unsigned int) current_proc->region_1_page_table);
     WriteRegister(REG_PTLR1, VMEM_1_SIZE / PAGESIZE);
 
-    // Create the idle process and put it on the ready queue.
+    // Make the current process the Idle process.
+    current_proc->user_context->pc = &Idle();
 
     // Create the first process (see template.c) and load the initial program into it.
 }
@@ -208,5 +219,15 @@ void UseKernelStackForProc(PCB *pcb) {
     unsigned int i;
     for (i = KERNEL_STACK_BASE; i < KERNEL_STACK_LIMIT; i++) {
         region_0_page_table[i] = pcb->kernel_stack_page_table[i];
+    }
+}
+
+/*
+  Infinite loop that calls Pause() on each iteration.
+*/
+void Idle() {
+    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> Idle()\n");
+    while (true) {
+        Pause();
     }
 }
