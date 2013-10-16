@@ -116,7 +116,7 @@ void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {
 
     // Make the current process the Idle process.
     current_proc->user_context->pc = &Idle;
-    *uctxt = *(current_proc->user_context->pc);
+    *uctxt = *(current_proc->user_context);
 
     // Create the first process (see template.c) and load the initial program into it.
 }
