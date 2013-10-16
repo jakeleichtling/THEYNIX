@@ -1,6 +1,7 @@
+#include "Kernel.h"
+
 #include <assert.h>
 
-#include "Kernel.h"
 #include "Log.h"
 #include "VMem.h"
 

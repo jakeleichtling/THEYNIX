@@ -1,11 +1,13 @@
 #include "Traps.h"
 
+#include <assert.h>
+#include <stdbool.h>
+#include <stdlib.h>
+
 #include "Kernel.h"
 #include "Log.h"
 #include "PCB.h"
 #include "include/hardware.h"
-#include <stdbool.h>
-#include <stdlib.h>
 
 void TrapKernel() {}
 
