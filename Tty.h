@@ -1,6 +1,8 @@
 #ifndef _TTY_H_
 #define _TTY_H_
 
+#include "List.h"
+
 /*
   Code for the Yalnix TTYs.
 */
