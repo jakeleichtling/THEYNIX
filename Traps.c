@@ -9,11 +9,11 @@
 #include "PCB.h"
 #include "include/hardware.h"
 
-void TrapKernel() {}
+void TrapKernel(UserContext *user_context) {}
 
-void TrapClock() {}
+void TrapClock(UserContext *user_context) {}
 
-void TrapIllegal() {}
+void TrapIllegal(UserContext *user_context) {}
 
 inline bool ValidStackGrowth(const unsigned int page) {
     bool below_current_stack = (page < current_proc->lowest_user_stack_page);
@@ -21,12 +21,9 @@ inline bool ValidStackGrowth(const unsigned int page) {
     return below_current_stack && above_heap;
 }
 
-void TrapMemory() {
-    int code = current_proc->user_context->code;
-    void *addr = current_proc->user_context->addr;
-
-    if (YALNIX_MAPERR == code) { // "address not mapped"
-        unsigned int addr_page = ADDR_TO_PAGE(addr);
+void TrapMemory(UserContext *user_context) {
+    if (YALNIX_MAPERR == user_context->code) { // "address not mapped"
+        unsigned int addr_page = ADDR_TO_PAGE(user_context->addr);
         if (ValidStackGrowth(addr_page)) {
             TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Growing User stack\n");
 
@@ -49,28 +46,28 @@ void TrapMemory() {
             current_proc->lowest_user_stack_page = addr_page;
         } else {
             if (addr_page <= current_proc->user_brk_page) {
-                TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "Out of mem on stack growth at %p\n", addr);
+                TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "Out of mem on stack growth at %p\n", user_context->addr);
             } else {
-                TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "Out of range memory access at %p.\n", addr);
+                TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "Out of range memory access at %p.\n", user_context->addr);
             }
             KillCurrentProc();
         }
-    } else if (YALNIX_ACCERR == code) { // "invalid permissions"
-        TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "Invalid memory permission at %p.\n", addr);
+    } else if (YALNIX_ACCERR == user_context->code) { // "invalid permissions"
+        TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "Invalid memory permission at %p.\n", user_context->addr);
         KillCurrentProc();
     } else {
-        TracePrintf(TRACE_LEVEL_TERMINAL_PROBLEM, "Unknown TRAP_MEMORY code %d\n", code);
+        TracePrintf(TRACE_LEVEL_TERMINAL_PROBLEM, "Unknown TRAP_MEMORY user_context->code %d\n", user_context->code);
         exit(-1);
     }
 }
 
-void TrapMath() {}
+void TrapMath(UserContext *user_context) {}
 
-void TrapTtyRecieve() {}
+void TrapTtyRecieve(UserContext *user_context) {}
 
-void TrapTtyTransmit() {}
+void TrapTtyTransmit(UserContext *user_context) {}
 
-void TrapNotDefined() {
+void TrapNotDefined(UserContext *user_context) {
     TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Unknown TRAP call.\n");
 }
 
