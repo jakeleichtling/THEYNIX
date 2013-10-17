@@ -76,13 +76,11 @@ void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {
         region_0_page_table[i].pfn = i;
         MarkFrameAsUsed(unused_frames, i);
 
-        unsigned int prot = PROT_NONE;
         if (i < kernel_data_start_page) { // Text section.
-            prot = PROT_READ | PROT_EXEC;
+            region_0_page_table[i].prot = PROT_READ | PROT_EXEC;
         } else { // Data section.
-            prot = PROT_READ | PROT_WRITE;
+            region_0_page_table[i].prot = PROT_READ | PROT_WRITE;
         }
-        region_0_page_table[i].prot = prot;
     }
 
     // Create the PTEs for the proc's kernel stack with page = frame and the proper protections.
