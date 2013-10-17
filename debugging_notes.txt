@@ -1,0 +1,6 @@
+_KernelDataStart = 0x24edc
+_KernelDataEnd = 0x2e000
+
+kernel_brk_page = 23
+kernel_data_start_page = 18
+kernel_text_end_page = 19

@@ -1,14 +1,14 @@
-/* 
- * Yalnix Support Software for Linux/x86 
+/*
+ * Yalnix Support Software for Linux/x86
  *
  * Original SunOS/SPARC version by David Johnson, CMU/Rice. dbj@cs.rice.edu
- * 
+ *
  * Subsequently ported to Solaris/SPARC by the infamous Juan Leon
  *
  * Ported to Linux/x86 by S.W. Smith, Dartmouth College.  Summer 2001
  * sws@cs.dartmouth.edu
  * (with help from David Johnson and Evan Knop)
- * 
+ *
  * "LINUX" compile flag == Linux AND x86
  * Linux version must support makecontext/getcontext... e.g., >= 2.4.8
  *
@@ -128,7 +128,7 @@
 
 /* This is where the kernel stack goes.
  * The kernel stack gets instantiated for each trap/interrupt/exception,
- * at this address every time.  
+ * at this address every time.
  */
 /* KERNEL_STACK must be within region 0 of memory */
 #define KERNEL_STACK_LIMIT	VMEM_0_LIMIT
@@ -192,7 +192,7 @@ struct pte {
 /*
  *  Amount of room to leave on stack for initial stack frame -- this
  *  is the basic SPARC stack frame size, required by Solaris and the
- *  SPARC architecture.  
+ *  SPARC architecture.
  */
 #ifndef LINUX
 #define	INITIAL_STACK_FRAME_SIZE	0x40
@@ -202,9 +202,9 @@ struct pte {
 
 // Amount of zero'd room to leave on stack after the two NULL pointes
 // after the argv array.  In Linux/glibc, __libc_start_main casts
-// the first int after the NULL after argv to an elf structure, and 
+// the first int after the NULL after argv to an elf structure, and
 // starts doing a search from there....   so we want at least one whole
-// elf structure's worth of nulls.  
+// elf structure's worth of nulls.
 
 #ifdef LINUX
 #define POST_ARGV_NULL_SPACE          0x20
@@ -297,7 +297,7 @@ typedef ucontext_t KernelContext;
 #define	TRAP_VECTOR_SIZE	16	/* dimensioned size of array */
 
 
-/* 
+/*
  * alleged TRAP_MEMORY codes (gleaned from examination of Linux host behavior)
  */
 
@@ -363,7 +363,7 @@ extern void Pause _PARAMS((void));
 extern void TracePrintf _PARAMS((int, char *, ...));
 extern void DiskAccess _PARAMS((int, int, void *));
 
-/* 
+/*
  * Definitions of functions to be written by student
  */
 
@@ -386,7 +386,7 @@ extern void SetKernelData _PARAMS((void*,void*));
  *
  * To make the task of switching kernel context easier in the project,
  * we provide the function:
- * 
+ *
  *     int KernelContextSwitch(KCSFunc_t *, void *, void *)
  *
  * The type KCSFunc_t (kernel context switch function type) is a messy
@@ -396,7 +396,7 @@ extern void SetKernelData _PARAMS((void*,void*));
  * KernelContextSwitch temporarily stops using the standard kernel
  * context and calls a function provided by you (suppose your function
  * is called MyKCS):
- * 
+ *
  *     KernelContext *MyKCS(KernelContext *, void *, void *)
  *
  * The two "void *" arguments to KernelContextSwitch will be passed
