@@ -32,7 +32,7 @@ void TrapMemory(UserContext *user_context) {
                 int new_frame = GetUnusedFrame(unused_frames);
                 if (new_frame == THEYNIX_EXIT_FAILURE) {
                     TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "GetUnusedFrame() failed.\n");
-                    //TODO: how to handle running out of mem?
+                    KillCurrentProc();
                 }
                 assert(!current_proc->region_1_page_table[page_to_alloc].valid);
 
