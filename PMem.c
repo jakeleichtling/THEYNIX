@@ -25,6 +25,7 @@ UnusedFrames NewUnusedFrames(unsigned int pmem_size) {
     }
 
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< NewUnusedFrames()\n\n");
+    return unused_frames;
 }
 
 /*
