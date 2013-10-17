@@ -16,6 +16,8 @@ PCB *NewBlankPCB(UserContext *model_user_context) {
     // Initialize lists.
     new_pcb->live_children = ListNewList();
     new_pcb->zombie_children = ListNewList();
+
+    return new_pcb;
 }
 
 void KillCurrentProc() {

@@ -4,6 +4,7 @@
 #include <stdlib.h>
 
 #include "Log.h"
+#include "Traps.h"
 #include "VMem.h"
 
 /* Function Prototypes */
@@ -63,7 +64,7 @@ void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {
     current_proc = NewBlankPCB(uctxt);
 
     // Build the initial page table for region 0 such that page = frame for all valid pages.
-    region_0_page_table = (struct pte *) malloc(VMEM_0_SIZE * sizeof(struct pte));
+    region_0_page_table = (struct pte *) malloc(VMEM_0_SIZE / PAGESIZE * sizeof(struct pte));
 
     // Clear the valid bit of all PTEs.
     for (i = 0; i < VMEM_0_SIZE / PAGESIZE; i++) {
@@ -89,7 +90,10 @@ void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {
     // Create the PTEs for the proc's kernel stack with page = frame and the proper protections.
     current_proc->kernel_stack_page_table =
             (struct pte *) malloc(KERNEL_STACK_MAXSIZE * sizeof(struct pte));
-    for (i = 0; i < KERNEL_STACK_MAXSIZE; i++) {
+
+    unsigned int kernel_stack_base_page = ADDR_TO_PAGE(KERNEL_STACK_BASE);
+    unsigned int kernel_stack_limit_page = ADDR_TO_PAGE(UP_TO_PAGE(KERNEL_STACK_LIMIT));
+    for (i = kernel_stack_base_page; i < kernel_stack_limit_page; i++) {
         current_proc->kernel_stack_page_table[i].valid = 1;
         current_proc->kernel_stack_page_table[i].pfn = i;
         MarkFrameAsUsed(unused_frames, i);
