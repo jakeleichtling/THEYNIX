@@ -32,11 +32,10 @@ bool virtual_memory_enabled;
 // kernel_data_start_page and covering up to, but not including, this page should have
 // PROT_READ | PROT_WRITE permissions.
 unsigned int kernel_brk_page;
-// The lowest page number used by the kernel's data segment.
+// The lowest page number used by the kernel's data segment. The pages up to,
+// but not including, this page is the text, and thus should have
+// PROT_READ | PROT_EXEC permissions.
 unsigned int kernel_data_start_page;
-// The lowest page number not in use by the kernel's text segment. The pages covering up to,
-// and including, this page should have PROT_READ | PROT_EXEC permissions.
-unsigned int kernel_text_end_page;
 
 struct pte *region_0_page_table;
 
