@@ -212,8 +212,10 @@ void UnmapUsedFrame(unsigned int page_number) {
   Copies the given kernel stack page table into the region 0 page table. Does not flush the TLB.
 */
 void UseKernelStackForProc(PCB *pcb) {
+    unsigned int kernel_stack_base_page = ADDR_TO_PAGE(KERNEL_STACK_BASE);
+    unsigned int kernel_stack_limit_page = ADDR_TO_PAGE(KERNEL_STACK_LIMIT - 1) + 1;
     unsigned int i;
-    for (i = KERNEL_STACK_BASE; i < KERNEL_STACK_LIMIT; i++) {
+    for (i = kernel_stack_base_page; i < kernel_stack_limit_page; i++) {
         region_0_page_table[i] = pcb->kernel_stack_page_table[i];
     }
 }
