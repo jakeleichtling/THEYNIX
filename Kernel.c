@@ -90,6 +90,11 @@ void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {
     // Create the PTEs for the proc's kernel stack with page = frame and the proper protections.
     current_proc->kernel_stack_page_table =
             (struct pte *) malloc(KERNEL_STACK_MAXSIZE * sizeof(struct pte));
+
+    // Debugging variables
+    unsigned int kernel_stack_limit_page = UP_TO_PAGE(KERNEL_STACK_LIMIT);
+    unsigned int kernel_stack_base_page = ADDR_TO_PAGE(KERNEL_STACK_BASE);
+
     for (i = ADDR_TO_PAGE(KERNEL_STACK_BASE); i < UP_TO_PAGE(KERNEL_STACK_LIMIT); i++) {
         current_proc->kernel_stack_page_table[i].valid = 1;
         current_proc->kernel_stack_page_table[i].pfn = i;
