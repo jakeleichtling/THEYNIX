@@ -35,7 +35,7 @@ void Idle();
 void SetKernelData(void *_KernelDataStart, void *_KernelDataEnd) {
     kernel_brk_page = ADDR_TO_PAGE(((unsigned int) _KernelDataEnd) - 1) + 1;
     kernel_data_start_page = ADDR_TO_PAGE(_KernelDataStart);
-    kernel_text_end_page = ADDR_TO_PAGE(((unsigned int) _KernelDataStart) - 1);
+    kernel_text_end_page = ADDR_TO_PAGE(((unsigned int) _KernelDataStart) - 1) + 1;
 }
 
 void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {
@@ -78,10 +78,10 @@ void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {
         MarkFrameAsUsed(unused_frames, i);
 
         unsigned int prot = PROT_NONE;
-        if (i > kernel_data_start_page) {
+        if (i >= kernel_data_start_page) {
             prot |= PROT_READ | PROT_WRITE;
         }
-        if (i <= kernel_text_end_page) {
+        if (i < kernel_text_end_page) {
             prot |= PROT_READ | PROT_EXEC;
         }
         region_0_page_table[i].prot = prot;
