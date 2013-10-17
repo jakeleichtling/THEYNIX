@@ -1,3 +1,6 @@
+#include "SystemCalls.h"
+
+#include "Log.h"
 /*
   Implementations of Yalnix system calls.
 */
@@ -19,6 +22,7 @@ int Fork(void) {
     // Set PC of child proc's KernelContext to just before return
 
     // Compare current PID to parent PID to return correct value
+    return THEYNIX_EXIT_SUCCESS;
 }
 
 int Exec(char *filename, char **argvec) {
@@ -33,6 +37,7 @@ int Exec(char *filename, char **argvec) {
     // Set the PC to the beginning of main
 
     // Return
+    return THEYNIX_EXIT_SUCCESS;
 }
 
 void Exit(int status) {
@@ -61,12 +66,14 @@ int Wait(int *status_ptr) {
         // Else, indicate waiting_for_children, move to blocked, context switch
 
     // Return the exit status
+    return THEYNIX_EXIT_SUCCESS;
 }
 
 int GetPid(void) {
     // Operating systems, wooooo!
 
     // Return the PID from current PCB
+    return THEYNIX_EXIT_SUCCESS;
 }
 
 int Brk(void *addr) {
@@ -79,6 +86,7 @@ int Brk(void *addr) {
     // Add PTEs with correct permissions
 
     // Return 0 on success
+    return THEYNIX_EXIT_SUCCESS;
 }
 
 int Delay(int clock_ticks) {
@@ -93,6 +101,7 @@ int Delay(int clock_ticks) {
     // Context switch!
 
     // Return success
+    return THEYNIX_EXIT_SUCCESS;
 }
 
 int TtyRead(int tty_id, void *buf, int len) {
@@ -114,6 +123,7 @@ int TtyRead(int tty_id, void *buf, int len) {
 
     // When control returns here, the process copies tty_recieve_buf to buf, frees tty_receive_buf,
     // and returns tty_receive_len.
+    return THEYNIX_EXIT_SUCCESS;
 }
 
 int TtyWrite(int tty_id, void *buf, int len) {
@@ -138,6 +148,7 @@ int TtyWrite(int tty_id, void *buf, int len) {
     // call TtyTransmit with new len and pointer, and return.
 
     // When control returns here, return success
+    return THEYNIX_EXIT_SUCCESS;
 }
 
 int PipeInit(int *pipe_idp) {
@@ -148,6 +159,7 @@ int PipeInit(int *pipe_idp) {
     // Put the rod id into pointer
 
     // Return success
+    return THEYNIX_EXIT_SUCCESS;
 }
 
 int PipeRead(int pipe_id, void *buf, int len) {
@@ -162,6 +174,7 @@ int PipeRead(int pipe_id, void *buf, int len) {
     // If another proc waiting to read and enough characters available, move next to ready
 
     // Return num chars read (should be len?)
+    return THEYNIX_EXIT_SUCCESS;
 }
 
 int PipeWrite(int pipe_id, void *buf, int len) {
@@ -170,6 +183,7 @@ int PipeWrite(int pipe_id, void *buf, int len) {
     // If another proc is waiting and enough characters available, move him to ready
 
     // Return len
+    return THEYNIX_EXIT_SUCCESS;
 }
 
 int LockInit(int *lock_idp) {
@@ -178,6 +192,7 @@ int LockInit(int *lock_idp) {
     // Set lock_id
 
     // Return success
+    return THEYNIX_EXIT_SUCCESS;
 }
 
 int Acquire(int lock_id) {
@@ -187,28 +202,33 @@ int Acquire(int lock_id) {
     // Set owner_id = my pid
 
     // Return success
+    return THEYNIX_EXIT_SUCCESS;
 }
 
 int Release(int lock_id) {
     // Check owner_id == my pid, return error if false
 
     // Set available = true
+    return THEYNIX_EXIT_SUCCESS;
 }
 
 int CvarInit(int *cvar_idp) {
     // Make a CVARRRR and put it in the list
 
     // Set cvar_id
+    return THEYNIX_EXIT_SUCCESS;
 }
 
 int CvarSignal(int cvar_id) {
     // If cvar wait queue is empty, then return
 
     // Else, pop proc and add to ready queue
+    return THEYNIX_EXIT_SUCCESS;
 }
 
 int CvarBroadcast(int cvar_id) {
     // For each proc in cvar wait queue, pop and add to ready queue
+    return THEYNIX_EXIT_SUCCESS;
 }
 
 int CvarWait(int cvar_id, int lock_id) {
@@ -224,8 +244,10 @@ int CvarWait(int cvar_id, int lock_id) {
         // Add to cvar wait queue
 
     // Set lock.avail = false and owner is meeeee!
+    return THEYNIX_EXIT_SUCCESS;
 }
 
 int Reclaim(int id) {
     // Find appropriate struct in kernel lists, remove from list, and freeeeeeeeeeeee
+    return THEYNIX_EXIT_SUCCESS;
 }
