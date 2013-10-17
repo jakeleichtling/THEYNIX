@@ -1,5 +1,7 @@
 #include "VMem.h"
 
+#include <stdlib.h>
+
 /*
   Mallocs and initializes a region 1 page table with all invalid entries.
 */
