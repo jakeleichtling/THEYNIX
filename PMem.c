@@ -52,7 +52,7 @@ int GetUnusedFrame(UnusedFrames unused_frames) {
 /*
   Marks the given unused frame as used.
 */
-int MarkFrameAsUsed(UnusedFrames unused_frames, unsigned int frame) {
+void MarkFrameAsUsed(UnusedFrames unused_frames, unsigned int frame) {
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> MarkFrameAsUsed(frame=%u)\n", frame);
 
     assert(unused_frames);

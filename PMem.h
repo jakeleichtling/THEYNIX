@@ -23,9 +23,9 @@ UnusedFrames NewUnusedFrames(unsigned int pmem_size);
 int GetUnusedFrame(UnusedFrames unused_frames);
 
 /*
-  Marks the given frame as used. Returns -1 if the frame was not previously unused.
+  Marks the given unused frame as used.
 */
-int MarkFrameAsUsed(UnusedFrames unused_frames, unsigned int frame);
+void MarkFrameAsUsed(UnusedFrames unused_frames, unsigned int frame);
 
 /*
   Marks the given used frame as unused.
