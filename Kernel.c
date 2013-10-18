@@ -124,8 +124,6 @@ void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {
     UserContext *args_buffer = calloc(2, sizeof(UserContext));
     current_proc->user_context->sp = args_buffer;
 
-    //current_proc->user_context->sp = (void *) VMEM_1_LIMIT - 1;
-    
     *uctxt = *(current_proc->user_context);
 
     InitBookkeepingStructs();
