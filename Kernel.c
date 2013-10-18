@@ -109,12 +109,12 @@ void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {
     WriteRegister(REG_VM_ENABLE, 1);
 
     // Get one valid page at the top of region 1 for the user stack of the current proc.
-    int first_stack_frame = GetUnusedFrame(unused_frames);
-    current_proc->region_1_page_table[ADDR_TO_PAGE(VMEM_1_LIMIT - 1)].valid = 1;
-    current_proc->region_1_page_table[ADDR_TO_PAGE(VMEM_1_LIMIT - 1)].prot =
-            PROT_READ | PROT_WRITE;
-    current_proc->region_1_page_table[ADDR_TO_PAGE(VMEM_1_LIMIT - 1)].pfn =
-            first_stack_frame;
+    unsigned int first_stack_frame = GetUnusedFrame(unused_frames);
+    unsigned int top_pte_index = ADDR_TO_PAGE(VMEM_1_LIMIT - 1);
+    struct pte *top_pte = current_proc->region_1_page_table[top_pte_index];
+    top_pte.valid = 1;
+    top_pte.prot = PROT_READ | PROT_WRITE;
+    top_pte.pfn = first_stack_frame;
 
     // Make the current process the Idle process.
     current_proc->user_context->pc = &Idle;
