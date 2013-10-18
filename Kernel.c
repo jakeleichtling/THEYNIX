@@ -118,7 +118,7 @@ void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {
 
     // Make the current process the Idle process.
     current_proc->user_context->pc = &Idle;
-    current_proc->user_context->sp = VMEM_1_LIMIT - 1;
+    current_proc->user_context->sp = (void *) VMEM_1_LIMIT - 1;
     *uctxt = *(current_proc->user_context);
 
     InitBookkeepingStructs();
