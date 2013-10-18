@@ -55,7 +55,7 @@ void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {
 
     // Perform the malloc for the current proc's kernel stack page table before making page tables.
     current_proc->kernel_stack_page_table =
-            (struct pte *) calloc(KERNEL_STACK_MAXSIZE, sizeof(struct pte));
+            (struct pte *) calloc(KERNEL_STACK_MAXSIZE / PAGESIZE, sizeof(struct pte));
 
     // Build the initial page table for region 0 such that page = frame for all valid pages.
     region_0_page_table = (struct pte *) calloc(VMEM_0_SIZE / PAGESIZE, sizeof(struct pte));

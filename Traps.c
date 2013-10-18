@@ -46,20 +46,20 @@ void TrapMemory(UserContext *user_context) {
             current_proc->lowest_user_stack_page = addr_page;
         } else {
             if (addr_page <= current_proc->user_brk_page) {
-                TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, 
+                TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM,
                     "Out of mem on stack growth at %p\n", user_context->addr);
             } else {
-                TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, 
+                TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM,
                     "Out of range memory access at %p.\n", user_context->addr);
             }
             KillCurrentProc();
         }
     } else if (YALNIX_ACCERR == user_context->code) { // "invalid permissions"
-        TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, 
+        TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM,
             "Invalid memory permission at %p.\n", user_context->addr);
         KillCurrentProc();
     } else {
-        TracePrintf(TRACE_LEVEL_TERMINAL_PROBLEM, 
+        TracePrintf(TRACE_LEVEL_TERMINAL_PROBLEM,
             "Unknown TRAP_MEMORY user_context->code %d\n", user_context->code);
         exit(-1);
     }
@@ -86,6 +86,7 @@ void TrapTableInit() {
 
     table[TRAP_KERNEL] = (unsigned int) &TrapKernel;
     table[TRAP_CLOCK] = (unsigned int) &TrapClock;
+    table[TRAP_ILLEGAL] = (unsigned int) &TrapIllegal;
     table[TRAP_MEMORY] = (unsigned int) &TrapMemory;
     table[TRAP_MATH] = (unsigned int) &TrapMath;
     table[TRAP_TTY_RECEIVE] = (unsigned int) &TrapTtyRecieve;

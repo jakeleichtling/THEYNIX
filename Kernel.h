@@ -11,7 +11,7 @@
 
 /* Macros */
 
-#define ADDR_TO_PAGE(addr) ((((unsigned int) addr) & PAGEMASK) >> PAGESHIFT)
+#define ADDR_TO_PAGE(addr) (((unsigned int) addr) >> PAGESHIFT)
 
 /* Global Variables */
 
