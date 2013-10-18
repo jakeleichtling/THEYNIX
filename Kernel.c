@@ -74,6 +74,9 @@ void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {
         region_0_page_table[i].valid = 0;
     }
 
+    // Create the proc's page table for region 1.
+    CreateRegion1PageTable(current_proc);
+
     // Create the PTEs for the kernel text and data with the proper protections.
     for (i = 0; i < kernel_brk_page; i++) {
         region_0_page_table[i].valid = 1;
@@ -103,17 +106,14 @@ void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {
     WriteRegister(REG_PTBR0, (unsigned int) region_0_page_table);
     WriteRegister(REG_PTLR0, VMEM_0_SIZE / PAGESIZE);
 
+    // Set the TLB registers for the region 1 page table.
+    WriteRegister(REG_PTBR1, (unsigned int) current_proc->region_1_page_table);
+    WriteRegister(REG_PTLR1, VMEM_1_SIZE / PAGESIZE);
+
     // Enable virtual memory. Wooooo!
     TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Enabling virtual memory. Wooooo!");
     virtual_memory_enabled = true;
     WriteRegister(REG_VM_ENABLE, 1);
-
-    // Create the proc's page table for region 1.
-    CreateRegion1PageTable(current_proc);
-
-    // Set the TLB registers for the region 1 page table.
-    WriteRegister(REG_PTBR1, (unsigned int) current_proc->region_1_page_table);
-    WriteRegister(REG_PTLR1, VMEM_1_SIZE / PAGESIZE);
 
     // Make the current process the Idle process.
     current_proc->user_context->pc = &Idle;
