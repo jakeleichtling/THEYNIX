@@ -109,8 +109,9 @@ void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {
     WriteRegister(REG_VM_ENABLE, 1);
 
     // Make the current process the Idle process.
-//    current_proc->user_context->pc = &Idle;
-//    *uctxt = *(current_proc->user_context);
+    current_proc->user_context->pc = &Idle;
+    current_proc->user_context->sp = VMEM_1_LIMIT - 1;
+    *uctxt = *(current_proc->user_context);
 
     InitBookkeepingStructs();
 
