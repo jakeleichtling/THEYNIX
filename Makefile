@@ -94,6 +94,14 @@ all: $(ALL)
 clean:
 	rm -f *.o *~ TTYLOG* TRACE $(YALNIX_OUTPUT) $(USER_APPS)  core.*
 
+new:
+	make clean
+	make
+
+git:
+	git pull
+	make new
+
 count:
 	wc $(KERNEL_SRCS) $(USER_SRCS)
 
