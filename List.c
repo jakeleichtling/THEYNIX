@@ -1,7 +1,11 @@
 #include "List.h"
+
 #include <stdlib.h>
 #include <assert.h>
 #include <stdio.h>
+
+#include "Log.h"
+#include "include/hardware.h"
 
 bool ListTestList() {
     List *list = ListNewList();
@@ -44,9 +48,11 @@ bool ListTestList() {
 }
 
 List *ListNewList() {
-    List *list = malloc(sizeof(List));
-    list->sentinel = malloc(sizeof(ListNode));
+    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> ListNewList()\n");
+    List *list = calloc(1, sizeof(List));
+    list->sentinel = calloc(1, sizeof(ListNode));
     list->head = list->sentinel;
+    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< ListNewList()\n");
     return list;
 }
 

@@ -17,7 +17,7 @@ UnusedFrames NewUnusedFrames(unsigned int pmem_size) {
     assert(pmem_size > 0);
 
     num_pages = pmem_size / PAGESIZE;
-    UnusedFrames unused_frames = malloc(num_pages * sizeof(bool));
+    UnusedFrames unused_frames = (UnusedFrames) calloc(num_pages, sizeof(bool));
     assert(unused_frames);
     unsigned int i;
     for (i = 0; i < num_pages; i++) {

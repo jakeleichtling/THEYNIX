@@ -30,6 +30,11 @@ void UseKernelStackForProc(PCB *pcb);
 */
 void Idle();
 
+/*
+  Allocate some Kernel Data structures for Tty, process, and synchronization bookkeeping.
+*/
+void InitBookkeepingStructs();
+
 /* Function Implementations */
 
 void SetKernelData(void *_KernelDataStart, void *_KernelDataEnd) {
@@ -38,20 +43,6 @@ void SetKernelData(void *_KernelDataStart, void *_KernelDataEnd) {
 }
 
 void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {
-    // Initialize the kernel's data structures.
-    locks = ListNewList();
-    cvars = ListNewList();
-    pipes = ListNewList();
-
-    ttys = (Tty *) malloc(NUM_TERMINALS * sizeof(Tty));
-    unsigned int i;
-    for (i = 0; i < NUM_TERMINALS; i++) {
-        TtyInit(&ttys[i]);
-    }
-
-    ready_queue = ListNewList();
-    clock_block_procs = ListNewList();
-
     unused_frames = NewUnusedFrames(pmem_size);
     virtual_memory_enabled = false;
 
@@ -64,12 +55,14 @@ void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {
 
     // Perform the malloc for the current proc's kernel stack page table before making page tables.
     current_proc->kernel_stack_page_table =
-            (struct pte *) malloc(KERNEL_STACK_MAXSIZE * sizeof(struct pte));
+            (struct pte *) calloc(KERNEL_STACK_MAXSIZE, sizeof(struct pte));
 
     // Build the initial page table for region 0 such that page = frame for all valid pages.
-    region_0_page_table = (struct pte *) malloc(VMEM_0_SIZE / PAGESIZE * sizeof(struct pte));
+    region_0_page_table = (struct pte *) calloc(VMEM_0_SIZE / PAGESIZE, sizeof(struct pte));
 
     // Clear the valid bit of all PTEs.
+    // ---> I don't think we need this if calloc
+    unsigned int i = 0;
     for (i = 0; i < VMEM_0_SIZE / PAGESIZE; i++) {
         region_0_page_table[i].valid = 0;
     }
@@ -111,13 +104,15 @@ void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {
     WriteRegister(REG_PTLR1, VMEM_1_SIZE / PAGESIZE);
 
     // Enable virtual memory. Wooooo!
-    TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Enabling virtual memory. Wooooo!");
+    TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Enabling virtual memory. Wooooo!\n");
     virtual_memory_enabled = true;
     WriteRegister(REG_VM_ENABLE, 1);
 
     // Make the current process the Idle process.
     current_proc->user_context->pc = &Idle;
     *uctxt = *(current_proc->user_context);
+
+    InitBookkeepingStructs();
 
     // Create the first process (see template.c) and load the initial program into it.
 }
@@ -228,5 +223,19 @@ void Idle() {
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> Idle()\n");
     while (true) {
         Pause();
+    }
+}
+
+void InitBookkeepingStructs() {
+    locks = ListNewList();
+    cvars = ListNewList();
+    pipes = ListNewList();
+    ready_queue = ListNewList();
+    clock_block_procs = ListNewList();
+
+    ttys = (Tty *) calloc(NUM_TERMINALS, sizeof(Tty));
+    unsigned int i;
+    for (i = 0; i < NUM_TERMINALS; i++) {
+        TtyInit(&ttys[i]);
     }
 }
