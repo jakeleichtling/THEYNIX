@@ -22,6 +22,8 @@ inline bool ValidStackGrowth(const unsigned int page) {
 }
 
 void TrapMemory(UserContext *user_context) {
+    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> TrapMemory(%p)\n", user_context);
+
     if (YALNIX_MAPERR == user_context->code) { // "address not mapped"
         unsigned int addr_page = ADDR_TO_PAGE(user_context->addr);
         if (ValidStackGrowth(addr_page)) {
@@ -63,6 +65,8 @@ void TrapMemory(UserContext *user_context) {
             "Unknown TRAP_MEMORY user_context->code %d\n", user_context->code);
         exit(-1);
     }
+
+    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< TrapMemory()\n\n");
 }
 
 void TrapMath(UserContext *user_context) {}
