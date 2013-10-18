@@ -1,6 +1,8 @@
 #ifndef _TRAPS_H_
 #define _TRAPS_H_
 
+#include "include/hardware.h"
+
 /*
 
 TRAP_KERNEL:
@@ -38,6 +40,8 @@ tty_transmit_len -= TERMINAL_MAX_LINE, tty_transmit_pointer += TERMINAL_MAX_LINE
 call TtyTransmit with new len and pointer, and return.
 
 */
+
+void *table[TRAP_VECTOR_SIZE];
 
 // Mallocs and inits TRAP table.
 // Writes address to REG_VECTOR_BASE.

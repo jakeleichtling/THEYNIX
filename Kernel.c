@@ -118,7 +118,14 @@ void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {
 
     // Make the current process the Idle process.
     current_proc->user_context->pc = &Idle;
-    current_proc->user_context->sp = (void *) VMEM_1_LIMIT - 1;
+
+    // We think we need to give the sp some valid address,
+    // so just hack it by pointing to some buffer.
+    UserContext *args_buffer = calloc(2, sizeof(UserContext));
+    current_proc->user_context->sp = args_buffer;
+
+    //current_proc->user_context->sp = (void *) VMEM_1_LIMIT - 1;
+    
     *uctxt = *(current_proc->user_context);
 
     InitBookkeepingStructs();

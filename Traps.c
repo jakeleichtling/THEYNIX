@@ -7,13 +7,21 @@
 #include "Kernel.h"
 #include "Log.h"
 #include "PCB.h"
-#include "include/hardware.h"
 
-void TrapKernel(UserContext *user_context) {}
+void TrapKernel(UserContext *user_context) {
+    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> TrapKernel(%p)\n", user_context);
+    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< TrapKernel(%p)\n", user_context);
+}
 
-void TrapClock(UserContext *user_context) {}
+void TrapClock(UserContext *user_context) {
+    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> TrapClock(%p)\n", user_context);
+    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< TrapClock(%p)\n", user_context);
+}
 
-void TrapIllegal(UserContext *user_context) {}
+void TrapIllegal(UserContext *user_context) {
+    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> TrapIllegal(%p)\n", user_context);
+    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< TrapIllegal(%p)\n", user_context);
+}
 
 inline bool ValidStackGrowth(const unsigned int page) {
     bool below_current_stack = (page < current_proc->lowest_user_stack_page);
@@ -69,32 +77,41 @@ void TrapMemory(UserContext *user_context) {
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< TrapMemory()\n\n");
 }
 
-void TrapMath(UserContext *user_context) {}
+void TrapMath(UserContext *user_context) {
+    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> TrapMath(%p)\n", user_context);
+    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< TrapMath(%p)\n", user_context);
+}
 
-void TrapTtyRecieve(UserContext *user_context) {}
+void TrapTtyRecieve(UserContext *user_context) {
+    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> TrapTtyRecieve(%p)\n", user_context);
+    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< TrapTtyRecieve(%p)\n", user_context);
+}
 
-void TrapTtyTransmit(UserContext *user_context) {}
+void TrapTtyTransmit(UserContext *user_context) {
+    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> TrapTtyTransmit(%p)\n", user_context);
+    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< TrapTtyTransmit(%p)\n", user_context);
+}
 
 void TrapNotDefined(UserContext *user_context) {
     TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Unknown TRAP call.\n");
 }
 
 void TrapTableInit() {
-    unsigned int *table = (unsigned int *) calloc(TRAP_VECTOR_SIZE, sizeof(unsigned int));
+    //void **table = (void *) calloc(TRAP_VECTOR_SIZE, sizeof(void*));
 
     // Initialize all valid trap vector entries
     unsigned int i;
     for (i = 0; i < TRAP_VECTOR_SIZE; i++) {
-        table[i]  = (unsigned int) &TrapNotDefined;
+        table[i]  = (void*) &TrapNotDefined;
     }
 
-    table[TRAP_KERNEL] = (unsigned int) &TrapKernel;
-    table[TRAP_CLOCK] = (unsigned int) &TrapClock;
-    table[TRAP_ILLEGAL] = (unsigned int) &TrapIllegal;
-    table[TRAP_MEMORY] = (unsigned int) &TrapMemory;
-    table[TRAP_MATH] = (unsigned int) &TrapMath;
-    table[TRAP_TTY_RECEIVE] = (unsigned int) &TrapTtyRecieve;
-    table[TRAP_TTY_TRANSMIT] = (unsigned int) &TrapTtyTransmit;
+    table[TRAP_KERNEL] = (void*) &TrapKernel;
+    table[TRAP_CLOCK] = (void*) &TrapClock;
+    table[TRAP_ILLEGAL] = (void*) &TrapIllegal;
+    table[TRAP_MEMORY] = (void*) &TrapMemory;
+    table[TRAP_MATH] = (void*) &TrapMath;
+    table[TRAP_TTY_RECEIVE] = (void*) &TrapTtyRecieve;
+    table[TRAP_TTY_TRANSMIT] = (void*) &TrapTtyTransmit;
 
     WriteRegister(REG_VECTOR_BASE, (unsigned int) table);
 }
