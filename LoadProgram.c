@@ -16,6 +16,8 @@ THEYNIX
 */
 #include "VMem.h"
 
+extern UnusedFrames unused_frames;
+
 #define KILL -1337
 
 /*
