@@ -67,7 +67,7 @@ int MapNewRegion1Pages(PCB *pcb, UnusedFrames unused_frames, unsigned int start_
 */
 void ChangeProtRegion1Pages(PCB *pcb, unsigned int start_page_num, unsigned int num_pages,
         unsigned int prot) {
-        TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> ChangeProtRegion1Pages()\n")
+        TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> ChangeProtRegion1Pages()\n");
 
     unsigned int page_num;
     for (page_num = start_page_num; page_num < start_page_num + num_pages; page_num++) {
@@ -77,5 +77,5 @@ void ChangeProtRegion1Pages(PCB *pcb, unsigned int start_page_num, unsigned int 
         pcb->region_1_page_table[page_num].prot = prot;
     }
 
-    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< ChangeProtRegion1Pages()\n\n")
+    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< ChangeProtRegion1Pages()\n\n");
 }
