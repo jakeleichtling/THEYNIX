@@ -29,6 +29,7 @@ void FreeRegion1PageTable(PCB *pcb, UnusedFrames unused_frames) {
 
             unsigned int frame_number = pcb->region_1_page_table[i].pfn;
             ReleaseUsedFrame(unused_frames, frame_number);
+        }
     }
 }
 
