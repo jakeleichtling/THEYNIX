@@ -10,7 +10,7 @@ struct ListNode {
     struct ListNode *next;
     struct ListNode *prev;
 
-    int id;
+    unsigned int id;
     void *data;
 };
 
@@ -35,13 +35,20 @@ void ListDestroy(List *list);
 bool ListEmpty(List *list);
 
 // Add a new node to the front of the list.
-void ListEnqueue(List *list, void *data, int id);
+void ListEnqueue(List *list, void *data, unsigned int id);
 
 // Remove and return the first element in the list.
 void *ListDequeue(List *list);
 
 // Return first element with the given id.
-void *ListFindById(List *list, int id);
+void *ListFindById(List *list, unsigned int id);
+
+// Insert immediately before the first element that has a greater ID.
+// List will be in sorted order if only this method is used to add elements.
+void ListInsertByIdOrder(List *list, void *data, unsigned int id);
+
+// Append to end of list
+void ListAppend(List *list, void *data, unsigned int id);
 
 // Test driver. Returns true on success.
 bool ListTestList();

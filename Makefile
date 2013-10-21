@@ -114,6 +114,9 @@ kill:
 no-core:
 	rm -f core.*
 
+test:
+	gcc -g -Wall -o TestDriver List.c List.h TestDriver.c
+
 $(KERNEL_ALL): $(KERNEL_OBJS) $(KERNEL_LIBS) $(KERNEL_INCS)
 	$(LINK_KERNEL) -o $@ $(KERNEL_OBJS) $(KERNEL_LDFLAGS)
 
