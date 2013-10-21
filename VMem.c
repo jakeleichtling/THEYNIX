@@ -59,6 +59,7 @@ int MapNewRegion1Pages(PCB *pcb, UnusedFrames unused_frames, unsigned int start_
     }
 
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< MapNewRegion1Pages()\n\n");
+    print THEYNIX_EXIT_SUCCESS;
 }
 
 /*
