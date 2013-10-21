@@ -1,27 +1,35 @@
+/*
+THEYNIX
+
 ==>> This is a TEMPLATE for how to write your own LoadProgram function.
 ==>> Places where you must change this file to work with your kernel are
 ==>> marked with "==>>".  You must replace these lines with your own code.
-==>> You might also want to save the original annotations as comments.
+==>> You might also want to save the original annotations as comments.p
+*/
 
 #include <fcntl.h>
 #include <unistd.h>
 #include <hardware.h>
 #include <load_info.h>
+/*
 ==>> #include anything you need for your kernel here
+*/
 
 /*
  *  Load a program into an existing address space.  The program comes from
  *  the Linux file named "name", and its arguments come from the array at
  *  "args", which is in standard argv format.  The argument "proc" points
  *  to the process or PCB structure for the process into which the program
- *  is to be loaded. 
+ *  is to be loaded.
  */
 int
-LoadProgram(char *name, char *args[], proc) 
+LoadProgram(char *name, char *args[], PCB *proc)
+/*
 ==>> Declare the argument "proc" to be a pointer to your PCB or
 ==>> process descriptor data structure.  We assume you have a member
-==>> of this structure used to hold the cpu context 
-==>> for the process holding the new program.  
+==>> of this structure used to hold the cpu context
+==>> for the process holding the new program.
+*/
 {
   int fd;
   int (*entry)();
@@ -39,9 +47,9 @@ LoadProgram(char *name, char *args[], proc)
   long segment_size;
   char *argbuf;
 
-  
+
   /*
-   * Open the executable file 
+   * Open the executable file
    */
   if ((fd = open(name, O_RDONLY)) < 0) {
     TracePrintf(0, "LoadProgram: can't open file '%s'\n", name);
@@ -80,7 +88,7 @@ LoadProgram(char *name, char *args[], proc)
   argcount = i;
 
  TracePrintf(2, "LoadProgram: argsize %d, argcount %d\n", size, argcount);
-  
+
   /*
    *  The arguments will get copied starting at "cp", and the argv
    *  pointers to the arguments (and the argc value) will get built
@@ -93,8 +101,8 @@ LoadProgram(char *name, char *args[], proc)
   cp = ((char *)VMEM_1_LIMIT) - size;
 
   cpp = (char **)
-    (((int)cp - 
-      ((argcount + 3 + POST_ARGV_NULL_SPACE) *sizeof (void *))) 
+    (((int)cp -
+      ((argcount + 3 + POST_ARGV_NULL_SPACE) *sizeof (void *)))
      & ~7);
 
   /*
@@ -109,7 +117,7 @@ LoadProgram(char *name, char *args[], proc)
 	      li.t_npg + data_npg, li.t_npg, li.id_npg, li.ud_npg);
 
 
-  /* 
+  /*
    * Compute how many pages we need for the stack */
   stack_npg = (VMEM_1_LIMIT - DOWN_TO_PAGE(cp2)) >> PAGESHIFT;
 
@@ -133,8 +141,11 @@ LoadProgram(char *name, char *args[], proc)
    * Set the new stack pointer value in the process's exception frame.
    */
 
+/*
 ==>> Here you replace your data structure proc
 ==>> proc->context.sp = cp2;
+*/
+proc->user_context.sp = cp2;
 
   /*
    * Now save the arguments in a separate buffer in region 0, since
@@ -156,7 +167,7 @@ LoadProgram(char *name, char *args[], proc)
 
 ==>> Throw away the old region 1 virtual address space of the
 ==>> curent process by freeing
-==>> all physical pages currently mapped to region 1, and setting all 
+==>> all physical pages currently mapped to region 1, and setting all
 ==>> region 1 PTEs to invalid.
 ==>> Since the currently active address space will be overwritten
 ==>> by the new program, it is just as easy to free all the physical
@@ -167,13 +178,13 @@ LoadProgram(char *name, char *args[], proc)
 ==>> of the new process.
 
 ==>> Allocate "li.t_npg" physical pages and map them starting at
-==>> the "text_pg1" page in region 1 address space.  
-==>> These pages should be marked valid, with a protection of 
+==>> the "text_pg1" page in region 1 address space.
+==>> These pages should be marked valid, with a protection of
 ==>> (PROT_READ | PROT_WRITE).
 
 ==>> Allocate "data_npg" physical pages and map them starting at
-==>> the  "data_pg1" in region 1 address space.  
-==>> These pages should be marked valid, with a protection of 
+==>> the  "data_pg1" in region 1 address space.
+==>> These pages should be marked valid, with a protection of
 ==>> (PROT_READ | PROT_WRITE).
   /*
    * Allocate memory for the user stack too.
@@ -184,7 +195,7 @@ LoadProgram(char *name, char *args[], proc)
 ==>> protection of (PROT_READ | PROT_WRITE).
 
   /*
-   * All pages for the new address space are now in the page table.  
+   * All pages for the new address space are now in the page table.
    * But they are not yet in the TLB, remember!
    */
   /*
@@ -217,7 +228,7 @@ LoadProgram(char *name, char *args[], proc)
 
 ==>> Change the protection on the "li.t_npg" pages starting at
 ==>> virtual address VMEM_1_BASE + (text_pg1 << PAGESHIFT).  Note
-==>> that these pages will have indices starting at text_pg1 in 
+==>> that these pages will have indices starting at text_pg1 in
 ==>> the page table for region 1.
 ==>> The new protection should be (PROT_READ | PROT_EXEC).
 ==>> If any of these page table entries is also in the TLB, either

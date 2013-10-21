@@ -51,7 +51,7 @@ void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {
     TrapTableInit();
 
     // Create the current process
-    current_proc = NewBlankPCB(uctxt);
+    current_proc = NewBlankPCB(*uctxt);
 
     // Perform the malloc for the current proc's kernel stack page table before making page tables.
     current_proc->kernel_stack_page_table =
@@ -117,14 +117,14 @@ void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {
     top_pte_ptr->pfn = first_stack_frame;
 
     // Make the current process the Idle process.
-    current_proc->user_context->pc = &Idle;
+    current_proc->user_context.pc = &Idle;
 
     // We think we need to give the sp some valid address,
     // so just hack it by pointing to some buffer.
     UserContext *args_buffer = calloc(2, sizeof(UserContext));
-    current_proc->user_context->sp = args_buffer;
+    current_proc->user_context.sp = args_buffer;
 
-    *uctxt = *(current_proc->user_context);
+    *uctxt = current_proc->user_context;
 
     InitBookkeepingStructs();
 

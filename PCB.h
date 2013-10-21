@@ -14,7 +14,7 @@
 */
 typedef struct PCB PCB;
 struct PCB {
-     UserContext *user_context;
+     UserContext user_context;
      KernelContext *kernel_context;
 
     struct pte *kernel_stack_page_table;
@@ -48,7 +48,7 @@ struct PCB {
 /*
   Returns a PCB with the given UserContext deep cloned and its lists initialized.
 */
-PCB *NewBlankPCB(UserContext *model_user_context);
+PCB *NewBlankPCB(UserContext model_user_context);
 
 
 void KillCurrentProc();
