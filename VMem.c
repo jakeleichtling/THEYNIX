@@ -6,10 +6,10 @@
   Mallocs and initializes a region 1 page table with all invalid entries.
 */
 void CreateRegion1PageTable(PCB *pcb) {
-    pcb->region_1_page_table = (struct pte *) malloc(NUM_PAGES * sizeof(struct pte));
+    pcb->region_1_page_table = (struct pte *) malloc(NUM_PAGES_REG_1 * sizeof(struct pte));
 
     unsigned int i;
-    for (i = 0; i < NUM_PAGES; i++) {
+    for (i = 0; i < NUM_PAGES_REG_1; i++) {
         pcb->region_1_page_table[i].valid = 0;
     }
 }
@@ -20,7 +20,7 @@ void CreateRegion1PageTable(PCB *pcb) {
 */
 void FreeRegion1PageTable(PCB *pcb, UnusedFrames unused_frames) {
     unsigned int i;
-    for (i = 0; i < NUM_PAGES; i++) {
+    for (i = 0; i < NUM_PAGES_REG_1; i++) {
         if (pcb->region_1_page_table[i].valid) {
             pcb->region_1_page_table[i].valid = 0;
 
@@ -41,7 +41,7 @@ int MapNewRegion1Pages(PCB *pcb, UnusedFrames unused_frames, unsigned int start_
 
     unsigned int page_num;
     for (page_num = start_page_num; page_num < start_page_num + num_pages; page_num++) {
-        assert(page_num < NUM_PAGES);
+        assert(page_num < NUM_PAGES_REG_1);
         assert(!(pcb->region_1_page_table[page_num].valid));
 
         pcb->region_1_page_table.pfn = GetUnusedFrame(unused_frames);
@@ -68,7 +68,7 @@ void ChangeProtRegion1Pages(PCB *pcb, unsigned int start_page_num, unsigned int 
 
     unsigned int page_num;
     for (page_num = start_page_num; page_num < start_page_num + num_pages; page_num++) {
-        assert(page_num < NUM_PAGES);
+        assert(page_num < NUM_PAGES_REG_1);
         assert(pcb->region_1_page_table[page_num].valid);
 
         pcb->region_1_page_table.prot = prot;

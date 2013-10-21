@@ -1,7 +1,7 @@
 #include "PCB.h"
 #include "PMem.h"
 
-#define NUM_PAGES_1 VMEM_1_SIZE / PAGESIZE
+#define NUM_PAGES_REG_1 VMEM_1_SIZE / PAGESIZE
 
 /*
   Functions for dealing with virtual memory.
