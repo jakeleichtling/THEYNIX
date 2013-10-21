@@ -14,7 +14,12 @@ THEYNIX
 /*
 ==>> #include anything you need for your kernel here
 */
+#include "Kernel.h"
 #include "VMem.h"
+
+extern UnusedFrames unused_frames;
+
+#define KILL -1337
 
 /*
  *  Load a program into an existing address space.  The program comes from
@@ -220,7 +225,10 @@ proc->user_context.sp = cp2;
   /*
    * All pages for the new address space are now in the page table.
    * But they are not yet in the TLB, remember!
-   */
+  */
+  // Flush the entire region 1 TLB.
+  WriteRegister(REG_TLB_FLUSH, TLB_FLUSH_1);
+
   /*
    * Read the text from the file into memory.
    */
@@ -228,9 +236,11 @@ proc->user_context.sp = cp2;
   segment_size = li.t_npg << PAGESHIFT;
   if (read(fd, (void *) li.t_vaddr, segment_size) != segment_size) {
     close(fd);
-==>> KILL is not defined anywhere: it is an error code distinct
-==>> from ERROR because it requires different action in the caller.
-==>> Since this error code is internal to your kernel, you get to define it.
+  /*
+  ==>> KILL is not defined anywhere: it is an error code distinct
+  ==>> from ERROR because it requires different action in the caller.
+  ==>> Since this error code is internal to your kernel, you get to define it.
+  */
     return KILL;
   }
   /*
@@ -248,16 +258,19 @@ proc->user_context.sp = cp2;
    * Now set the page table entries for the program text to be readable
    * and executable, but not writable.
    */
-
-==>> Change the protection on the "li.t_npg" pages starting at
-==>> virtual address VMEM_1_BASE + (text_pg1 << PAGESHIFT).  Note
-==>> that these pages will have indices starting at text_pg1 in
-==>> the page table for region 1.
-==>> The new protection should be (PROT_READ | PROT_EXEC).
-==>> If any of these page table entries is also in the TLB, either
-==>> invalidate their entries in the TLB or write the updated entries
-==>> into the TLB.  It's nice for the TLB and the page tables to remain
-==>> consistent.
+  /*
+  ==>> Change the protection on the "li.t_npg" pages starting at
+  ==>> virtual address VMEM_1_BASE + (text_pg1 << PAGESHIFT).  Note
+  ==>> that these pages will have indices starting at text_pg1 in
+  ==>> the page table for region 1.
+  ==>> The new protection should be (PROT_READ | PROT_EXEC).
+  ==>> If any of these page table entries is also in the TLB, either
+  ==>> invalidate their entries in the TLB or write the updated entries
+  ==>> into the TLB.  It's nice for the TLB and the page tables to remain
+  ==>> consistent.
+  */
+  ChangeProtRegion1Pages(proc, text_pg1, li.t_npg, PROT_READ | PROT_EXEC);
+  WriteRegister(REG_TLB_FLUSH, TLB_FLUSH_1);
 
   close(fd);			/* we've read it all now */
 
@@ -269,8 +282,11 @@ proc->user_context.sp = cp2;
   /*
    * Set the entry point in the exception frame.
    */
-==>> Here you should put your data structure (PCB or process)
-==>>  proc->context.pc = (caddr_t) li.entry;
+  /*
+  ==>> Here you should put your data structure (PCB or process)
+  ==>>  proc->context.pc = (caddr_t) li.entry;
+  */
+  proc->user_context.pc = (caddr_t) li.entry;
 
   /*
    * Now, finally, build the argument list on the new stack.
