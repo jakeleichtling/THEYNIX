@@ -17,6 +17,7 @@ THEYNIX
 ==>> #include anything you need for your kernel here
 */
 #include "Kernel.h"
+#include "Log.h"
 #include "VMem.h"
 
 extern UnusedFrames unused_frames;
