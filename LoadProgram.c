@@ -11,6 +11,8 @@ THEYNIX
 #include <unistd.h>
 #include <hardware.h>
 #include <load_info.h>
+#include <string.h>
+#include <stdlib.h>
 /*
 ==>> #include anything you need for your kernel here
 */
