@@ -39,7 +39,7 @@ void FreeRegion1PageTable(PCB *pcb, UnusedFrames unused_frames) {
 */
 int MapNewRegion1Pages(PCB *pcb, UnusedFrames unused_frames, unsigned int start_page_num,
         unsigned int num_pages, unsigned int prot) {
-    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> MapNewRegion1Pages()\n")
+    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> MapNewRegion1Pages()\n");
 
     unsigned int page_num;
     for (page_num = start_page_num; page_num < start_page_num + num_pages; page_num++) {
