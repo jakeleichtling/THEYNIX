@@ -2,6 +2,8 @@
 
 #include <stdlib.h>
 
+#include "Log.h"
+
 /*
   Mallocs and initializes a region 1 page table with all invalid entries.
 */
