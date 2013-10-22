@@ -178,11 +178,11 @@ int Brk(void *addr) {
     }
 
     if (new_user_brk_page > current_proc->user_brk_page) {
-        int rc = MapNewRegion1Pages(current_proc, unused_frames, current->user_brk_page,
+        int rc = MapNewRegion1Pages(current_proc, unused_frames, current_proc->user_brk_page,
                 new_user_brk_page - current_proc->user_brk_page, PROT_READ | PROT_WRITE);
         if (rc == THEYNIX_EXIT_FAILURE) {
             TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM,
-                    "MapNewRegion1Pages(%u) failed.\n", new_page);
+                    "MapNewRegion1Pages() failed.\n");
             return THEYNIX_EXIT_FAILURE;
         }
     } else if (new_user_brk_page < current_proc->user_brk_page) {

@@ -69,7 +69,7 @@ int MapNewRegion1Pages(PCB *pcb, UnusedFrames unused_frames, unsigned int start_
   invalid after the call.
 */
 void UnmapRegion1Pages(PCB *pcb, UnusedFrames unused_frames, unsigned int start_page_num,
-        unsigned int num_pages, unsigned int prot) {
+        unsigned int num_pages) {
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> UnmapNewRegion1Pages()\n");
 
     unsigned int page_num;
