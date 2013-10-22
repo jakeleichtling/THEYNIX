@@ -41,3 +41,14 @@ void UnmapRegion1Pages(PCB *pcb, UnusedFrames unused_frames, unsigned int start_
 */
 void ChangeProtRegion1Pages(PCB *pcb, unsigned int start_page_num, unsigned int num_pages,
         unsigned int prot);
+
+/*
+  Retrieves an unused frame, marks it as used, and maps the given region 0 page number
+  to the frame. Returns -1 on failure.
+*/
+int MapNewRegion0Page(unsigned int page_number);
+
+/*
+  Unmaps a valid region 0 page, freeing the frame the page was mapped to.
+*/
+void UnmapUsedRegion0Page(unsigned int page_number);

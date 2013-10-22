@@ -105,3 +105,46 @@ void ChangeProtRegion1Pages(PCB *pcb, unsigned int start_page_num, unsigned int 
 
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< ChangeProtRegion1Pages()\n\n");
 }
+
+/*
+  Retrieves an unused frame, marks it as used, and maps the given region 0 page number
+  to the frame. Returns -1 on failure.
+*/
+int MapNewRegion0Page(unsigned int page_number) {
+    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> MapNewFrame0(%u)\n", page_number);
+
+    assert(page_number < VMEM_0_LIMIT / PAGESIZE);
+
+    int new_frame = GetUnusedFrame(unused_frames);
+    if (new_frame == THEYNIX_EXIT_FAILURE) {
+        TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "GetUnusedFrame() failed.\n");
+        return THEYNIX_EXIT_FAILURE;
+    }
+
+    assert(!region_0_page_table[page_number].valid);
+
+    region_0_page_table[page_number].valid = 1;
+    region_0_page_table[page_number].pfn = new_frame;
+    region_0_page_table[page_number].prot = PROT_READ | PROT_WRITE;
+
+    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< MapNewFrame0()\n\n");
+    return THEYNIX_EXIT_SUCCESS;
+}
+
+/*
+  Unmaps a valid region 0 page, freeing the frame the page was mapped to.
+*/
+void UnmapUsedRegion0Page(unsigned int page_number) {
+    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> UnmapUsedFrame0(%u)\n", page_number);
+
+    assert(page_number < VMEM_0_LIMIT / PAGESIZE);
+    assert(region_0_page_table[page_number].valid);
+
+    unsigned int used_frame = region_0_page_table[page_number].pfn;
+    ReleaseUsedFrame(unused_frames, used_frame);
+
+    region_0_page_table[page_number].valid = 0;
+    WriteRegister(REG_TLB_FLUSH, (unsigned int) &region_0_page_table[page_number]);
+
+    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< UnmapUsedFrame0()\n\n");
+}

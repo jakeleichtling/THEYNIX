@@ -10,17 +10,6 @@
 /* Function Prototypes */
 
 /*
-  Retrieves an unused frame, marks it as used, and maps the given region 0 page number
-  to the frame. Returns -1 on failure.
-*/
-int MapNewFrame0(unsigned int page_number);
-
-/*
-  Unmaps a valid page, freeing the frame the page was mapped to. Returns -1 on failure.
-*/
-void UnmapUsedFrame0(unsigned int page_number);
-
-/*
   Copies the given kernel stack page table into the region 0 page table. Does not flush the TLB.
 */
 void UseKernelStackForProc(PCB *pcb);
@@ -174,6 +163,7 @@ int SetKernelBrk(void *addr) {
     kernel_brk_page = new_kernel_brk_page;
     return 0;
 }
+
 int Brk(void *addr) {
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> Brk(%p)\n", addr);
 
@@ -187,65 +177,22 @@ int Brk(void *addr) {
         return THEYNIX_EXIT_FAILURE;
     }
 
-    if (new_kernel_brk_page > current_proc->user_brk_page) {
+    if (new_user_brk_page > current_proc->user_brk_page) {
         int rc = MapNewRegion1Pages(current_proc, unused_frames, current->user_brk_page,
-                new_kernel_brk_page - current_proc->user_brk_page, PROT_READ | PROT_WRITE);
+                new_user_brk_page - current_proc->user_brk_page, PROT_READ | PROT_WRITE);
         if (rc == THEYNIX_EXIT_FAILURE) {
             TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM,
                     "MapNewRegion1Pages(%u) failed.\n", new_page);
             return THEYNIX_EXIT_FAILURE;
         }
     } else if (new_user_brk_page < current_proc->user_brk_page) {
-        UnmapRegion1Pages(current_proc, unused_frames, new_kernel_brk_page,
+        UnmapRegion1Pages(current_proc, unused_frames, new_user_brk_page,
                 current_proc->user_brk_page - new_user_brk_page);
     }
 
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< Brk()\n\n");
     current_proc->user_brk_page = new_user_brk_page;
     return 0;
-}
-
-/*
-  Retrieves an unused frame, marks it as used, and maps the given region 0 page number
-  to the frame. Returns -1 on failure.
-*/
-int MapNewFrame0(unsigned int page_number) {
-    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> MapNewFrame0(%u)\n", page_number);
-
-    assert(page_number < VMEM_0_LIMIT / PAGESIZE);
-
-    int new_frame = GetUnusedFrame(unused_frames);
-    if (new_frame == THEYNIX_EXIT_FAILURE) {
-        TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "GetUnusedFrame() failed.\n");
-        return THEYNIX_EXIT_FAILURE;
-    }
-
-    assert(!region_0_page_table[page_number].valid);
-
-    region_0_page_table[page_number].valid = 1;
-    region_0_page_table[page_number].pfn = new_frame;
-    region_0_page_table[page_number].prot = PROT_READ | PROT_WRITE;
-
-    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< MapNewFrame0()\n\n");
-    return THEYNIX_EXIT_SUCCESS;
-}
-
-/*
-  Unmaps a valid page, freeing the frame the page was mapped to.
-*/
-void UnmapUsedFrame0(unsigned int page_number) {
-    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> UnmapUsedFrame0(%u)\n", page_number);
-
-    assert(page_number < VMEM_0_LIMIT / PAGESIZE);
-    assert(region_0_page_table[page_number].valid);
-
-    unsigned int used_frame = region_0_page_table[page_number].pfn;
-    ReleaseUsedFrame(unused_frames, used_frame);
-
-    region_0_page_table[page_number].valid = 0;
-    WriteRegister(REG_TLB_FLUSH, (unsigned int) &region_0_page_table[page_number]);
-
-    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< UnmapUsedFrame0()\n\n");
 }
 
 /*
