@@ -113,6 +113,7 @@ void TrapTableInit() {
     table[TRAP_TTY_RECEIVE] = (void*) &TrapTtyRecieve;
     table[TRAP_TTY_TRANSMIT] = (void*) &TrapTtyTransmit;
 
+    TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Trap vector table address: %p\n", table);
     WriteRegister(REG_VECTOR_BASE, (unsigned int) table);
 }
 
