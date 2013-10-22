@@ -5,6 +5,8 @@
 
 #include "Log.h"
 
+extern struct pte *region_0_page_table;
+
 /*
   Mallocs and initializes a region 1 page table with all invalid entries.
 */
