@@ -134,7 +134,7 @@ void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {
 int SetKernelBrk(void *addr) {
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> SetKernelBrk(%p)\n", addr);
 
-    unsigned int new_kernel_brk_page = ADDR_TO_PAGE(addr - 1) + 1;
+    unsigned int new_kernel_brk_page = ADDR_TO_PAGE(addr);
 
     // Ensure we aren't imposing on kernel stack limits.
     if (((unsigned int) addr) > KERNEL_STACK_BASE) {
