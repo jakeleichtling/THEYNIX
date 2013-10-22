@@ -47,4 +47,6 @@ void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt);
 
 int SetKernelBrk(void *addr);
 
+int Brk(void *addr);
+
 #endif

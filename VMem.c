@@ -64,6 +64,30 @@ int MapNewRegion1Pages(PCB *pcb, UnusedFrames unused_frames, unsigned int start_
 }
 
 /*
+  Starting at the given page number in region 1, unmaps num_pages pages to allocated
+  frames. All of the page table entries covered must be valid prior to this call, and all will be
+  invalid after the call.
+*/
+void UnmapRegion1Pages(PCB *pcb, UnusedFrames unused_frames, unsigned int start_page_num,
+        unsigned int num_pages, unsigned int prot) {
+    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> UnmapNewRegion1Pages()\n");
+
+    unsigned int page_num;
+    for (page_num = start_page_num; page_num < start_page_num + num_pages; page_num++) {
+        assert(page_num < NUM_PAGES_REG_1);
+        assert(pcb->region_1_page_table[page_num].valid);
+
+        unsigned int pfn = pcb->region_1_page_table[page_num].pfn;
+        ReleaseUsedFrame(unused_frames, pfn);
+
+        pcb->region_1_page_table[page_num].valid = 0;
+    }
+
+    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< UnmapNewRegion1Pages()\n\n");
+    return THEYNIX_EXIT_SUCCESS;
+}
+
+/*
   Starting at the given page number in region 1, changes the protections on the next num_pages.
   All of the page table entries covered must be valid prior to this call.
 */

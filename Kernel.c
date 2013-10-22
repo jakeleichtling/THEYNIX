@@ -13,12 +13,12 @@
   Retrieves an unused frame, marks it as used, and maps the given region 0 page number
   to the frame. Returns -1 on failure.
 */
-int MapNewFrame(unsigned int page_number);
+int MapNewFrame0(unsigned int page_number);
 
 /*
   Unmaps a valid page, freeing the frame the page was mapped to. Returns -1 on failure.
 */
-void UnmapUsedFrame(unsigned int page_number);
+void UnmapUsedFrame0(unsigned int page_number);
 
 /*
   Copies the given kernel stack page table into the region 0 page table. Does not flush the TLB.
@@ -152,10 +152,10 @@ int SetKernelBrk(void *addr) {
             for (new_page = kernel_brk_page;
                     new_page < new_kernel_brk_page && new_page < kernel_stack_base_frame;
                     new_page++) {
-                int rc = MapNewFrame(new_page);
+                int rc = MapNewFrame0(new_page);
                 if (rc == THEYNIX_EXIT_FAILURE) {
                     TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM,
-                            "MapNewFrame(%u) failed.\n", new_page);
+                            "MapNewFrame0(%u) failed.\n", new_page);
                     return THEYNIX_EXIT_FAILURE;
                 }
             }
@@ -165,13 +165,43 @@ int SetKernelBrk(void *addr) {
                     page_to_free >= new_kernel_brk_page;
                     page_to_free--)
                 if (page_to_free < kernel_stack_base_frame) {
-                    UnmapUsedFrame(page_to_free);
+                    UnmapUsedFrame0(page_to_free);
                 }
         }
     }
 
-    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< SetKernelBrk()\n\n");
+    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< Brk()\n\n");
     kernel_brk_page = new_kernel_brk_page;
+    return 0;
+}
+int Brk(void *addr) {
+    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> Brk(%p)\n", addr);
+
+    unsigned int new_user_brk_page = ADDR_TO_PAGE(addr - 1) + 1;
+
+    // Ensure we aren't imposing on user stack limits.
+    if (new_user_brk_page >= current_proc->lowest_user_stack_page) {
+        TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM,
+                "Address passed to Brk() (%p) does not leave a blank page between heap and user" +
+                        " stack page (%d).\n", new_user_brk_page, current_proc->lowest_user_stack_page);
+        return THEYNIX_EXIT_FAILURE;
+    }
+
+    if (new_kernel_brk_page > current_proc->user_brk_page) {
+        int rc = MapNewRegion1Pages(current_proc, unused_frames, current->user_brk_page,
+                new_kernel_brk_page - current_proc->user_brk_page, PROT_READ | PROT_WRITE);
+        if (rc == THEYNIX_EXIT_FAILURE) {
+            TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM,
+                    "MapNewRegion1Pages(%u) failed.\n", new_page);
+            return THEYNIX_EXIT_FAILURE;
+        }
+    } else if (new_user_brk_page < current_proc->user_brk_page) {
+        UnmapRegion1Pages(current_proc, unused_frames, new_kernel_brk_page,
+                current_proc->user_brk_page - new_user_brk_page);
+    }
+
+    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< Brk()\n\n");
+    current_proc->user_brk_page = new_user_brk_page;
     return 0;
 }
 
@@ -179,8 +209,8 @@ int SetKernelBrk(void *addr) {
   Retrieves an unused frame, marks it as used, and maps the given region 0 page number
   to the frame. Returns -1 on failure.
 */
-int MapNewFrame(unsigned int page_number) {
-    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> MapNewFrame(%u)\n", page_number);
+int MapNewFrame0(unsigned int page_number) {
+    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> MapNewFrame0(%u)\n", page_number);
 
     assert(page_number < VMEM_0_LIMIT / PAGESIZE);
 
@@ -196,15 +226,15 @@ int MapNewFrame(unsigned int page_number) {
     region_0_page_table[page_number].pfn = new_frame;
     region_0_page_table[page_number].prot = PROT_READ | PROT_WRITE;
 
-    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< MapNewFrame()\n\n");
+    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< MapNewFrame0()\n\n");
     return THEYNIX_EXIT_SUCCESS;
 }
 
 /*
   Unmaps a valid page, freeing the frame the page was mapped to.
 */
-void UnmapUsedFrame(unsigned int page_number) {
-    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> UnmapUsedFrame(%u)\n", page_number);
+void UnmapUsedFrame0(unsigned int page_number) {
+    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> UnmapUsedFrame0(%u)\n", page_number);
 
     assert(page_number < VMEM_0_LIMIT / PAGESIZE);
     assert(region_0_page_table[page_number].valid);
@@ -215,7 +245,7 @@ void UnmapUsedFrame(unsigned int page_number) {
     region_0_page_table[page_number].valid = 0;
     WriteRegister(REG_TLB_FLUSH, (unsigned int) &region_0_page_table[page_number]);
 
-    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< UnmapUsedFrame()\n\n");
+    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< UnmapUsedFrame0()\n\n");
 }
 
 /*

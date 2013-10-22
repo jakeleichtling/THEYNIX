@@ -50,7 +50,6 @@ struct PCB {
 */
 PCB *NewBlankPCB(UserContext model_user_context);
 
-
 void KillCurrentProc();
 
 #endif

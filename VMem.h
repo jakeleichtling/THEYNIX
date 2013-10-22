@@ -28,6 +28,14 @@ int MapNewRegion1Pages(PCB *pcb, UnusedFrames unused_frames, unsigned int start_
         unsigned int num_pages, unsigned int prot);
 
 /*
+  Starting at the given page number in region 1, unmaps num_pages pages to allocated
+  frames. All of the page table entries covered must be valid prior to this call, and all will be
+  invalid after the call.
+*/
+void UnmapRegion1Pages(PCB *pcb, UnusedFrames unused_frames, unsigned int start_page_num,
+        unsigned int num_pages, unsigned int prot);
+
+/*
   Starting at the given page number in region 1, changes the protections on the next num_pages.
   All of the page table entries covered must be valid prior to this call.
 */
