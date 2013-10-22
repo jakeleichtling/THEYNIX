@@ -106,6 +106,7 @@ void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {
     // Enable virtual memory. Wooooo!
     TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Enabling virtual memory. Wooooo!\n");
     virtual_memory_enabled = true;
+    WriteRegister(REG_TLB_FLUSH, TLB_FLUSH_ALL);
     WriteRegister(REG_VM_ENABLE, 1);
 
     // Get one valid page at the top of region 1 for the user stack of the current proc.
