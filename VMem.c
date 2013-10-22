@@ -9,7 +9,7 @@
   Mallocs and initializes a region 1 page table with all invalid entries.
 */
 void CreateRegion1PageTable(PCB *pcb) {
-    pcb->region_1_page_table = (struct pte *) malloc(NUM_PAGES_REG_1 * sizeof(struct pte));
+    pcb->region_1_page_table = (struct pte *) calloc(NUM_PAGES_REG_1, sizeof(struct pte));
 
     unsigned int i;
     for (i = 0; i < NUM_PAGES_REG_1; i++) {

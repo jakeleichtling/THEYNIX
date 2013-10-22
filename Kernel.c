@@ -70,6 +70,12 @@ void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {
     // Create the proc's page table for region 1.
     CreateRegion1PageTable(current_proc);
 
+    char *test_string_in_heap = calloc(10, sizeof(char));
+    test_string_in_heap[0] = 'f';
+    test_string_in_heap[1] = 'u';
+    test_string_in_heap[2] = 'c';
+    test_string_in_heap[3] = 'k';
+
     // Create the PTEs for the kernel text and data with the proper protections.
     for (i = 0; i < kernel_brk_page; i++) {
         region_0_page_table[i].valid = 1;
@@ -108,6 +114,8 @@ void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {
     virtual_memory_enabled = true;
     WriteRegister(REG_VM_ENABLE, 1);
 
+    TracePrintf(TRACE_LEVEL_DETAIL_INFO, "This is our test string: %s\n", test_string_in_heap);
+
     // Get one valid page at the top of region 1 for the user stack of the current proc.
     unsigned int first_stack_frame = GetUnusedFrame(unused_frames);
     unsigned int top_pte_index = ADDR_TO_PAGE(VMEM_1_LIMIT - 1);
@@ -134,7 +142,7 @@ void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {
 int SetKernelBrk(void *addr) {
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> SetKernelBrk(%p)\n", addr);
 
-    unsigned int new_kernel_brk_page = ADDR_TO_PAGE(addr);
+    unsigned int new_kernel_brk_page = ADDR_TO_PAGE(addr - 1) + 1;
 
     // Ensure we aren't imposing on kernel stack limits.
     if (((unsigned int) addr) > KERNEL_STACK_BASE) {
