@@ -141,7 +141,7 @@ int SetKernelBrk(void *addr) {
             for (new_page = kernel_brk_page;
                     new_page < new_kernel_brk_page && new_page < kernel_stack_base_frame;
                     new_page++) {
-                int rc = MapNewRegion0Page(new_page);
+                int rc = MapNewRegion0Page(new_page, unused_frames);
                 if (rc == THEYNIX_EXIT_FAILURE) {
                     TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM,
                             "MapNewRegion0Page(%u) failed.\n", new_page);
@@ -154,7 +154,7 @@ int SetKernelBrk(void *addr) {
                     page_to_free >= new_kernel_brk_page;
                     page_to_free--)
                 if (page_to_free < kernel_stack_base_frame) {
-                    UnmapUsedRegion0Page(page_to_free);
+                    UnmapUsedRegion0Page(page_to_free, unused_frames);
                 }
         }
     }
