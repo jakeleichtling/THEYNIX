@@ -164,37 +164,6 @@ int SetKernelBrk(void *addr) {
     return 0;
 }
 
-int Brk(void *addr) {
-    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> Brk(%p)\n", addr);
-
-    unsigned int new_user_brk_page = ADDR_TO_PAGE(addr - 1) + 1;
-
-    // Ensure we aren't imposing on user stack limits.
-    if (new_user_brk_page >= current_proc->lowest_user_stack_page) {
-        TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM,
-                "Address passed to Brk() (%p) does not leave a blank page between heap and user stack page (%d).\n",
-                new_user_brk_page, current_proc->lowest_user_stack_page);
-        return THEYNIX_EXIT_FAILURE;
-    }
-
-    if (new_user_brk_page > current_proc->user_brk_page) {
-        int rc = MapNewRegion1Pages(current_proc, unused_frames, current_proc->user_brk_page,
-                new_user_brk_page - current_proc->user_brk_page, PROT_READ | PROT_WRITE);
-        if (rc == THEYNIX_EXIT_FAILURE) {
-            TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM,
-                    "MapNewRegion1Pages() failed.\n");
-            return THEYNIX_EXIT_FAILURE;
-        }
-    } else if (new_user_brk_page < current_proc->user_brk_page) {
-        UnmapRegion1Pages(current_proc, unused_frames, new_user_brk_page,
-                current_proc->user_brk_page - new_user_brk_page);
-    }
-
-    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< Brk()\n\n");
-    current_proc->user_brk_page = new_user_brk_page;
-    return 0;
-}
-
 /*
   Copies the given kernel stack page table into the region 0 page table. Does not flush the TLB.
 */
