@@ -3,6 +3,7 @@
 #include <assert.h>
 #include <stdlib.h>
 
+#include "LoadProgram.h"
 #include "Log.h"
 #include "Traps.h"
 #include "VMem.h"
@@ -102,7 +103,7 @@ void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {
     if (!cmd_args) {
         assert(false);
     }
-    LoadProgram()
+    // LoadProgram()
 
     *uctxt = current_proc->user_context;
 
