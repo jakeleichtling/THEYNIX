@@ -42,7 +42,7 @@ void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {
 
     // DEBUG: Print the value at the address of TrapClock().
     void **trap_table_ptr = (void **) ReadRegister(REG_VECTOR_BASE);
-    unsigned int value_at_addr_of_trap_clock = (unsigned int) trap_table_ptr[TRAP_CLOCK];
+    unsigned int value_at_addr_of_trap_clock = (unsigned int) *(trap_table_ptr[TRAP_CLOCK]);
     TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Value at address of TrapClock(): %u\n",
             value_at_addr_of_trap_clock);
 
@@ -107,7 +107,7 @@ void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {
 
     // DEBUG: Print the value at the address of TrapClock().
     trap_table_ptr = (void **) ReadRegister(REG_VECTOR_BASE);
-    value_at_addr_of_trap_clock = (unsigned int) trap_table_ptr[TRAP_CLOCK];
+    value_at_addr_of_trap_clock = (unsigned int) *(trap_table_ptr[TRAP_CLOCK]);
     TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Value at address of TrapClock(): %u\n",
             value_at_addr_of_trap_clock);
 
