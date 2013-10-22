@@ -8,13 +8,27 @@
 #include "Log.h"
 #include "PCB.h"
 
+extern List *clock_block_procs;
+extern List *ready_queue;
+
 void TrapKernel(UserContext *user_context) {
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> TrapKernel(%p)\n", user_context);
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< TrapKernel(%p)\n", user_context);
 }
 
+void DecrementTicksRemaining(void *_proc) {
+    PCB *proc = (PCB *) _proc;
+    --proc->clock_ticks_until_ready;
+    if (proc->clock_ticks_until_ready <= 0) {
+        ListRemoveById(clock_block_procs, proc->pid);
+        ListAppend(ready_queue, proc, proc->pid);
+    }
+}
+
 void TrapClock(UserContext *user_context) {
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> TrapClock(%p)\n", user_context);
+    ListMap(clock_block_procs, &DecrementTicksRemaining);
+    //TODO: context switch
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< TrapClock(%p)\n", user_context);
 }
 
