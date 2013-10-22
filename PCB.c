@@ -3,6 +3,7 @@
 #include <stdlib.h>
 
 #include "Log.h"
+#include "VMem.h"
 
 /*
   Returns a PCB with the given model UserContext deep cloned and its lists initialized.
