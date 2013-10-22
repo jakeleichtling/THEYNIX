@@ -14,17 +14,10 @@
 */
 typedef struct PCB PCB;
 struct PCB {
-<<<<<<< HEAD
     unsigned int pid;
 
      UserContext user_context;
      KernelContext *kernel_context;
-=======
-    UserContext user_context;
-    KernelContext *kernel_context;
-
-    unsigned int pid;
->>>>>>> 56cabc92c8074e1a0124c8a6863217689bacd2a9
 
     struct pte *kernel_stack_page_table;
     struct pte *region_1_page_table;
