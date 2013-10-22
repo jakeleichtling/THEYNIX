@@ -172,8 +172,8 @@ int Brk(void *addr) {
     // Ensure we aren't imposing on user stack limits.
     if (new_user_brk_page >= current_proc->lowest_user_stack_page) {
         TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM,
-                "Address passed to Brk() (%p) does not leave a blank page between heap and user" +
-                        " stack page (%d).\n", new_user_brk_page, current_proc->lowest_user_stack_page);
+                "Address passed to Brk() (%p) does not leave a blank page between heap and user stack page (%d).\n",
+                new_user_brk_page, current_proc->lowest_user_stack_page);
         return THEYNIX_EXIT_FAILURE;
     }
 
