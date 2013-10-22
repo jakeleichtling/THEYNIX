@@ -1,5 +1,7 @@
 #include "SystemCalls.h"
 
+#include <hardware.h>
+
 #include "Log.h"
 #include "PMem.h"
 
