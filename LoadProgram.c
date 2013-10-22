@@ -223,7 +223,7 @@ proc->user_context.sp = cp2;
   ==>> These pages should be marked valid, with a
   ==>> protection of (PROT_READ | PROT_WRITE).
   */
-  unsigned int bottom_stack_page = ADDR_TO_PAGE(VMEM_1_LIMIT) - stack_npg;
+  unsigned int bottom_stack_page = ADDR_TO_PAGE(VMEM_1_LIMIT - VMEM_1_BASE) - stack_npg;
   MapNewRegion1Pages(proc, unused_frames, bottom_stack_page, stack_npg,
       PROT_READ | PROT_WRITE);
 
