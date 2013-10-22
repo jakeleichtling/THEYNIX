@@ -1,6 +1,9 @@
 #include "SystemCalls.h"
 
 #include "Log.h"
+
+extern UnusedFrames unused_frames;
+
 /*
   Implementations of Yalnix system calls.
 */
@@ -77,16 +80,34 @@ int GetPid(void) {
 }
 
 int Brk(void *addr) {
-    // Verify:
-        // addr is above current Brk
-        // addr, rounded up to PAGESIZE multiple, leaves a page between stack
+    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> Brk(%p)\n", addr);
 
-    // Get frames to complete request
+    unsigned int new_user_brk_page = ADDR_TO_PAGE(addr - 1) + 1;
 
-    // Add PTEs with correct permissions
+    // Ensure we aren't imposing on user stack limits.
+    if (new_user_brk_page >= current_proc->lowest_user_stack_page) {
+        TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM,
+                "Address passed to Brk() (%p) does not leave a blank page between heap and user stack page (%d).\n",
+                new_user_brk_page, current_proc->lowest_user_stack_page);
+        return THEYNIX_EXIT_FAILURE;
+    }
 
-    // Return 0 on success
-    return THEYNIX_EXIT_SUCCESS;
+    if (new_user_brk_page > current_proc->user_brk_page) {
+        int rc = MapNewRegion1Pages(current_proc, unused_frames, current_proc->user_brk_page,
+                new_user_brk_page - current_proc->user_brk_page, PROT_READ | PROT_WRITE);
+        if (rc == THEYNIX_EXIT_FAILURE) {
+            TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM,
+                    "MapNewRegion1Pages() failed.\n");
+            return THEYNIX_EXIT_FAILURE;
+        }
+    } else if (new_user_brk_page < current_proc->user_brk_page) {
+        UnmapRegion1Pages(current_proc, unused_frames, new_user_brk_page,
+                current_proc->user_brk_page - new_user_brk_page);
+    }
+
+    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< Brk()\n\n");
+    current_proc->user_brk_page = new_user_brk_page;
+    return 0;
 }
 
 int Delay(int clock_ticks) {
