@@ -3,6 +3,7 @@
 #include <hardware.h>
 
 #include "Log.h"
+#include "Kernel.h"
 #include "PMem.h"
 
 extern UnusedFrames unused_frames;
