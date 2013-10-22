@@ -34,11 +34,11 @@ PCB *NewBlankPCBWithPageTables(UserContext model_user_context, UnusedFrames unus
     PCB *pcb = NewBlankPCB(model_user_context);
 
     // Perform the malloc for the PCB's kernel stack page table.
-    current_proc->kernel_stack_page_table =
+    pcb->kernel_stack_page_table =
             (struct pte *) calloc(KERNEL_STACK_MAXSIZE / PAGESIZE, sizeof(struct pte));
 
     // Create the proc's page table for region 1.
-    CreateRegion1PageTable(current_proc);
+    CreateRegion1PageTable(pcb);
 
     // Create the PTEs for the proc's kernel stack with newly allocated frames and
     // the proper protections.
@@ -52,7 +52,7 @@ PCB *NewBlankPCBWithPageTables(UserContext model_user_context, UnusedFrames unus
         }
 
         pcb->kernel_stack_page_table[i].pfn = newly_allocated_frame;
-        current_proc->kernel_stack_page_table[i].prot = PROT_READ | PROT_WRITE;
+        pcb->kernel_stack_page_table[i].prot = PROT_READ | PROT_WRITE;
         pcb->kernel_stack_page_table[i].valid = 1;
     }
 
