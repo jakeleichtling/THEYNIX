@@ -98,18 +98,17 @@ void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {
     virtual_memory_enabled = true;
     WriteRegister(REG_VM_ENABLE, 1);
 
-    // Load the init program.
-    char *init_program_name;
-    if (!cmd_args) {
-        assert(false);
-    }
-    // LoadProgram()
-
-    *uctxt = current_proc->user_context;
-
     InitBookkeepingStructs();
 
-    // Create the first process (see template.c) and load the initial program into it.
+    // Load the init program.
+    char *init_program_name = "init";
+    if (cmd_args[0]) {
+        init_program_name = cmd_args[0];
+    }
+    LoadProgram(init_program_name, cmd_args, current_proc);
+
+    // Use the init proc's user context after returning from KernelStart().
+    *uctxt = current_proc->user_context;
 }
 
 int SetKernelBrk(void *addr) {
