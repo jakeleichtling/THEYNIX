@@ -46,6 +46,7 @@ PCB *NewBlankPCBWithPageTables(UserContext model_user_context, UnusedFrames unus
     // the proper protections.
     unsigned int kernel_stack_base_page = ADDR_TO_PAGE(KERNEL_STACK_BASE);
     unsigned int kernel_stack_limit_page = ADDR_TO_PAGE(KERNEL_STACK_LIMIT - 1) + 1;
+    unsigned int i;
     for (i = kernel_stack_base_page; i < kernel_stack_limit_page; i++) {
         int newly_allocated_frame = GetUnusedFrame(unused_frames);
         if (newly_allocated_frame == THEYNIX_EXIT_FAILURE) {
