@@ -136,8 +136,8 @@ void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {
     // current_proc = init_proc;
     // UseKernelStackForProc(current_proc);
 
-    // // Use the init proc's user context after returning from KernelStart().
-    // *uctxt = current_proc->user_context;
+    // Use the init proc's user context after returning from KernelStart().
+    *uctxt = current_proc->user_context;
 }
 
 int SetKernelBrk(void *addr) {
