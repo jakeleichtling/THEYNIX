@@ -13,8 +13,6 @@
 
 #define ADDR_TO_PAGE(addr) (((unsigned int) addr) >> PAGESHIFT)
 
-#define PMEM_BASE_PAGE PMEM_BASE / PAGESIZE
-
 /* Global Variables */
 
 List *locks;
