@@ -2,6 +2,8 @@
 
 #include <stdlib.h>
 
+#include "Log.h"
+
 /*
   Returns a PCB with the given model UserContext deep cloned and its lists initialized.
 */
