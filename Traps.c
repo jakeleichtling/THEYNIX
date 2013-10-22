@@ -97,6 +97,8 @@ void TrapNotDefined(UserContext *user_context) {
 }
 
 void TrapTableInit() {
+    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> TrapTableInit()\n");
+
     void **table = (void *) calloc(TRAP_VECTOR_SIZE, sizeof(void *));
 
     // Initialize all valid trap vector entries
@@ -115,5 +117,7 @@ void TrapTableInit() {
 
     TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Trap vector table address: %p\n", table);
     WriteRegister(REG_VECTOR_BASE, (unsigned int) table);
+
+    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< TrapTableInit()\n");
 }
 
