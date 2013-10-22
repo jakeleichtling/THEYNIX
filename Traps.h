@@ -41,7 +41,7 @@ call TtyTransmit with new len and pointer, and return.
 
 */
 
-// void *table[TRAP_VECTOR_SIZE];
+void *table[TRAP_VECTOR_SIZE];
 
 // Mallocs and inits TRAP table.
 // Writes address to REG_VECTOR_BASE.
