@@ -29,13 +29,13 @@ KERNEL_OBJS = Kernel.o PCB.o SystemCalls.o Traps.o VMem.o List.o PMem.o Tty.o Lo
 KERNEL_INCS = CVar.h Lock.h PMem.h Traps.h Kernel.h Log.h Pipe.h Tty.h List.h PCB.h SystemCalls.h VMem.h
 
 #List all user programs here.
-USER_APPS =
+USER_APPS = init
 #List all user program source files here.  SHould be the same as the previous list, with ".c" added to each file
-USER_SRCS =
+USER_SRCS = init.c
 #List the objects to be formed form the user  source files here.  Should be the same as the prvious list, replacing ".c" with ".o"
-USER_OBJS =
+USER_OBJS = init.o
 #List all of the header files necessary for your user programs
-USER_INCS =
+USER_INCS = Log.h
 
 #write to output program yalnix
 YALNIX_OUTPUT = yalnix
