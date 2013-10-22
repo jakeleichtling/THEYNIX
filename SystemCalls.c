@@ -5,6 +5,7 @@
 #include "Log.h"
 #include "Kernel.h"
 #include "PMem.h"
+#include "VMem.h"
 
 extern UnusedFrames unused_frames;
 
