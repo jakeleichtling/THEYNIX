@@ -43,12 +43,19 @@ void *ListDequeue(List *list);
 // Return first element with the given id.
 void *ListFindById(List *list, unsigned int id);
 
+// Remove the first element with the given id
+void *ListRemoveById(List *list, unsigned int id);
+
 // Insert immediately before the first element that has a greater ID.
 // List will be in sorted order if only this method is used to add elements.
 void ListInsertByIdOrder(List *list, void *data, unsigned int id);
 
 // Append to end of list
 void ListAppend(List *list, void *data, unsigned int id);
+
+// Apply the given function to each item in the list. The function is passed
+// the (void*) data.
+void ListMap(List *list, void (*ftn) (void*));
 
 // Test driver. Returns true on success.
 bool ListTestList();

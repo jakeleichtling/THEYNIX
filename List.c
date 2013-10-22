@@ -4,6 +4,10 @@
 #include <assert.h>
 #include <stdio.h>
 
+void Increment(void *data) {
+    ++*((int *)data);
+}
+
 bool ListTestList() {
     List *list = ListNewList();
     assert(ListEmpty(list));
@@ -22,12 +26,20 @@ bool ListTestList() {
     // Test FindById returns null if no element
     assert(!ListFindById(list, -1));
 
+    // Test Delete
+    int w = 9;
+    ListInsertByIdOrder(list, &w, w);
+    int* w_delete_result = (int *) ListRemoveById(list, w);
+    assert(*w_delete_result == w);
+    assert(!ListFindById(list, w));
+
     // Test FindById returns first element with given id
     int z = 4;
     ListAppend(list, &z, x_id);
 
     int *x_find = (int *) ListFindById(list, x_id);
     assert(*x_find == x);
+
 
     // Test elements are dequeued in order
     // Should be Y X Z (enqueue, enqueue, append)
@@ -58,6 +70,16 @@ bool ListTestList() {
     assert(*second_dequeue == second);
     assert(*third_dequeue == third);
 
+    // Test Map function
+    assert(ListEmpty(list));
+    ListAppend(list, &first, first);
+    ListAppend(list, &second, second);
+    ListMap(list, &Increment);
+    first_dequeue = ListDequeue(list);
+    second_dequeue = ListDequeue(list);
+
+    assert(*first_dequeue == 2);
+    assert(*second_dequeue == 3);
 
     ListDestroy(list);
 
@@ -106,7 +128,7 @@ void *ListDequeue(List *list) {
     return data;
 }
 
-void *ListFindById(List *list, unsigned int id) {
+ListNode *ListFindNodeById(List *list, unsigned int id) {
     if (ListEmpty(list)) {
         return NULL;
     }
@@ -115,12 +137,38 @@ void *ListFindById(List *list, unsigned int id) {
 
     while (iter != list->sentinel) {
         if (iter->id == id) {
-            return iter->data;
+            return iter;
         }
         iter = iter->next;
     }
 
     return NULL; // No match
+}
+
+void *ListFindById(List *list, unsigned int id) {
+    ListNode *node = ListFindNodeById(list, id);
+    if (node) { // found
+        return node->data;
+    } else { // not found
+        return NULL;
+    }
+}
+
+void *ListRemoveById(List *list, unsigned int id) {
+    ListNode *node = ListFindNodeById(list, id);
+    if (node) {
+        if (node == list->head) {
+            return ListDequeue(list);
+        } else {
+            node->prev->next = node->next;
+            node->next->prev = node->prev;
+            void *result_data = node->data;
+            free(node);
+            return result_data;
+        }
+    } else {
+        return NULL;
+    }
 }
 
 void ListInsertByIdOrder(List *list, void *data, unsigned int id) {
@@ -162,4 +210,14 @@ void ListAppend(List *list, void *data, unsigned int id) {
     ln->prev->next = ln;
     list->sentinel->prev = ln;
     ln->next = list->sentinel;
+}
+
+void ListMap(List *list, void (*ftn) (void*)) {
+    if (ListEmpty(list)) {
+        return;
+    }
+    ListNode *i;
+    for (i = list->head; i != list->sentinel; i = i->next) {
+        (*ftn)(i->data);
+    }
 }

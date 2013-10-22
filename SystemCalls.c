@@ -8,6 +8,7 @@
 #include "VMem.h"
 
 extern UnusedFrames unused_frames;
+extern List *clock_block_procs;
 
 /*
   Implementations of Yalnix system calls.
@@ -117,14 +118,23 @@ int Brk(void *addr) {
 
 int Delay(int clock_ticks) {
     // If clock_ticks < 0, return error
+    if (clock_ticks < 0) {
+        return THEYNIX_EXIT_FAILURE;
+    }
 
     // If clock_ticks == 0, return success
+    if (0 == clock_ticks) {
+        return THEYNIX_EXIT_SUCCESS;
+    }
 
     // Put proc in list of clock blocked
+    ListEnqueue(clock_block_procs, current_proc, current_proc->pid);
 
     // Set clock ticks remaining to clock_ticks
+    current_proc->clock_ticks_until_ready = clock_ticks;
 
     // Context switch!
+    // TODO
 
     // Return success
     return THEYNIX_EXIT_SUCCESS;
