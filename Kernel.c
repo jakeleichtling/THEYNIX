@@ -97,21 +97,12 @@ void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {
     virtual_memory_enabled = true;
     WriteRegister(REG_VM_ENABLE, 1);
 
-    // Get one valid page at the top of region 1 for the user stack of the current proc.
-    unsigned int first_stack_frame = GetUnusedFrame(unused_frames);
-    unsigned int top_pte_index = ADDR_TO_PAGE(VMEM_1_LIMIT - 1);
-    struct pte *top_pte_ptr = &(current_proc->region_1_page_table[top_pte_index]);
-    top_pte_ptr->valid = 1;
-    top_pte_ptr->prot = PROT_READ | PROT_WRITE;
-    top_pte_ptr->pfn = first_stack_frame;
-
-    // Make the current process the Idle process.
-    current_proc->user_context.pc = &Idle;
-
-    // We think we need to give the sp some valid address,
-    // so just hack it by pointing to some buffer.
-    UserContext *args_buffer = calloc(2, sizeof(UserContext));
-    current_proc->user_context.sp = args_buffer;
+    // Load the init program.
+    char *init_program_name;
+    if (!cmd_args) {
+        assert(false);
+    }
+    LoadProgram()
 
     *uctxt = current_proc->user_context;
 
