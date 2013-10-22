@@ -46,9 +46,9 @@ void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {
     TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Value at address of TrapClock(): %u\n",
             value_at_addr_of_trap_clock);
 
-
     // Create the current process
-    current_proc = NewBlankPCB(*uctxt);
+    UserContext model_user_context = *uctxt;
+    current_proc = NewBlankPCB(model_user_context);
 
     // Perform the malloc for the current proc's kernel stack page table before making page tables.
     current_proc->kernel_stack_page_table =
@@ -113,12 +113,28 @@ void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {
 
     InitBookkeepingStructs();
 
+    // Load the idle program into the current process.
+    LoadProgram("idle", cmd_args, current_proc);
+
+    // Create the init process.
+    PCB *init_proc = NewBlankPCBWithPageTables(model_user_context, unused_frames);
+
+    // Set the TLB registers for the init process's region 1.
+    WriteRegister(REG_PTBR1, (unsigned int) init_proc->region_1_page_table);
+
     // Load the init program.
     char *init_program_name = "init";
     if (cmd_args[0]) {
         init_program_name = cmd_args[0];
     }
-    LoadProgram(init_program_name, cmd_args, current_proc);
+    LoadProgram(init_program_name, cmd_args, init_proc);
+
+    // Put the current process (idle) on the ready queue.
+    ListEnqueue(ready_queue, current_proc, current_proc->pid);
+
+    // Run the init proc.
+    current_proc = init_proc;
+    UseKernelStackForProc(current_proc);
 
     // Use the init proc's user context after returning from KernelStart().
     *uctxt = current_proc->user_context;

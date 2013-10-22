@@ -14,6 +14,8 @@
 */
 typedef struct PCB PCB;
 struct PCB {
+    unsigned int pid;
+
      UserContext user_context;
      KernelContext *kernel_context;
 
