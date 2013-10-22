@@ -1,6 +1,7 @@
 #include "SystemCalls.h"
 
 #include "Log.h"
+#include "PMem.h"
 
 extern UnusedFrames unused_frames;
 
