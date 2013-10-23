@@ -17,6 +17,11 @@ typedef struct PCB PCB;
 struct PCB {
     unsigned int pid;
 
+    // Seems hacky, but when loading a program
+    // for the first time, need to set up kernel
+    // context as copy of currently running
+    bool kernel_context_initialized;
+
      UserContext user_context;
      KernelContext kernel_context;
 

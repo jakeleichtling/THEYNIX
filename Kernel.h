@@ -51,7 +51,7 @@ int SetKernelBrk(void *addr);
 void SaveKernelContext();
 
 // Context switch to the next process in the ready queue.
-// If non-null, the next process's context will be loaded into the param user_context.
+// The next process's context will be loaded into the param user_context.
 // NOTE: place the current proc into the correct queue before calling
 // (e.g., ready queue, clock blocked queue)
 void SwitchToNextProc(UserContext *user_context);

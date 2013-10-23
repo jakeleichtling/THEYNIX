@@ -96,6 +96,7 @@ void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {
         current_proc->kernel_stack_page_table[i].prot = PROT_READ | PROT_WRITE;
     }
     UseKernelStackForProc(current_proc);
+    current_proc->kernel_context_initialized = true;
 
     // Set the TLB registers for the region 0 page table.
     WriteRegister(REG_PTBR0, (unsigned int) region_0_page_table);
@@ -139,8 +140,8 @@ void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {
     ListEnqueue(ready_queue, current_proc, current_proc->pid);
 
     // Run the init proc.
-    current_proc = init_proc;
-    UseKernelStackForProc(current_proc);
+    //current_proc = init_proc;
+    //UseKernelStackForProc(current_proc);
 
     // Use the init proc's user context after returning from KernelStart().
     *uctxt = current_proc->user_context;
@@ -202,6 +203,15 @@ void UseKernelStackForProc(PCB *pcb) {
     }
 }
 
+void CopyKernelStackPte(PCB *source, PCB *dest) {
+    unsigned int kernel_stack_base_page = ADDR_TO_PAGE(KERNEL_STACK_BASE);
+    unsigned int kernel_stack_limit_page = ADDR_TO_PAGE(KERNEL_STACK_LIMIT - 1) + 1;
+    unsigned int i;
+    for (i = kernel_stack_base_page; i < kernel_stack_limit_page; i++) {
+       dest->kernel_stack_page_table[i] = source->kernel_stack_page_table[i];
+    }
+}
+
 /*
   Infinite loop that calls Pause() on each iteration.
 */
@@ -237,41 +247,22 @@ void SaveKernelContext() {
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< SaveKernelContext()\n");
 }
 
-void LoadUserContextState(UserContext *user_context) {
-    // set gp regs
-    int i;
-    for (i = 0; i < GREGS; i++) {
-       WriteRegister(i, (unsigned int) user_context->regs[i]);
-    }
-
-    // set SP
-    WriteRegister(REG_ESP , (unsigned int) user_context->sp);
-
-    // set EBP (current stack frame)
-    WriteRegister(REG_EBP, (unsigned int) user_context->ebp);
-
-    // set pc
-    WriteRegister(REG_EIP , (unsigned int) user_context->pc);
-}
-
 void SwitchToNextProc(UserContext *user_context) {
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> SwitchToNextProc()\n");
+    assert(user_context);
 
     assert(!ListEmpty(ready_queue));
     PCB *next_proc = ListDequeue(ready_queue);
     assert(next_proc);
 
-    if (user_context) { // modify passed in user_context
-        TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Loading next proc context into %p\n", user_context);
-        *user_context = next_proc->user_context;
-    } else {
-        TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Manually setting values for next proc context.\n");
-        LoadUserContextState(&next_proc->user_context);
-    }
+    TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Loading next proc context into %p\n", user_context);
+    *user_context = next_proc->user_context;
     // Set the TLB registers for the region 1 page table.
     WriteRegister(REG_PTBR1, (unsigned int) next_proc->region_1_page_table);
 
-    int rc = KernelContextSwitch(&SaveKernelContextAndSwitch, current_proc, next_proc);
+    PCB *old_proc = current_proc;
+    current_proc = next_proc;
+    int rc = KernelContextSwitch(&SaveKernelContextAndSwitch, old_proc, next_proc);
     if (THEYNIX_EXIT_SUCCESS == rc) {
         TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Succesfully switched kernel context!\n");
     } else {
@@ -279,8 +270,6 @@ void SwitchToNextProc(UserContext *user_context) {
         // TODO: more gracefully handle the failure case
         exit(-1);
     }
-
-    current_proc = next_proc;
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< SwitchToNextProc()\n");
 }
 
@@ -294,11 +283,19 @@ KernelContext *SaveCurrentKernelContext(KernelContext *kernel_context, void *cur
     return kernel_context;
 }
 
-KernelContext *SaveKernelContextAndSwitch(KernelContext *kernel_context, void *current_pcb,
-        void *next_pcb) {
+KernelContext *SaveKernelContextAndSwitch(KernelContext *kernel_context, void *__current_pcb,
+        void *__next_pcb) {
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> SaveKernelContextAndSwitch()\n");
+    PCB *current_pcb = (PCB *) __current_pcb;
+    PCB *next_pcb = (PCB *) __next_pcb;
 
     SaveCurrentKernelContext(kernel_context, current_pcb, next_pcb);
+    if (!next_pcb->kernel_context_initialized) {
+        TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Initializing new Kernel Context for proc %p\n", next_pcb);
+        next_pcb->kernel_context = current_pcb->kernel_context;
+        CopyKernelStackPte(current_pcb, next_pcb);
+        next_pcb->kernel_context_initialized = true;
+    }
 
     // Use the new proc's kernel stack page table entries in the region 0 page table.
     UseKernelStackForProc(next_pcb);
@@ -307,5 +304,5 @@ KernelContext *SaveKernelContextAndSwitch(KernelContext *kernel_context, void *c
     WriteRegister(REG_TLB_FLUSH, TLB_FLUSH_ALL);
 
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< SaveKernelContextAndSwitch()\n");
-    return &(((PCB*) next_pcb)->kernel_context);
+    return &(next_pcb->kernel_context);
 }
