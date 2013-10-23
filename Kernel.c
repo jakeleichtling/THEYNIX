@@ -116,25 +116,25 @@ void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {
     // Load the idle program into the current process.
     LoadProgram("idle", cmd_args, current_proc);
 
-    // // Create the init process.
-    // PCB *init_proc = NewBlankPCBWithPageTables(model_user_context, unused_frames);
+    // Create the init process.
+    PCB *init_proc = NewBlankPCBWithPageTables(model_user_context, unused_frames);
 
-    // // Set the TLB registers for the init process's region 1.
-    // WriteRegister(REG_PTBR1, (unsigned int) init_proc->region_1_page_table);
+    // Set the TLB registers for the init process's region 1.
+    WriteRegister(REG_PTBR1, (unsigned int) init_proc->region_1_page_table);
 
-    // // Load the init program.
-    // char *init_program_name = "init";
-    // if (cmd_args[0]) {
-    //     init_program_name = cmd_args[0];
-    // }
-    // LoadProgram(init_program_name, cmd_args, init_proc);
+    // Load the init program.
+    char *init_program_name = "init";
+    if (cmd_args[0]) {
+        init_program_name = cmd_args[0];
+    }
+    LoadProgram(init_program_name, cmd_args, init_proc);
 
-    // // Put the current process (idle) on the ready queue.
-    // ListEnqueue(ready_queue, current_proc, current_proc->pid);
+    // Put the current process (idle) on the ready queue.
+    ListEnqueue(ready_queue, current_proc, current_proc->pid);
 
-    // // Run the init proc.
-    // current_proc = init_proc;
-    // UseKernelStackForProc(current_proc);
+    // Run the init proc.
+    current_proc = init_proc;
+    UseKernelStackForProc(current_proc);
 
     // Use the init proc's user context after returning from KernelStart().
     *uctxt = current_proc->user_context;
