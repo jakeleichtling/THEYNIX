@@ -135,6 +135,7 @@ void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {
     LoadProgram(init_program_name, cmd_args, init_proc);
 
     // Put the current process (idle) on the ready queue.
+    SaveKernelContext();
     ListEnqueue(ready_queue, current_proc, current_proc->pid);
 
     // Run the init proc.
@@ -306,5 +307,5 @@ KernelContext *SaveKernelContextAndSwitch(KernelContext *kernel_context, void *c
     SaveCurrentKernelContext(kernel_context, current_pcb, next_pcb);
 
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< SaveKernelContextAndSwitch()\n");
-    return &((PCB*) next_pcb)->kernel_context;
+    return &(((PCB*) next_pcb)->kernel_context);
 }
