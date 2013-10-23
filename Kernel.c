@@ -280,12 +280,6 @@ void SwitchToNextProc(UserContext *user_context) {
         exit(-1);
     }
 
-    // Use the new proc's kernel stack page table entries in the region 0 page table.
-    UseKernelStackForProc(next_proc);
-
-    // FLUSH!!!
-    WriteRegister(REG_TLB_FLUSH, TLB_FLUSH_ALL);
-
     current_proc = next_proc;
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< SaveKernelContextAndSwitch()\n");
 }
@@ -305,6 +299,12 @@ KernelContext *SaveKernelContextAndSwitch(KernelContext *kernel_context, void *c
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> SaveKernelContextAndSwitch()\n");
 
     SaveCurrentKernelContext(kernel_context, current_pcb, next_pcb);
+
+    // Use the new proc's kernel stack page table entries in the region 0 page table.
+    UseKernelStackForProc(next_proc);
+
+    // FLUSH!!!
+    WriteRegister(REG_TLB_FLUSH, TLB_FLUSH_ALL);
 
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< SaveKernelContextAndSwitch()\n");
     return &(((PCB*) next_pcb)->kernel_context);
