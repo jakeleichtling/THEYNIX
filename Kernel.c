@@ -290,13 +290,21 @@ void SwitchToNextProc(UserContext *user_context) {
 }
 
 KernelContext *SaveCurrentKernelContext(KernelContext *kernel_context, void *current_pcb,
-                                        void *next_pcb) {
+        void *next_pcb) {
+    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> SaveCurrentKernelContext()\n");
+
     ((PCB*) current_pcb)->kernel_context = *kernel_context;
+
+    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< SaveCurrentKernelContext()\n");
     return kernel_context;
 }
 
 KernelContext *SaveKernelContextAndSwitch(KernelContext *kernel_context, void *current_pcb,
-                                          void *next_pcb) {
+        void *next_pcb) {
+    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> SaveKernelContextAndSwitch()\n");
+
     SaveCurrentKernelContext(kernel_context, current_pcb, next_pcb);
+
+    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< SaveKernelContextAndSwitch()\n");
     return &((PCB*) next_pcb)->kernel_context;
 }
