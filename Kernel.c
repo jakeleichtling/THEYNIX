@@ -255,7 +255,7 @@ void LoadUserContextState(UserContext *user_context) {
 }
 
 void SwitchToNextProc(UserContext *user_context) {
-    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> SaveKernelContextAndSwitch()\n");
+    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> SwitchToNextProc()\n");
 
     assert(!ListEmpty(ready_queue));
     PCB *next_proc = ListDequeue(ready_queue);
@@ -281,7 +281,7 @@ void SwitchToNextProc(UserContext *user_context) {
     }
 
     current_proc = next_proc;
-    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< SaveKernelContextAndSwitch()\n");
+    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< SwitchToNextProc()\n");
 }
 
 KernelContext *SaveCurrentKernelContext(KernelContext *kernel_context, void *current_pcb,
