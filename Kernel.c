@@ -301,7 +301,7 @@ KernelContext *SaveKernelContextAndSwitch(KernelContext *kernel_context, void *c
     SaveCurrentKernelContext(kernel_context, current_pcb, next_pcb);
 
     // Use the new proc's kernel stack page table entries in the region 0 page table.
-    UseKernelStackForProc(next_proc);
+    UseKernelStackForProc(next_pcb);
 
     // FLUSH!!!
     WriteRegister(REG_TLB_FLUSH, TLB_FLUSH_ALL);
