@@ -18,7 +18,7 @@ struct PCB {
     unsigned int pid;
 
      UserContext user_context;
-     KernelContext *kernel_context;
+     KernelContext kernel_context;
 
     struct pte *kernel_stack_page_table;
     struct pte *region_1_page_table;

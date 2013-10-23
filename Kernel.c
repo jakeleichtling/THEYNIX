@@ -2,6 +2,7 @@
 
 #include <assert.h>
 #include <stdlib.h>
+#include <hardware.h>
 
 #include "LoadProgram.h"
 #include "Log.h"
@@ -24,6 +25,10 @@ void Idle();
   Allocate some Kernel Data structures for Tty, process, and synchronization bookkeeping.
 */
 void InitBookkeepingStructs();
+
+KernelContext *SaveCurrentKernelContext(KernelContext *kernel_context, void *current_pcb, void *next_pcb);
+
+KernelContext *SaveKernelContextAndSwitch(KernelContext *kernel_context, void *current_pcb, void *next_pcb);
 
 /* Function Implementations */
 
@@ -218,4 +223,80 @@ void InitBookkeepingStructs() {
     for (i = 0; i < NUM_TERMINALS; i++) {
         TtyInit(&ttys[i]);
     }
+} 
+   
+void SaveKernelContext() {
+    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> SaveKernelContext()\n");
+    int rc = KernelContextSwitch(&SaveCurrentKernelContext, current_proc, NULL);
+    if (THEYNIX_EXIT_SUCCESS == rc) {
+        TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Succesfully saved kernel context!\n");
+    } else {
+        TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "Failed to save kernel context!\n");
+    }
+    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< SaveKernelContext()\n");
+}
+
+void LoadUserContextState(UserContext *user_context) {
+    // set gp regs
+    int i;
+    for (i = 0; i < GREGS; i++) {
+       WriteRegister(i, (unsigned int) user_context->regs[i]);
+    }
+
+    // set SP 
+    WriteRegister(REG_ESP , (unsigned int) user_context->sp);
+
+    // set EBP (current stack frame)
+    WriteRegister(REG_EBP, (unsigned int) user_context->ebp);
+
+    // set pc
+    WriteRegister(REG_EIP , (unsigned int) user_context->pc);
+}
+
+void SwitchToNextProc(UserContext *user_context) {
+    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> SaveKernelContextAndSwitch()\n");
+
+    assert(!ListEmpty(ready_queue));
+    PCB *next_proc = ListDequeue(ready_queue);
+    assert(next_proc);
+
+    if (user_context) { // modify passed in user_context
+        TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Loading next proc context into %p\n", user_context);
+        *user_context = next_proc->user_context;
+    } else {
+        TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Manually setting values for next proc context.\n");
+        LoadUserContextState(&next_proc->user_context);
+    }
+    // Set the TLB registers for the region 1 page table.
+    WriteRegister(REG_PTBR1, (unsigned int) next_proc->region_1_page_table);
+
+    int rc = KernelContextSwitch(&SaveKernelContextAndSwitch, current_proc, next_proc);
+    if (THEYNIX_EXIT_SUCCESS == rc) {
+        TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Succesfully switched kernel context!\n");
+    } else {
+        TracePrintf(TRACE_LEVEL_TERMINAL_PROBLEM, "Failed to switch kernel context!\n");
+        // TODO: more gracefully handle the failure case
+        exit(-1);
+    }
+
+    // Set the TLB registers for the region 0 page table.
+    WriteRegister(REG_PTBR0, (unsigned int) current_proc->kernel_stack_page_table);
+
+    // FLUSH!!!
+    WriteRegister(REG_TLB_FLUSH, TLB_FLUSH_ALL);
+
+    current_proc = next_proc;
+    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< SaveKernelContextAndSwitch()\n");
+}
+
+KernelContext *SaveCurrentKernelContext(KernelContext *kernel_context, void *current_pcb, 
+                                        void *next_pcb) {
+    ((PCB*) current_pcb)->kernel_context = *kernel_context;
+    return kernel_context;
+}
+
+KernelContext *SaveKernelContextAndSwitch(KernelContext *kernel_context, void *current_pcb, 
+                                          void *next_pcb) {
+    SaveCurrentKernelContext(kernel_context, current_pcb, next_pcb);
+    return &((PCB*) next_pcb)->kernel_context;
 }
