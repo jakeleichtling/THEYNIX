@@ -134,7 +134,7 @@ int Delay(int clock_ticks) {
     current_proc->clock_ticks_until_ready = clock_ticks;
 
     // Context switch!
-    // TODO
+    SwitchToNextProc(NULL);
 
     // Return success
     return THEYNIX_EXIT_SUCCESS;

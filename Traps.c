@@ -28,7 +28,12 @@ void DecrementTicksRemaining(void *_proc) {
 void TrapClock(UserContext *user_context) {
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> TrapClock(%p)\n", user_context);
     ListMap(clock_block_procs, &DecrementTicksRemaining);
-    //TODO: context switch
+    
+    // place current proc in end of the ready queue
+    ListAppend(ready_queue, current_proc, current_proc->pid);
+
+    SwitchToNextProc(user_context);
+
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< TrapClock(%p)\n", user_context);
 }
 
