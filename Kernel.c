@@ -136,6 +136,7 @@ void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {
 
     // Put the current process (idle) on the ready queue.
     SaveKernelContext();
+    TracePrintf(TRACE_LEVEL_DETAIL_INFO, "RESUMED!!!\n\n");
     ListEnqueue(ready_queue, current_proc, current_proc->pid);
 
     // Run the init proc.
