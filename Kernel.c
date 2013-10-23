@@ -223,8 +223,8 @@ void InitBookkeepingStructs() {
     for (i = 0; i < NUM_TERMINALS; i++) {
         TtyInit(&ttys[i]);
     }
-} 
-   
+}
+
 void SaveKernelContext() {
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> SaveKernelContext()\n");
     int rc = KernelContextSwitch(&SaveCurrentKernelContext, current_proc, NULL);
@@ -243,7 +243,7 @@ void LoadUserContextState(UserContext *user_context) {
        WriteRegister(i, (unsigned int) user_context->regs[i]);
     }
 
-    // set SP 
+    // set SP
     WriteRegister(REG_ESP , (unsigned int) user_context->sp);
 
     // set EBP (current stack frame)
@@ -279,8 +279,8 @@ void SwitchToNextProc(UserContext *user_context) {
         exit(-1);
     }
 
-    // Set the TLB registers for the region 0 page table.
-    WriteRegister(REG_PTBR0, (unsigned int) current_proc->kernel_stack_page_table);
+    // Use the new proc's kernel stack page table entries in the region 0 page table.
+    UseKernelStackForProc(next_proc);
 
     // FLUSH!!!
     WriteRegister(REG_TLB_FLUSH, TLB_FLUSH_ALL);
@@ -289,13 +289,13 @@ void SwitchToNextProc(UserContext *user_context) {
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< SaveKernelContextAndSwitch()\n");
 }
 
-KernelContext *SaveCurrentKernelContext(KernelContext *kernel_context, void *current_pcb, 
+KernelContext *SaveCurrentKernelContext(KernelContext *kernel_context, void *current_pcb,
                                         void *next_pcb) {
     ((PCB*) current_pcb)->kernel_context = *kernel_context;
     return kernel_context;
 }
 
-KernelContext *SaveKernelContextAndSwitch(KernelContext *kernel_context, void *current_pcb, 
+KernelContext *SaveKernelContextAndSwitch(KernelContext *kernel_context, void *current_pcb,
                                           void *next_pcb) {
     SaveCurrentKernelContext(kernel_context, current_pcb, next_pcb);
     return &((PCB*) next_pcb)->kernel_context;
