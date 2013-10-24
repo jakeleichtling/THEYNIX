@@ -1,48 +1,50 @@
 #ifndef _SYSTEMCALLS_H_
 #define _SYSTEMCALLS_H_
 
+#include <hardware.h>
+
 /*
   Prototypes for the Yalnix system calls.
 */
 
-int Fork(void);
+int KernelFork(void);
 
-int Exec(char *filename, char **argvec);
+int KernelExec(char *filename, char **argvec);
 
-void Exit(int status);
+void KernelExit(int status);
 
-int Wait(int *status_ptr);
+int KernelWait(int *status_ptr);
 
-int GetPid(void);
+int KernelGetPid(void);
 
-int Brk(void *addr);
+int KernelBrk(void *addr);
 
-int Delay(int clock_ticks);
+int KernelDelay(int clock_ticks, UserContext *user_context);
 
-int TtyRead(int tty_id, void *buf, int len);
+int KernelTtyRead(int tty_id, void *buf, int len);
 
-int TtyWrite(int tty_id, void *buf, int len);
+int KernelTtyWrite(int tty_id, void *buf, int len);
 
-int PipeInit(int *pipe_idp);
+int KernelPipeInit(int *pipe_idp);
 
-int PipeRead(int pipe_id, void *buf, int len);
+int KernelPipeRead(int pipe_id, void *buf, int len);
 
-int PipeWrite(int pipe_id, void *buf, int len);
+int KernelPipeWrite(int pipe_id, void *buf, int len);
 
-int LockInit(int *lock_idp);
+int KernelLockInit(int *lock_idp);
 
-int Acquire(int lock_id);
+int KernelAcquire(int lock_id);
 
-int Release(int lock_id);
+int KernelRelease(int lock_id);
 
-int CvarInit(int *cvar_idp);
+int KernelCvarInit(int *cvar_idp);
 
-int CvarSignal(int cvar_id);
+int KernelCvarSignal(int cvar_id);
 
-int CvarBroadcast(int cvar_id);
+int KernelCvarBroadcast(int cvar_id);
 
-int CvarWait(int cvar_id, int lock_id);
+int KernelCvarWait(int cvar_id, int lock_id);
 
-int Reclaim(int id);
+int KernelReclaim(int id);
 
 #endif

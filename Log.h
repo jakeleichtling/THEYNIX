@@ -3,6 +3,8 @@
 #ifndef _LOG_H_
 #define _LOG_H_
 
+#include <yalnix.h>
+
 /*
   Logging levels for TracePrintf().
 */
@@ -18,7 +20,7 @@
 #define THEYNIX_EXIT_SUCCESS 0
 #define THEYNIX_EXIT_FAILURE -1
 
-#define ERROR THEYNIX_EXIT_FAILURE
+//#define ERROR THEYNIX_EXIT_FAILURE TODO: conflicts with yalnix.h!!!
 #define SUCCESS THEYNIX_EXIT_SUCCESS
 
 #endif

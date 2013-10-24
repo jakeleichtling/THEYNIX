@@ -1,7 +1,5 @@
 #include "SystemCalls.h"
 
-#include <hardware.h>
-
 #include "Log.h"
 #include "Kernel.h"
 #include "PMem.h"
@@ -14,7 +12,7 @@ extern List *clock_block_procs;
   Implementations of Yalnix system calls.
 */
 
-int Fork(void) {
+int KernelFork(void) {
     // Make new page tables: For each valid frame, copy the frame and make the same
     // virtual address in the new page table point to the copy.
 
@@ -34,7 +32,7 @@ int Fork(void) {
     return THEYNIX_EXIT_SUCCESS;
 }
 
-int Exec(char *filename, char **argvec) {
+int KernelExec(char *filename, char **argvec) {
     // Copy filename string and arguments to Kernel stack
 
     // Release all user frames (not just stack, everything)
@@ -49,7 +47,7 @@ int Exec(char *filename, char **argvec) {
     return THEYNIX_EXIT_SUCCESS;
 }
 
-void Exit(int status) {
+void KernelExit(int status) {
     // If initial process, halt system
 
     // Set parent pointers of children to null
@@ -67,7 +65,7 @@ void Exit(int status) {
     // Context switch (do we free kernel stack frames here?)
 }
 
-int Wait(int *status_ptr) {
+int KernelWait(int *status_ptr) {
     // If zombie children list is not empty, collect exit status of one, remove PCB from list, and free
 
     // If zombie children list is empty
@@ -78,22 +76,23 @@ int Wait(int *status_ptr) {
     return THEYNIX_EXIT_SUCCESS;
 }
 
-int GetPid(void) {
+int KernelGetPid(void) {
     // Operating systems, wooooo!
 
     // Return the PID from current PCB
     return THEYNIX_EXIT_SUCCESS;
 }
 
-int Brk(void *addr) {
-    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> Brk(%p)\n", addr);
+int KernelBrk(void *addr) {
+    // TODO: verify memory
+    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> KernelBrk(%p)\n", addr);
 
     unsigned int new_user_brk_page = ADDR_TO_PAGE(addr - 1) + 1;
 
     // Ensure we aren't imposing on user stack limits.
     if (new_user_brk_page >= current_proc->lowest_user_stack_page) {
         TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM,
-                "Address passed to Brk() (%p) does not leave a blank page between heap and user stack page (%d).\n",
+                "Address passed to KernelBrk() (%p) does not leave a blank page between heap and user stack page (%d).\n",
                 new_user_brk_page, current_proc->lowest_user_stack_page);
         return THEYNIX_EXIT_FAILURE;
     }
@@ -111,12 +110,13 @@ int Brk(void *addr) {
                 current_proc->user_brk_page - new_user_brk_page);
     }
 
-    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< Brk()\n\n");
+    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< KernelBrk()\n\n");
     current_proc->user_brk_page = new_user_brk_page;
     return 0;
 }
 
-int Delay(int clock_ticks) {
+int KernelDelay(int clock_ticks, UserContext *user_context) {
+    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> KernelDelay(ticks=%d)\n", clock_ticks);
     // If clock_ticks < 0, return error
     if (clock_ticks < 0) {
         return THEYNIX_EXIT_FAILURE;
@@ -127,20 +127,20 @@ int Delay(int clock_ticks) {
         return THEYNIX_EXIT_SUCCESS;
     }
 
-    // Put proc in list of clock blocked
-    ListEnqueue(clock_block_procs, current_proc, current_proc->pid);
-
     // Set clock ticks remaining to clock_ticks
     current_proc->clock_ticks_until_ready = clock_ticks;
 
-    // Context switch!
-    SwitchToNextProc(NULL);
+    // Put proc in list of clock blocked
+    ListEnqueue(clock_block_procs, current_proc, current_proc->pid);
 
+    SwitchToNextProc(user_context);
+
+    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< KernelDelay()\n");
     // Return success
     return THEYNIX_EXIT_SUCCESS;
 }
 
-int TtyRead(int tty_id, void *buf, int len) {
+int KernelTtyRead(int tty_id, void *buf, int len) {
     // Get the TTY state
 
     // If the TTY has any line buffers, then consume as much as is there up to len
@@ -162,7 +162,7 @@ int TtyRead(int tty_id, void *buf, int len) {
     return THEYNIX_EXIT_SUCCESS;
 }
 
-int TtyWrite(int tty_id, void *buf, int len) {
+int KernelTtyWrite(int tty_id, void *buf, int len) {
     // Get the TTY state
 
     // Set tty_transmit_len = len
@@ -187,7 +187,7 @@ int TtyWrite(int tty_id, void *buf, int len) {
     return THEYNIX_EXIT_SUCCESS;
 }
 
-int PipeInit(int *pipe_idp) {
+int KernelPipeInit(int *pipe_idp) {
     // Make a new rod
 
     // Put it in the rod list
@@ -198,7 +198,7 @@ int PipeInit(int *pipe_idp) {
     return THEYNIX_EXIT_SUCCESS;
 }
 
-int PipeRead(int pipe_id, void *buf, int len) {
+int KernelPipeRead(int pipe_id, void *buf, int len) {
     // Get the pipe
 
     // If we have enough chars available, copy into buffer and consume those from pipe
@@ -213,7 +213,7 @@ int PipeRead(int pipe_id, void *buf, int len) {
     return THEYNIX_EXIT_SUCCESS;
 }
 
-int PipeWrite(int pipe_id, void *buf, int len) {
+int KernelPipeWrite(int pipe_id, void *buf, int len) {
     // Write into pipe's buffer, expanding buffer capacity if necessary
 
     // If another proc is waiting and enough characters available, move him to ready
@@ -222,7 +222,7 @@ int PipeWrite(int pipe_id, void *buf, int len) {
     return THEYNIX_EXIT_SUCCESS;
 }
 
-int LockInit(int *lock_idp) {
+int KernelLockInit(int *lock_idp) {
     // Make the lock and save it in the list
 
     // Set lock_id
@@ -231,7 +231,7 @@ int LockInit(int *lock_idp) {
     return THEYNIX_EXIT_SUCCESS;
 }
 
-int Acquire(int lock_id) {
+int KernelAcquire(int lock_id) {
     // while (!available) context switch (but stay in ready queue)
 
     // Set available = false
@@ -241,33 +241,33 @@ int Acquire(int lock_id) {
     return THEYNIX_EXIT_SUCCESS;
 }
 
-int Release(int lock_id) {
+int KernelRelease(int lock_id) {
     // Check owner_id == my pid, return error if false
 
     // Set available = true
     return THEYNIX_EXIT_SUCCESS;
 }
 
-int CvarInit(int *cvar_idp) {
+int KernelCvarInit(int *cvar_idp) {
     // Make a CVARRRR and put it in the list
 
     // Set cvar_id
     return THEYNIX_EXIT_SUCCESS;
 }
 
-int CvarSignal(int cvar_id) {
+int KernelCvarSignal(int cvar_id) {
     // If cvar wait queue is empty, then return
 
     // Else, pop proc and add to ready queue
     return THEYNIX_EXIT_SUCCESS;
 }
 
-int CvarBroadcast(int cvar_id) {
+int KernelCvarBroadcast(int cvar_id) {
     // For each proc in cvar wait queue, pop and add to ready queue
     return THEYNIX_EXIT_SUCCESS;
 }
 
-int CvarWait(int cvar_id, int lock_id) {
+int KernelCvarWait(int cvar_id, int lock_id) {
     // Make sure I own the lock
     // Release lock
 
@@ -283,7 +283,7 @@ int CvarWait(int cvar_id, int lock_id) {
     return THEYNIX_EXIT_SUCCESS;
 }
 
-int Reclaim(int id) {
+int KernelReclaim(int id) {
     // Find appropriate struct in kernel lists, remove from list, and freeeeeeeeeeeee
     return THEYNIX_EXIT_SUCCESS;
 }
