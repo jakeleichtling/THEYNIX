@@ -3,6 +3,7 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <hardware.h>
+#include <string.h>
 
 #include "LoadProgram.h"
 #include "Log.h"
@@ -120,23 +121,31 @@ void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {
     InitBookkeepingStructs();
 
     // Load the idle program into the current process.
-    LoadProgram("idle", NULL, current_proc);
+    int rc = 0;
+    rc = LoadProgram("idle", NULL, current_proc);
+    if (KILL == rc) {
+        TracePrintf(TRACE_LEVEL_TERMINAL_PROBLEM, "KernelStart: FAILED TO LOAD IDLE!!\n");
+        exit(THEYNIX_EXIT_FAILURE);
+    }
 
     // Create the init process.
     PCB *init_proc = NewBlankPCBWithPageTables(model_user_context, unused_frames);
 
-    // Set the TLB registers for the init process's region 1.
-    //WriteRegister(REG_PTBR1, (unsigned int) init_proc->region_1_page_table);
-
+    
     // Load the init program.
-    char *init_program_name = "init";
-    // TODO: right now this is picking up our cmds to yalnix
+    char *init_program_name = calloc(5, sizeof(char));
+    strncpy(init_program_name, "init\0", 5);
+    // TODO: do commands correctly
     /*
     if (cmd_args[0]) {
         init_program_name = cmd_args[0];
     }
     */
-    int rc = LoadProgram(init_program_name, NULL, init_proc);
+    WriteRegister(REG_PTBR1, (unsigned int) init_proc->region_1_page_table);
+    char **init_args = calloc(2, sizeof(char*));
+    init_args[0] = init_program_name;
+    rc = LoadProgram(init_program_name, init_args, init_proc);
+    WriteRegister(REG_PTBR1, (unsigned int) current_proc->region_1_page_table);
     if (KILL == rc) {
         TracePrintf(TRACE_LEVEL_TERMINAL_PROBLEM, "KernelStart: FAILED TO LOAD INIT!!\n");
         exit(THEYNIX_EXIT_FAILURE);

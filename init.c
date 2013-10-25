@@ -7,6 +7,8 @@
 #define BIG_HEAP 1048576
 #define MAX_REC 100
 
+int data;
+
 // Recurse a bunch of times to test stack growth
 void recurse(int level) {
     TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Init: recursion level %d \n", level);
