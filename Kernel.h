@@ -13,6 +13,8 @@
 
 #define ADDR_TO_PAGE(addr) (((unsigned int) addr) >> PAGESHIFT)
 
+#define KILL -1337
+
 /* Global Variables */
 
 List *locks;

@@ -110,7 +110,6 @@ void ListEnqueue(List *list, void *data, unsigned int id) {
     ListNode *ln = malloc(sizeof(ListNode));
     list->head->prev = ln;
     ln->next = list->head;
-    ln->prev = list->sentinel;
     list->head = ln;
     ln->id = id;
     ln->data = data;

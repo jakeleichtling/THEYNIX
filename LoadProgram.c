@@ -24,7 +24,7 @@ THEYNIX
 
 extern UnusedFrames unused_frames;
 
-#define KILL -1337
+unsigned int next_pid = 0;
 
 /*
  *  Load a program into an existing address space.  The program comes from
@@ -92,7 +92,7 @@ LoadProgram(char *name, char *args[], PCB *proc)
    *  arguments, to become the argc that the new "main" gets called with.
    */
   size = 0;
-  for (i = 0; args[i] != NULL; i++) {
+  for (i = 0; args &&  args[i] != NULL; i++) {
     TracePrintf(3, "counting arg %d = '%s'\n", i, args[i]);
     size += strlen(args[i]) + 1;
   }
@@ -152,11 +152,11 @@ LoadProgram(char *name, char *args[], PCB *proc)
    * Set the new stack pointer value in the process's exception frame.
    */
 
-/*
-==>> Here you replace your data structure proc
-==>> proc->context.sp = cp2;
-*/
-proc->user_context.sp = cp2;
+    /*
+    ==>> Here you replace your data structure proc
+    ==>> proc->context.sp = cp2;
+    */
+    proc->user_context.sp = cp2;
 
   /*
    * Now save the arguments in a separate buffer in region 0, since
@@ -171,7 +171,7 @@ proc->user_context.sp = cp2;
     TracePrintf(1, "In LoadProgram(), malloc() did not return valid space.\n");
     return ERROR;
   }
-  for (i = 0; args[i] != NULL; i++) {
+  for (i = 0; args && args[i] != NULL; i++) {
     TracePrintf(3, "saving arg %d = '%s'\n", i, args[i]);
     strcpy(cp2, args[i]);
     cp2 += strlen(cp2) + 1;
@@ -223,7 +223,8 @@ proc->user_context.sp = cp2;
   ==>> These pages should be marked valid, with a
   ==>> protection of (PROT_READ | PROT_WRITE).
   */
-  unsigned int bottom_stack_page = ADDR_TO_PAGE(VMEM_1_LIMIT - VMEM_1_BASE) - stack_npg;
+  unsigned int bottom_stack_page = ADDR_TO_PAGE(VMEM_1_LIMIT) - stack_npg;
+  bottom_stack_page -= VMEM_1_BASE >> PAGESHIFT;
   MapNewRegion1Pages(proc, unused_frames, bottom_stack_page, stack_npg,
       PROT_READ | PROT_WRITE);
 
@@ -314,7 +315,11 @@ proc->user_context.sp = cp2;
   free(argbuf);
   *cpp++ = NULL;			/* the last argv is a NULL pointer */
   *cpp++ = NULL;			/* a NULL pointer for an empty envp */
+  proc->lowest_user_stack_page = ADDR_TO_PAGE(proc->user_context.sp) - ADDR_TO_PAGE(VMEM_1_BASE);
+  proc->user_brk_page = data_pg1 + data_npg + 1;
+
+  TracePrintf(TRACE_LEVEL_DETAIL_INFO, " LoadProgram: new prog has pid %d\n", next_pid);
+  proc->pid = next_pid++;
 
   return SUCCESS;
 }
-

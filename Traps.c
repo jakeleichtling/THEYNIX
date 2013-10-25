@@ -13,6 +13,7 @@
 
 extern List *clock_block_procs;
 extern List *ready_queue;
+extern PCB *current_proc;
 
 void TrapKernel(UserContext *user_context) {
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> TrapKernel(%p)\n", user_context);
@@ -35,7 +36,8 @@ void DecrementTicksRemaining(void *_proc) {
     PCB *proc = (PCB *) _proc;
     --proc->clock_ticks_until_ready;
     if (proc->clock_ticks_until_ready <= 0) {
-        TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> DecrementTicksRemaining: proc %p done waiting!\n", _proc);
+        TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> DecrementTicksRemaining: proc %p done waiting!\n",
+             _proc);
 
         ListRemoveById(clock_block_procs, proc->pid);
         ListAppend(ready_queue, proc, proc->pid);
@@ -70,7 +72,13 @@ void TrapMemory(UserContext *user_context) {
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> TrapMemory(%p)\n", user_context);
 
     if (YALNIX_MAPERR == user_context->code) { // "address not mapped"
-        unsigned int addr_page = ADDR_TO_PAGE(user_context->addr);
+        if (((unsigned int) user_context->addr) < VMEM_1_BASE) {
+            TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, 
+                "User program tried to address kernel space @ %p\n", user_context->addr);
+            //TODO: kill program rather than die
+            exit(-1);
+        }
+        unsigned int addr_page = ADDR_TO_PAGE(user_context->addr) - ADDR_TO_PAGE(VMEM_1_BASE);
         if (ValidStackGrowth(addr_page)) {
             TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Growing User stack\n");
 

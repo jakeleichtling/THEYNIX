@@ -120,24 +120,28 @@ void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {
     InitBookkeepingStructs();
 
     // Load the idle program into the current process.
-    LoadProgram("idle", cmd_args, current_proc);
+    LoadProgram("idle", NULL, current_proc);
 
     // Create the init process.
     PCB *init_proc = NewBlankPCBWithPageTables(model_user_context, unused_frames);
 
     // Set the TLB registers for the init process's region 1.
-    WriteRegister(REG_PTBR1, (unsigned int) init_proc->region_1_page_table);
+    //WriteRegister(REG_PTBR1, (unsigned int) init_proc->region_1_page_table);
 
     // Load the init program.
     char *init_program_name = "init";
+    // TODO: right now this is picking up our cmds to yalnix
+    /*
     if (cmd_args[0]) {
         init_program_name = cmd_args[0];
     }
-    LoadProgram(init_program_name, cmd_args, init_proc);
-
-    // Put the current process (idle) on the ready queue.
-    TracePrintf(TRACE_LEVEL_DETAIL_INFO, "RESUMED!!!\n\n");
-    ListEnqueue(ready_queue, current_proc, current_proc->pid);
+    */
+    int rc = LoadProgram(init_program_name, NULL, init_proc);
+    if (KILL == rc) {
+        TracePrintf(TRACE_LEVEL_TERMINAL_PROBLEM, "KernelStart: FAILED TO LOAD INIT!!\n");
+        exit(THEYNIX_EXIT_FAILURE);
+    }
+    ListEnqueue(ready_queue, init_proc, init_proc->pid);
 
     // Run the init proc.
     //current_proc = init_proc;
@@ -145,6 +149,7 @@ void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {
 
     // Use the init proc's user context after returning from KernelStart().
     *uctxt = current_proc->user_context;
+    TracePrintf(TRACE_LEVEL_DETAIL_INFO, "RESUMED!!!\n\n");
 }
 
 int SetKernelBrk(void *addr) {
