@@ -30,6 +30,11 @@ KernelContext *SaveCurrentKernelContext(KernelContext *kernel_context, void *cur
 
 KernelContext *SaveKernelContextAndSwitch(KernelContext *kernel_context, void *current_pcb, void *next_pcb);
 
+/*
+  Copies the data in the source page number to the frame mapped by the dest page number.
+*/
+void CopyPageData(unsigned int source_page_number, unsigned int dest_page_number);
+
 /* Function Implementations */
 
 void SetKernelData(void *_KernelDataStart, void *_KernelDataEnd) {
