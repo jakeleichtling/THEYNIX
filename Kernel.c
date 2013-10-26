@@ -219,18 +219,18 @@ void CopyKernelStackPte(PCB *source, PCB *dest) {
     // First, map kernel_stack[0] = dest_kernel_stack[-1] and copy
     // kernel_stack[0] <-- kernel_stack[-1] = source_kernel_stack[-1].
     region_0_page_table[kernel_stack_base_page] = dest->kernel_stack_page_table[NUM_KERNEL_PAGES - 1];
-    WriteRegister(REG_TLB_FLUSH, kernel_stack_base_page << PAGESHIFT)
+    WriteRegister(REG_TLB_FLUSH, kernel_stack_base_page << PAGESHIFT);
     CopyPageData(kernel_stack_base_page + NUM_KERNEL_PAGES - 1, kernel_stack_base_page);
 
     // Then, map kernel_stack[0] = source_kernel_stack[0].
     region_0_page_table[kernel_stack_base_page] = source->kernel_stack_page_table[0];
-    WriteRegister(REG_TLB_FLUSH, kernel_stack_base_page << PAGESHIFT)
+    WriteRegister(REG_TLB_FLUSH, kernel_stack_base_page << PAGESHIFT);
 
     // Then, for i = -2 to 0, maps kernel_stack[i+1] = dest_kernel_stack[i] and copies
     // kernel_stack[i+1] <-- kernel_stack[i] = source_kernel_stack[i].
     for (i = NUM_KERNEL_PAGES - 2; i >= 0; i--) {
         region_0_page_table[kernel_stack_base_page + i + 1] = dest->kernel_stack_page_table[i];
-        WriteRegister(REG_TLB_FLUSH, (kernel_stack_base_page + i + 1) << PAGESHIFT)
+        WriteRegister(REG_TLB_FLUSH, (kernel_stack_base_page + i + 1) << PAGESHIFT);
         CopyPageData(kernel_stack_base_page + i, kernel_stack_base_page + i + 1);
     }
 }
