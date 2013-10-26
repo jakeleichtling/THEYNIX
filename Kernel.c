@@ -128,17 +128,17 @@ void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {
         exit(THEYNIX_EXIT_FAILURE);
     }
 
-    // Load the idle program, but first make sure we are pointing to its region 1 page table.
-    PCB *idle_proc = NewBlankPCBWithPageTables(model_user_context, unused_frames);
-    WriteRegister(REG_PTBR1, (unsigned int) idle_proc->region_1_page_table);
-    rc = LoadProgram("idle", NULL, idle_proc);
-    if (rc != SUCCESS) {
-        TracePrintf(TRACE_LEVEL_TERMINAL_PROBLEM, "KernelStart: FAILED TO LOAD IDLE!!\n");
-        exit(THEYNIX_EXIT_FAILURE);
-    }
+    // // Load the idle program, but first make sure we are pointing to its region 1 page table.
+    // PCB *idle_proc = NewBlankPCBWithPageTables(model_user_context, unused_frames);
+    // WriteRegister(REG_PTBR1, (unsigned int) idle_proc->region_1_page_table);
+    // rc = LoadProgram("idle", NULL, idle_proc);
+    // if (rc != SUCCESS) {
+    //     TracePrintf(TRACE_LEVEL_TERMINAL_PROBLEM, "KernelStart: FAILED TO LOAD IDLE!!\n");
+    //     exit(THEYNIX_EXIT_FAILURE);
+    // }
 
-    // Put idle in the ready queue.
-    ListEnqueue(ready_queue, idle_proc, idle_proc->pid);
+    // // Put idle in the ready queue.
+    // ListEnqueue(ready_queue, idle_proc, idle_proc->pid);
 
     // Make init the current proc.
     current_proc = init_proc;
