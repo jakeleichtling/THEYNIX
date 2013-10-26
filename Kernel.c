@@ -214,7 +214,7 @@ void UseKernelStackForProc(PCB *pcb) {
 */
 void CopyKernelStackPte(PCB *source, PCB *dest) {
     unsigned int kernel_stack_base_page = ADDR_TO_PAGE(KERNEL_STACK_BASE);
-    unsigned int i;
+    int i;
 
     // First, map kernel_stack[0] = dest_kernel_stack[-1] and copy
     // kernel_stack[0] <-- kernel_stack[-1] = source_kernel_stack[-1].
