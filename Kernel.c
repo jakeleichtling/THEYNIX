@@ -142,6 +142,7 @@ void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {
 
     // Make init the current proc.
     current_proc = init_proc;
+    WriteRegister(REG_PTBR1, (unsigned int) init_proc->region_1_page_table);
 
     // Use the init proc's user context after returning from KernelStart().
     *uctxt = init_proc->user_context;
