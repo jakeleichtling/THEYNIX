@@ -71,6 +71,7 @@ void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {
     CreateRegion1PageTable(init_proc);
 
     // Create the PTEs for the kernel text and data with the proper protections.
+    unsigned int i;
     for (i = 0; i < kernel_brk_page; i++) {
         region_0_page_table[i].valid = 1;
         region_0_page_table[i].pfn = i;
@@ -239,8 +240,8 @@ void CopyPageData(unsigned int source_page_number, unsigned int dest_page_number
     char *dest_byte_addr;
     unsigned int i;
     for (i = 0; i < PAGESIZE; i++) {
-        source_byte_addr = (char *)((source_page_number << PAGESIZE) + i);
-        dest_byte_addr = (char *)((dest_page_number << PAGESIZE) + i);
+        source_byte_addr = (char *)((source_page_number << PAGESHIFT) + i);
+        dest_byte_addr = (char *)((dest_page_number << PAGESHIFT) + i);
 
         *dest_byte_addr = *source_byte_addr;
     }
