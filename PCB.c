@@ -6,6 +6,8 @@
 #include "Kernel.h"
 #include "VMem.h"
 
+unsigned int next_pid = 0;
+
 /*
   Returns a PCB with the given model UserContext deep cloned and its lists initialized.
 */
