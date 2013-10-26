@@ -216,7 +216,9 @@ void ListMap(List *list, void (*ftn) (void*)) {
         return;
     }
     ListNode *i;
-    for (i = list->head; i != list->sentinel; i = i->next) {
-        (*ftn)(i->data);
+    for (i = list->head; i && i != list->sentinel; i = i->next) {
+        if (i->data) {
+            (*ftn)(i->data);
+        }
     }
 }

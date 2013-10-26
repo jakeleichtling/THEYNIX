@@ -42,7 +42,7 @@ void DecrementTicksRemaining(void *_proc) {
         ListRemoveById(clock_block_procs, proc->pid);
         ListAppend(ready_queue, proc, proc->pid);
     }
-    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<< DecrementTicksRemaining()\n");
+    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< DecrementTicksRemaining()\n");
 }
 
 void TrapClock(UserContext *user_context) {
