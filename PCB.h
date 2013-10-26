@@ -7,6 +7,11 @@
 #include "List.h"
 #include "PMem.h"
 
+#define NUM_KERNEL_PAGES KERNEL_STACK_MAXSIZE / PAGESIZE
+
+/* Global Vars */
+unsigned int next_pid = 0;
+
 /* Struct */
 
 /*

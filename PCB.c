@@ -15,6 +15,10 @@ PCB *NewBlankPCB(UserContext model_user_context) {
     // Malloc for the struct.
     PCB *new_pcb = (PCB *) calloc(1, sizeof(PCB));
 
+    // Give it a PID and increment the global PID counter.
+    new_pcb->pid = next_pid;
+    next_pid++;
+
     // Deep clone the model user context.
     new_pcb->user_context = model_user_context;
 
@@ -35,19 +39,17 @@ PCB *NewBlankPCBWithPageTables(UserContext model_user_context, UnusedFrames unus
 
     PCB *pcb = NewBlankPCB(model_user_context);
 
-    // Perform the malloc for the PCB's kernel stack page table.
-    pcb->kernel_stack_page_table =
-            (struct pte *) calloc(KERNEL_STACK_MAXSIZE / PAGESIZE, sizeof(struct pte));
-
     // Create the proc's page table for region 1.
     CreateRegion1PageTable(pcb);
 
+    // Perform the malloc for the PCB's kernel stack page table.
+    pcb->kernel_stack_page_table =
+            (struct pte *) calloc(NUM_KERNEL_PAGES, sizeof(struct pte));
+
     // Create the PTEs for the proc's kernel stack with newly allocated frames and
     // the proper protections.
-    unsigned int kernel_stack_base_page = ADDR_TO_PAGE(KERNEL_STACK_BASE);
-    unsigned int kernel_stack_limit_page = ADDR_TO_PAGE(KERNEL_STACK_LIMIT - 1) + 1;
     unsigned int i;
-    for (i = kernel_stack_base_page; i < kernel_stack_limit_page; i++) {
+    for (i = 0; i < NUM_KERNEL_PAGES; i++) {
         int newly_allocated_frame = GetUnusedFrame(unused_frames);
         if (newly_allocated_frame == THEYNIX_EXIT_FAILURE) {
             TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "GetUnusedFrame() failed.\n");

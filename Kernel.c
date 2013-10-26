@@ -3,7 +3,6 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <hardware.h>
-#include <string.h>
 
 #include "LoadProgram.h"
 #include "Log.h"
@@ -52,26 +51,19 @@ void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {
     TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Value at address of TrapClock(): %u\n",
             value_at_addr_of_trap_clock);
 
-    // Create the current process
+    // Create the init proc
     UserContext model_user_context = *uctxt;
-    current_proc = NewBlankPCB(model_user_context);
+    PCB *init_proc = NewBlankPCB(model_user_context);
 
-    // Perform the malloc for the current proc's kernel stack page table before making page tables.
-    current_proc->kernel_stack_page_table =
+    // Perform the malloc for the init proc's kernel stack page table before making page tables.
+    init_proc->kernel_stack_page_table =
             (struct pte *) calloc(KERNEL_STACK_MAXSIZE / PAGESIZE, sizeof(struct pte));
 
     // Build the initial page table for region 0 such that page = frame for all valid pages.
     region_0_page_table = (struct pte *) calloc(VMEM_0_SIZE / PAGESIZE, sizeof(struct pte));
 
-    // Clear the valid bit of all PTEs.
-    // ---> I don't think we need this if calloc
-    unsigned int i = 0;
-    for (i = 0; i < VMEM_0_SIZE / PAGESIZE; i++) {
-        region_0_page_table[i].valid = 0;
-    }
-
-    // Create the proc's page table for region 1.
-    CreateRegion1PageTable(current_proc);
+    // Create the init proc's page table for region 1.
+    CreateRegion1PageTable(init_proc);
 
     // Create the PTEs for the kernel text and data with the proper protections.
     for (i = 0; i < kernel_brk_page; i++) {
@@ -86,25 +78,24 @@ void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {
         }
     }
 
-    // Create the PTEs for the proc's kernel stack with page = frame and the proper protections.
+    // Create the PTEs for the init proc's kernel stack with page = frame and the proper protections.
     unsigned int kernel_stack_base_page = ADDR_TO_PAGE(KERNEL_STACK_BASE);
-    unsigned int kernel_stack_limit_page = ADDR_TO_PAGE(KERNEL_STACK_LIMIT - 1) + 1;
-    for (i = kernel_stack_base_page; i < kernel_stack_limit_page; i++) {
-        current_proc->kernel_stack_page_table[i].valid = 1;
-        current_proc->kernel_stack_page_table[i].pfn = i;
-        MarkFrameAsUsed(unused_frames, i);
+    for (i = 0; i < NUM_KERNEL_PAGES; i++) {
+        init_proc->kernel_stack_page_table[i].valid = 1;
+        init_proc->kernel_stack_page_table[i].pfn = i + kernel_stack_base_page;
+        MarkFrameAsUsed(unused_frames, i + kernel_stack_base_page);
 
-        current_proc->kernel_stack_page_table[i].prot = PROT_READ | PROT_WRITE;
+        init_proc->kernel_stack_page_table[i].prot = PROT_READ | PROT_WRITE;
     }
-    UseKernelStackForProc(current_proc);
-    current_proc->kernel_context_initialized = true;
+    UseKernelStackForProc(init_proc);
+    init_proc->kernel_context_initialized = true;
 
     // Set the TLB registers for the region 0 page table.
     WriteRegister(REG_PTBR0, (unsigned int) region_0_page_table);
     WriteRegister(REG_PTLR0, VMEM_0_SIZE / PAGESIZE);
 
     // Set the TLB registers for the region 1 page table.
-    WriteRegister(REG_PTBR1, (unsigned int) current_proc->region_1_page_table);
+    WriteRegister(REG_PTBR1, (unsigned int) init_proc->region_1_page_table);
     WriteRegister(REG_PTLR1, VMEM_1_SIZE / PAGESIZE);
 
     // Enable virtual memory. Wooooo!
@@ -120,44 +111,34 @@ void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {
 
     InitBookkeepingStructs();
 
-    // Load the idle program into the current process.
-    int rc = 0;
-    rc = LoadProgram("idle", NULL, current_proc);
-    if (KILL == rc) {
+    // Load the init program.
+    char *init_program_name = "init";
+    if (cmd_args[0]) {
+        init_program_name = cmd_args[0];
+    }
+    int rc = LoadProgram(init_program_name, cmd_args, init_proc);
+    if (rc != SUCCESS) {
+        TracePrintf(TRACE_LEVEL_TERMINAL_PROBLEM, "KernelStart: FAILED TO LOAD INIT!!\n");
+        exit(THEYNIX_EXIT_FAILURE);
+    }
+
+    // Load the idle program, but first make sure we are pointing to its region 1 page table.
+    PCB *idle_proc = NewBlankPCBWithPageTables(model_user_context, unused_frames);
+    WriteRegister(REG_PTBR1, (unsigned int) idle_proc->region_1_page_table);
+    rc = LoadProgram("idle", NULL, idle_proc);
+    if (rc != SUCCESS) {
         TracePrintf(TRACE_LEVEL_TERMINAL_PROBLEM, "KernelStart: FAILED TO LOAD IDLE!!\n");
         exit(THEYNIX_EXIT_FAILURE);
     }
 
-    // Create the init process.
-    PCB *init_proc = NewBlankPCBWithPageTables(model_user_context, unused_frames);
+    // Put idle in the ready queue.
+    ListEnqueue(ready_queue, idle_proc, idle_proc->pid);
 
-    
-    // Load the init program.
-    char *init_program_name = calloc(5, sizeof(char));
-    strncpy(init_program_name, "init\0", 5);
-    // TODO: do commands correctly
-    /*
-    if (cmd_args[0]) {
-        init_program_name = cmd_args[0];
-    }
-    */
-    WriteRegister(REG_PTBR1, (unsigned int) init_proc->region_1_page_table);
-    char **init_args = calloc(2, sizeof(char*));
-    init_args[0] = init_program_name;
-    rc = LoadProgram(init_program_name, init_args, init_proc);
-    WriteRegister(REG_PTBR1, (unsigned int) current_proc->region_1_page_table);
-    if (KILL == rc) {
-        TracePrintf(TRACE_LEVEL_TERMINAL_PROBLEM, "KernelStart: FAILED TO LOAD INIT!!\n");
-        exit(THEYNIX_EXIT_FAILURE);
-    }
-    ListEnqueue(ready_queue, init_proc, init_proc->pid);
-
-    // Run the init proc.
-    //current_proc = init_proc;
-    //UseKernelStackForProc(current_proc);
+    // Make init the current proc.
+    current_proc = init_proc;
 
     // Use the init proc's user context after returning from KernelStart().
-    *uctxt = current_proc->user_context;
+    *uctxt = init_proc->user_context;
     TracePrintf(TRACE_LEVEL_DETAIL_INFO, "RESUMED!!!\n\n");
 }
 
@@ -210,19 +191,53 @@ int SetKernelBrk(void *addr) {
 */
 void UseKernelStackForProc(PCB *pcb) {
     unsigned int kernel_stack_base_page = ADDR_TO_PAGE(KERNEL_STACK_BASE);
-    unsigned int kernel_stack_limit_page = ADDR_TO_PAGE(KERNEL_STACK_LIMIT - 1) + 1;
     unsigned int i;
-    for (i = kernel_stack_base_page; i < kernel_stack_limit_page; i++) {
-        region_0_page_table[i] = pcb->kernel_stack_page_table[i];
+    for (i = 0; i < NUM_KERNEL_PAGES; i++) {
+        region_0_page_table[kernel_stack_base_page + i] = pcb->kernel_stack_page_table[i];
     }
 }
 
+/*
+  First, maps kernel_stack[0] = dest_kernel_stack[-1] and copies
+  kernel_stack[0] <-- kernel_stack[-1] = source_kernel_stack[-1].
+
+  Then, maps kernel_stack[0] = source_kernel_stack[0].
+
+  Then, for i = -2 to 0, maps kernel_stack[i+1] = dest_kernel_stack[i] and copies
+  kernel_stack[i+1] <-- kernel_stack[i] = source_kernel_stack[i].
+*/
 void CopyKernelStackPte(PCB *source, PCB *dest) {
     unsigned int kernel_stack_base_page = ADDR_TO_PAGE(KERNEL_STACK_BASE);
-    unsigned int kernel_stack_limit_page = ADDR_TO_PAGE(KERNEL_STACK_LIMIT - 1) + 1;
     unsigned int i;
-    for (i = kernel_stack_base_page; i < kernel_stack_limit_page; i++) {
-       dest->kernel_stack_page_table[i] = source->kernel_stack_page_table[i];
+
+    // First, map kernel_stack[0] = dest_kernel_stack[-1] and copy
+    // kernel_stack[0] <-- kernel_stack[-1] = source_kernel_stack[-1].
+    region_0_page_table[kernel_stack_base_page] = dest->kernel_stack_page_table[NUM_KERNEL_PAGES - 1];
+    CopyPageData(kernel_stack_base_page + NUM_KERNEL_PAGES - 1, kernel_stack_base_page);
+
+    // Then, map kernel_stack[0] = source_kernel_stack[0].
+    region_0_page_table[kernel_stack_base_page] = source->kernel_stack_page_table[0];
+
+    // Then, for i = -2 to 0, maps kernel_stack[i+1] = dest_kernel_stack[i] and copies
+    // kernel_stack[i+1] <-- kernel_stack[i] = source_kernel_stack[i].
+    for (i = NUM_KERNEL_PAGES - 2; i >= 0; i--) {
+        region_0_page_table[kernel_stack_base_page + i + 1] = dest->kernel_stack_page_table[i];
+        CopyPageData(kernel_stack_base_page + i, kernel_stack_base_page + i + 1);
+    }
+}
+
+/*
+  Copies the data in the source page number to the frame mapped by the dest page number.
+*/
+void CopyPageData(unsigned int source_page_number, unsigned int dest_page_number) {
+    char *source_byte_addr;
+    char *dest_byte_addr;
+    unsigned int i;
+    for (i = 0; i < PAGESIZE; i++) {
+        source_byte_addr = (char *)((source_page_number << PAGESIZE) + i);
+        dest_byte_addr = (char *)((dest_page_number << PAGESIZE) + i);
+
+        *dest_byte_addr = *source_byte_addr;
     }
 }
 

@@ -24,8 +24,6 @@ THEYNIX
 
 extern UnusedFrames unused_frames;
 
-unsigned int next_pid = 0;
-
 /*
  *  Load a program into an existing address space.  The program comes from
  *  the Linux file named "name", and its arguments come from the array at
@@ -317,9 +315,6 @@ LoadProgram(char *name, char *args[], PCB *proc)
   *cpp++ = NULL;			/* a NULL pointer for an empty envp */
   proc->lowest_user_stack_page = ADDR_TO_PAGE(proc->user_context.sp) - ADDR_TO_PAGE(VMEM_1_BASE);
   proc->user_brk_page = data_pg1 + data_npg + 1;
-
-  TracePrintf(TRACE_LEVEL_DETAIL_INFO, " LoadProgram: new prog has pid %d\n", next_pid);
-  proc->pid = next_pid++;
 
   return SUCCESS;
 }
