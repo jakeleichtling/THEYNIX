@@ -7,6 +7,7 @@
 
 extern PCB *current_proc;
 extern struct pte *region_0_page_table;
+extern UnusedFrames unused_frames;
 
 /*
   Mallocs and initializes a region 1 page table with all invalid entries.
