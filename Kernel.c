@@ -278,55 +278,55 @@ void CopyRegion1PageTableAndData(PCB *source, PCB *dest) { // make sure dest has
         }
     }
 
-    // Create a temporary region 1 page table in the kernel heap that starts out as a copy of the
-    // source region 1 page table. Point the TLB to it and flush.
-    TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Mark 2\n");
-    struct pte *temp_region_1_page_table = (struct pte *) calloc(NUM_PAGES_REG_1, sizeof(struct pte));
-    for (i = 0; i < NUM_PAGES_REG_1; i++) {
-        temp_region_1_page_table[i] = source->region_1_page_table[i];
-    }
-    WriteRegister(REG_PTBR1, (unsigned int) temp_region_1_page_table);
-    WriteRegister(REG_TLB_FLUSH, TLB_FLUSH_1);
+    // // Create a temporary region 1 page table in the kernel heap that starts out as a copy of the
+    // // source region 1 page table. Point the TLB to it and flush.
+    // TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Mark 2\n");
+    // struct pte *temp_region_1_page_table = (struct pte *) calloc(NUM_PAGES_REG_1, sizeof(struct pte));
+    // for (i = 0; i < NUM_PAGES_REG_1; i++) {
+    //     temp_region_1_page_table[i] = source->region_1_page_table[i];
+    // }
+    // WriteRegister(REG_PTBR1, (unsigned int) temp_region_1_page_table);
+    // WriteRegister(REG_TLB_FLUSH, TLB_FLUSH_1);
 
-    // If region_1[-1] is valid, map region_1[0] = dest_region_1[-1] and copy
-    // region_1[0] <-- region_1[-1] = source_region_1[-1].
-    TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Mark 3\n");
-    if (temp_region_1_page_table[NUM_PAGES_REG_1 - 1].valid) {
-        temp_region_1_page_table[0] = dest->region_1_page_table[NUM_PAGES_REG_1 - 1];
-        WriteRegister(REG_TLB_FLUSH, VMEM_1_BASE);
-        CopyRegion1PageData(NUM_PAGES_REG_1 - 1, 0);
-    }
+    // // If region_1[-1] is valid, map region_1[0] = dest_region_1[-1] and copy
+    // // region_1[0] <-- region_1[-1] = source_region_1[-1].
+    // TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Mark 3\n");
+    // if (temp_region_1_page_table[NUM_PAGES_REG_1 - 1].valid) {
+    //     temp_region_1_page_table[0] = dest->region_1_page_table[NUM_PAGES_REG_1 - 1];
+    //     WriteRegister(REG_TLB_FLUSH, VMEM_1_BASE);
+    //     CopyRegion1PageData(NUM_PAGES_REG_1 - 1, 0);
+    // }
 
-    // Map region_1[0] = source_kernel_stack[0].
-    TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Mark 4\n");
-    temp_region_1_page_table[0] = source->region_1_page_table[0];
-    WriteRegister(REG_TLB_FLUSH, VMEM_1_BASE);
+    // // Map region_1[0] = source_kernel_stack[0].
+    // TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Mark 4\n");
+    // temp_region_1_page_table[0] = source->region_1_page_table[0];
+    // WriteRegister(REG_TLB_FLUSH, VMEM_1_BASE);
 
-    // For i = -2 to 0, maps region_1[i+1] = dest_region_1[i]. If region_1[i] is valid, copies
-    // region_1[i+1] <-- region_1[i] = source_region_1[i].
-    TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Mark 5\n");
-    for (i = NUM_PAGES_REG_1 - 2; i >= 0; i--) {
-        if (temp_region_1_page_table[i].valid) {
-            temp_region_1_page_table[i + 1] = dest->region_1_page_table[i];
-            WriteRegister(REG_TLB_FLUSH, VMEM_1_BASE + ((i + 1) << PAGESHIFT));
-            CopyRegion1PageData(i, i + 1);
-        }
-    }
+    // // For i = -2 to 0, maps region_1[i+1] = dest_region_1[i]. If region_1[i] is valid, copies
+    // // region_1[i+1] <-- region_1[i] = source_region_1[i].
+    // TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Mark 5\n");
+    // for (i = NUM_PAGES_REG_1 - 2; i >= 0; i--) {
+    //     if (temp_region_1_page_table[i].valid) {
+    //         temp_region_1_page_table[i + 1] = dest->region_1_page_table[i];
+    //         WriteRegister(REG_TLB_FLUSH, VMEM_1_BASE + ((i + 1) << PAGESHIFT));
+    //         CopyRegion1PageData(i, i + 1);
+    //     }
+    // }
 
-    // For each valid page table entry in the source_region_1 table, sets the corresponding
-    // dest_region_1 page table entry to have the same protections.
-    TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Mark 6\n");
-    for (i = 0; i < NUM_PAGES_REG_1; i++) {
-        if (source->region_1_page_table[i].valid) {
-            dest->region_1_page_table[i].prot = source->region_1_page_table[i].prot;
-        }
-    }
+    // // For each valid page table entry in the source_region_1 table, sets the corresponding
+    // // dest_region_1 page table entry to have the same protections.
+    // TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Mark 6\n");
+    // for (i = 0; i < NUM_PAGES_REG_1; i++) {
+    //     if (source->region_1_page_table[i].valid) {
+    //         dest->region_1_page_table[i].prot = source->region_1_page_table[i].prot;
+    //     }
+    // }
 
-    // Set the TLB to point back to the source region 1 page table and flush.
-    WriteRegister(REG_PTBR1, (unsigned int) source->region_1_page_table);
-    WriteRegister(REG_TLB_FLUSH, TLB_FLUSH_1);
+    // // Set the TLB to point back to the source region 1 page table and flush.
+    // WriteRegister(REG_PTBR1, (unsigned int) source->region_1_page_table);
+    // WriteRegister(REG_TLB_FLUSH, TLB_FLUSH_1);
 
-    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< CopyRegion1PageTableAndData()\n\n");
+    // TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< CopyRegion1PageTableAndData()\n\n");
 }
 
 /*
