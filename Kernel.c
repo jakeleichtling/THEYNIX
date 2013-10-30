@@ -284,7 +284,7 @@ void CopyRegion1PageTableAndData(PCB *source, PCB *dest) { // make sure dest has
     CopyRegion1PageData(NUM_PAGES_REG_1 - 1, 0);
 
     // Map region_1[0] = source_kernel_stack[0].
-    temp_region_1_page_table[0] = source->region_1_page_table[0]
+    temp_region_1_page_table[0] = source->region_1_page_table[0];
     WriteRegister(REG_TLB_FLUSH, (VMEM_1_BASE + 0) << PAGESHIFT);
 
     // For i = -2 to 0, maps region_1[i+1] = dest_region_1[i]. If region_1[i] is valid, copies
