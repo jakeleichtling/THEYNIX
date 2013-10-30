@@ -1,6 +1,7 @@
 #include "SystemCalls.h"
 
 #include <stdlib.h>
+#include <string.h>
 
 #include "Log.h"
 #include "Kernel.h"
