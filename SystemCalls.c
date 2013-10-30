@@ -32,8 +32,8 @@ int KernelFork(UserContext *user_context) {
     // Set child's parent pointer
     child_pcb->live_parent = current_proc;
 
-    // // Add the child to the ready queue
-    // ListEnqueue(ready_queue, child_pcb, child_pcb->pid);
+    // Add the child to the ready queue
+    ListEnqueue(ready_queue, child_pcb, child_pcb->pid);
 
     // // Record the child's PID for later comparison.
     // unsigned int child_pid = child_pcb->pid;
