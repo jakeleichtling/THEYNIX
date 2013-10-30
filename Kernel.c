@@ -286,19 +286,19 @@ void CopyRegion1PageTableAndData(PCB *source, PCB *dest) { // make sure dest has
     WriteRegister(REG_PTBR1, (unsigned int) temp_region_1_page_table);
     WriteRegister(REG_TLB_FLUSH, TLB_FLUSH_1);
 
-    // Map region_1[0] = dest_region_1[-1] and, if region_1[-1] is valid, copy
+    // If region_1[-1] is valid, map region_1[0] = dest_region_1[-1] and copy
     // region_1[0] <-- region_1[-1] = source_region_1[-1].
     TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Mark 3\n");
     if (temp_region_1_page_table[NUM_PAGES_REG_1 - 1].valid) {
         temp_region_1_page_table[0] = dest->region_1_page_table[NUM_PAGES_REG_1 - 1];
-        WriteRegister(REG_TLB_FLUSH, (VMEM_1_BASE + 0) << PAGESHIFT);
+        WriteRegister(REG_TLB_FLUSH, VMEM_1_BASE);
         CopyRegion1PageData(NUM_PAGES_REG_1 - 1, 0);
     }
 
     // Map region_1[0] = source_kernel_stack[0].
     TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Mark 4\n");
     temp_region_1_page_table[0] = source->region_1_page_table[0];
-    WriteRegister(REG_TLB_FLUSH, (VMEM_1_BASE + 0) << PAGESHIFT);
+    WriteRegister(REG_TLB_FLUSH, VMEM_1_BASE);
 
     // For i = -2 to 0, maps region_1[i+1] = dest_region_1[i]. If region_1[i] is valid, copies
     // region_1[i+1] <-- region_1[i] = source_region_1[i].
@@ -306,7 +306,7 @@ void CopyRegion1PageTableAndData(PCB *source, PCB *dest) { // make sure dest has
     for (i = NUM_PAGES_REG_1 - 2; i >= 0; i--) {
         if (temp_region_1_page_table[i].valid) {
             temp_region_1_page_table[i + 1] = dest->region_1_page_table[i];
-            WriteRegister(REG_TLB_FLUSH, (VMEM_1_BASE + i + 1) << PAGESHIFT);
+            WriteRegister(REG_TLB_FLUSH, VMEM_1_BASE + ((i + 1) << PAGESHIFT));
             CopyRegion1PageData(i, i + 1);
         }
     }
