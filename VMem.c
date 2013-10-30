@@ -5,6 +5,7 @@
 
 #include "Log.h"
 
+extern PCB *current_proc;
 extern struct pte *region_0_page_table;
 
 /*
