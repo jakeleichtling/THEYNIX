@@ -98,6 +98,7 @@ int KernelExec(char *filename, char **argvec) {
     free(heap_filename);
     if (argvec) {
         int num_args = sizeof(argvec) / sizeof(char *);
+        int i;
         for (i = 0; i < num_args; i++) {
             char *heap_arg = heap_argvec[i];
             free(heap_arg);
