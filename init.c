@@ -23,11 +23,11 @@ int main(int argc, char *argv[]) {
     int rc;
 
     rc = Fork();
-    if (rc) {
-        TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "Yay! I'm the parent, and my child's PID is %d", rc);
-    } else {
-        TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "Yay! I'm the child, and my PID is %d", GetPid());
-    }
+    // if (rc) {
+    //     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "Yay! I'm the parent, and my child's PID is %d", rc);
+    // } else {
+    //     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "Yay! I'm the child, and my PID is %d", GetPid());
+    // }
 
 /* Delay test:
      rc = Delay(5);
