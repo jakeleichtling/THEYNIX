@@ -87,7 +87,6 @@ int KernelExec(char *filename, char **argvec) {
 
     // Free the filename string and arguments in the Kernel heap.
     free(heap_filename);
-    int i;
     for (i = 0; i < num_args; i++) {
         char *heap_arg = heap_argvec[i];
         free(heap_arg);
