@@ -65,10 +65,12 @@ int KernelExec(char *filename, char **argvec) {
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> KernelExec()\n");
 
     // Copy the filename string and arguments to the Kernel heap.
+    TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Mark 1\n");
     int filename_len = strlen(filename);
     char *heap_filename = calloc(filename_len + 1, sizeof(char));
     strncpy(heap_filename, filename, filename_len);
 
+    TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Mark 2\n");
     int num_args = sizeof(argvec) / sizeof(char *);
     char **heap_argvec = calloc(num_args + 1, sizeof(char *));
     int i;
@@ -81,12 +83,12 @@ int KernelExec(char *filename, char **argvec) {
         heap_argvec[i] = heap_arg;
     }
 
-    // Release all frames in the region 1 page table.
-    FreeRegion1PageTable(current_proc, unused_frames);
-
+    TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Mark 3\n");
     // Create the new region 1 page table, loading the executable text from the given file.
+    // LoadProgram() also frees the entire region 1 before recreating it for the new program.
     LoadProgram(heap_filename, heap_argvec, current_proc);
 
+    TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Mark 4\n");
     // Free the filename string and arguments in the Kernel heap.
     free(heap_filename);
     for (i = 0; i < num_args; i++) {
