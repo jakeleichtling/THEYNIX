@@ -161,7 +161,7 @@ void ReleaseAllRegion1ForCurrentProc() {
     for (i = 0; i < NUM_PAGES_REG_1; i++) {
         if (current_proc->region_1_page_table[i].valid) {
             ReleaseUsedFrame(unused_frames, current_proc->region_1_page_table[i].pfn);
-            current_proc->region_1_page_table.valid = 0;
+            current_proc->region_1_page_table[i].valid = 0;
         }
     }
 }
