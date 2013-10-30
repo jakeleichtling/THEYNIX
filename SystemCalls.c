@@ -2,6 +2,8 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
+#include <assert.h>
 
 #include "LoadProgram.h"
 #include "Log.h"
@@ -11,6 +13,8 @@
 
 extern UnusedFrames unused_frames;
 extern List *clock_block_procs;
+extern List *waiting_on_children_procs;
+extern List *ready_queue;
 
 /*
   Implementations of Yalnix system calls.
@@ -115,30 +119,82 @@ int KernelExec(char *filename, char **argvec, UserContext *user_context_ptr) {
     return THEYNIX_EXIT_SUCCESS;
 }
 
-void KernelExit(int status) {
-    // If initial process, halt system
 
-    // Set parent pointers of children to null
+void KernelExit(int status, UserContext *user_context) {
+    // If initial process, halt system
+    // TODO: check
+    if (current_proc->pid == 0) {
+        TracePrintf(TRACE_LEVEL_TERMINAL_PROBLEM, "Init Proc exited. Halting!\n");
+    }
+
+    // Empty out child lists
+    while (!ListEmpty(current_proc->live_children)) {
+        PCB* child = (PCB *) ListDequeue(current_proc->live_children);
+        // Set parent pointers of children to null
+        child->live_parent = NULL;
+    }
+    ListDestroy(current_proc->live_children);
+
+    while (!ListEmpty(current_proc->zombie_children)) {
+        PCB* child = (PCB *) ListDequeue(current_proc->zombie_children);
+        free(child);
+    }
+    ListDestroy(current_proc->zombie_children);
+
 
     // Save exit status
+    current_proc->exit_status = status;
 
     // Free all frames
+    FreeRegion1PageTable(current_proc, unused_frames);
+    free(current_proc->region_1_page_table);
+    
+    FreeRegion0StackPages(current_proc, unused_frames);
+    free(current_proc->kernel_stack_page_table);
 
     // If has a parent, move proc to zombie_children list of parent
+    if (current_proc->live_parent) {
+        ListRemoveById(current_proc->live_parent->live_children, current_proc->pid);
+        ListAppend(current_proc->live_parent->zombie_children, current_proc, current_proc->pid);
+        // If parent is waiting_on_children, move parent proc to ready queue 
+        // from blocked, and reset waiting_on_chilrden
+        if (current_proc->live_parent->waiting_on_children) {
+            current_proc->live_parent->waiting_on_children = false;
+            ListAppend(ready_queue, current_proc->live_parent, current_proc->live_parent->pid);
+        }
+    } else { // If doesn't have parent, free PCB
+        free(current_proc);
+    }
 
-    // If parent is waiting_on_children, move parent proc to ready queue from blocked, and reset waiting_on_chilrden
-
-    // If doesn't have parent, free PCB
-
-    // Context switch (do we free kernel stack frames here?)
+    // Context switch
+    SwitchToNextProc(user_context);
 }
 
-int KernelWait(int *status_ptr) {
+int KernelWait(int *status_ptr, UserContext *user_context) {
     // If zombie children list is not empty, collect exit status of one, remove PCB from list, and free
+    if (!ListEmpty(current_proc->zombie_children)) {
+        PCB *child = (PCB *) ListDequeue(current_proc->zombie_children);
+        *status_ptr = child->exit_status;
+        // Since zombie, the page tables and children lists should have
+        // already been freed, so only free PCB
+        free(child);
+        return THEYNIX_EXIT_SUCCESS;
+    }
 
-    // If zombie children list is empty
-        // If no live children, return error
-        // Else, indicate waiting_for_children, move to blocked, context switch
+    // If no live children, return error
+    if (ListEmpty(current_proc->live_children)) {
+        return THEYNIX_EXIT_FAILURE;
+    }
+    current_proc->waiting_on_children = true;
+    SwitchToNextProc(user_context);
+
+    // When executed again, some child must have died and put us on ready queue
+    PCB *child = (PCB *) ListDequeue(current_proc->zombie_children);
+    assert(child);
+    *status_ptr = child->exit_status;
+    // Since zombie, the page tables and children lists should have
+    // already been freed, so only free PCB
+    free(child);
 
     // Return the exit status
     return THEYNIX_EXIT_SUCCESS;

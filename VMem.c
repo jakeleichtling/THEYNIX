@@ -157,3 +157,15 @@ void FreeRegion1PageTable(PCB *pcb, UnusedFrames unused_frames) {
         }
     }
 }
+
+void FreeRegion0StackPages(PCB *pcb, UnusedFrames unused_frames) {
+    int i;
+    for (i = 0; i < NUM_KERNEL_PAGES; i++) {
+        if (pcb->kernel_stack_page_table[i].valid) {
+            pcb->kernel_stack_page_table[i].valid = 0;
+
+            unsigned int frame_number = pcb->kernel_stack_page_table[i].pfn;
+            ReleaseUsedFrame(unused_frames, frame_number);
+        }
+    }
+}

@@ -29,7 +29,14 @@ void TrapKernel(UserContext *user_context) {
             rc = KernelGetPid();
             break;
         case YALNIX_EXEC:
-            rc = KernelExec((char *) user_context->regs[0], (char **) user_context->regs[1], user_context);
+            rc = KernelExec((char *) user_context->regs[0], 
+                (char **) user_context->regs[1], user_context);
+            break;
+        case YALNIX_WAIT:
+            rc = KernelWait((int *)user_context->regs[0], user_context);
+            break;
+        case YALNIX_EXIT:
+            KernelExit(user_context->regs[0], user_context);
             break;
         default:
             TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "TrapKernel: Code %d undefined\n");
