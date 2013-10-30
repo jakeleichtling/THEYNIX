@@ -20,7 +20,6 @@ void recurse(int level) {
 
 int main(int argc, char *argv[]) {
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> INIT PROGRAM START \n");
-    int rc;
 
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "Yay! My PID is %d\n", GetPid());
     Exec("init", NULL);
