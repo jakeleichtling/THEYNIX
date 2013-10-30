@@ -149,3 +149,17 @@ void UnmapUsedRegion0Page(unsigned int page_number, UnusedFrames unused_frames) 
 
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< UnmapUsedFrame0()\n\n");
 }
+
+/*
+  For each valid page in the current process's region 1 page table, releases the corresponding
+  frame and marks the page as invalid.
+*/
+void ReleaseAllRegion1ForCurrentProc() {
+    int i;
+    for (i = 0; i < NUM_PAGES_REG_1; i++) {
+        if (current_proc->region_1_page_table[i].valid) {
+            ReleaseUsedFrame(unused_frames, current_proc->region_1_page_table[i].pfn);
+            current_proc->region_1_page_table.valid = 0;
+        }
+    }
+}

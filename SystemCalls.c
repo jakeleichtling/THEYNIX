@@ -60,15 +60,37 @@ int KernelFork(UserContext *user_context) {
 }
 
 int KernelExec(char *filename, char **argvec) {
-    // Copy filename string and arguments to Kernel stack
+    // Copy the filename string and arguments to the Kernel heap.
+    int filename_len = strlen(filename);
+    char *heap_filename = calloc(filename_len + 1, sizeof(char));
+    strncpy(heap_filename, filename, filename_len);
 
-    // Release all user frames (not just stack, everything)
+    int num_args = sizeof(argvec) / sizeof(char *);
+    char **heap_argvec = calloc(num_args + 1, sizeof(char *));
+    int i;
+    for (i = 0; i < num_args; i++) {
+        char *arg = argvec[i];
+        int arg_len = strlen(arg);
+        char *heap_arg = calloc(arg_len + 1, sizeof(char));
+        strncpy(heap_arg, arg, arg_len);
 
-    // Load text from file, mapping to new frames when necessary
+        heap_argvec[i] = heap_arg;
+    }
 
-    // Put arguments in the right spot
+    // Release all frames in the region 1 page table.
+    ReleaseAllRegion1ForCurrentProc();
 
-    // Set the PC to the beginning of main
+    // Create the new region 1 page table, loading the executable text from the given file.
+    LoadProgram(heap_filename, heap_argvec, current_proc);
+
+    // Free the filename string and arguments in the Kernel heap.
+    free(heap_filename);
+    int i;
+    for (i = 0; i < num_args; i++) {
+        char *heap_arg = heap_argvec[i];
+        free(heap_arg);
+    }
+    free(heap_argvec);
 
     // Return
     return THEYNIX_EXIT_SUCCESS;

@@ -328,6 +328,9 @@ void CopyRegion1PageTableAndData(PCB *source, PCB *dest) { // make sure dest has
     WriteRegister(REG_PTBR1, (unsigned int) source->region_1_page_table);
     WriteRegister(REG_TLB_FLUSH, TLB_FLUSH_1);
 
+    // Free the temp region 1 page table.
+    free(temp_region_1_page_table);
+
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< CopyRegion1PageTableAndData()\n\n");
 }
 
