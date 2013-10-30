@@ -24,7 +24,7 @@ int KernelFork(UserContext *user_context) {
     child_pcb->user_brk_page = current_proc->user_brk_page;
 
     // Copy over region 1.
-    // CopyRegion1PageTableAndData(current_proc, child_pcb);
+    CopyRegion1PageTableAndData(current_proc, child_pcb);
 
     // // Add the child to the parent's child list
     // ListEnqueue(current_proc->live_children, child_pcb, child_pcb->pid);
