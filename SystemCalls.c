@@ -17,23 +17,23 @@ extern List *clock_block_procs;
 int KernelFork(UserContext *user_context) {
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> KernelFork()\n");
 
-    // Make a new child PCB with the same user context as the parent.
-    PCB *child_pcb = NewBlankPCBWithPageTables(current_proc->user_context, unused_frames);
-    child_pcb->waiting_on_children = false;
-    child_pcb->lowest_user_stack_page = current_proc->lowest_user_stack_page;
-    child_pcb->user_brk_page = current_proc->user_brk_page;
+    // // Make a new child PCB with the same user context as the parent.
+    // PCB *child_pcb = NewBlankPCBWithPageTables(current_proc->user_context, unused_frames);
+    // child_pcb->waiting_on_children = false;
+    // child_pcb->lowest_user_stack_page = current_proc->lowest_user_stack_page;
+    // child_pcb->user_brk_page = current_proc->user_brk_page;
 
-    // Copy over region 1.
-    CopyRegion1PageTableAndData(current_proc, child_pcb);
+    // // Copy over region 1.
+    // CopyRegion1PageTableAndData(current_proc, child_pcb);
 
-    // Add the child to the parent's child list
-    ListEnqueue(current_proc->live_children, child_pcb, child_pcb->pid);
+    // // Add the child to the parent's child list
+    // ListEnqueue(current_proc->live_children, child_pcb, child_pcb->pid);
 
-    // Set child's parent pointer
-    child_pcb->live_parent = current_proc;
+    // // Set child's parent pointer
+    // child_pcb->live_parent = current_proc;
 
-    // Add the child to the ready queue
-    ListEnqueue(ready_queue, child_pcb, child_pcb->pid);
+    // // Add the child to the ready queue
+    // ListEnqueue(ready_queue, child_pcb, child_pcb->pid);
 
     // // Record the child's PID for later comparison.
     // unsigned int child_pid = child_pcb->pid;
