@@ -91,7 +91,7 @@ int KernelExec(char *filename, char **argvec) {
     TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Mark 3\n");
     // Create the new region 1 page table, loading the executable text from the given file.
     // LoadProgram() also frees the entire region 1 before recreating it for the new program.
-    current_proc->user_context.sp = 0;
+    current_proc->user_context.pc = 0;
     LoadProgram(heap_filename, heap_argvec, current_proc);
 
     TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Mark 4\n");
