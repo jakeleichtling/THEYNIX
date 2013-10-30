@@ -259,6 +259,8 @@ void CopyKernelStackPageTableAndData(PCB *source, PCB *dest) {
 
   For each valid page table entry in the source_region_1 table, sets the corresponding
   dest_region_1 page table entry to have the same protections.
+
+  Sets the TLB to point back to the source region 1 page table and flush.
 */
 void CopyRegion1PageTableAndData(PCB *source, PCB *dest) { // make sure dest has a region 1 page table calloced
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> CopyRegion1PageTableAndData()\n");
@@ -319,6 +321,9 @@ void CopyRegion1PageTableAndData(PCB *source, PCB *dest) { // make sure dest has
             dest->region_1_page_table[i].prot = source->region_1_page_table[i].prot;
         }
     }
+
+    // Set the TLB to point back to the source region 1 page table and flush.
+    WriteRegister(REG_TLB_FLUSH, (unsigned int) source->region_1_page_table);
 
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< CopyRegion1PageTableAndData()\n\n");
 }
