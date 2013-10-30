@@ -6,7 +6,8 @@
 #include "include/hardware.h"
 #include "Log.h"
 
-unsigned int num_pages = 0;
+unsigned int num_pages;
+unsigned int num_unused_frames;
 /*
   Returns a pointer to a new UnusedFrames object with all of the frames initially unused.
 */
@@ -17,6 +18,7 @@ UnusedFrames NewUnusedFrames(unsigned int pmem_size) {
     assert(pmem_size > 0);
 
     num_pages = pmem_size / PAGESIZE;
+    num_unused_frames = num_pages;
     UnusedFrames unused_frames = (UnusedFrames) calloc(num_pages, sizeof(bool));
     assert(unused_frames);
     unsigned int i;
@@ -24,7 +26,7 @@ UnusedFrames NewUnusedFrames(unsigned int pmem_size) {
         unused_frames[i] = true;
     }
 
-    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< NewUnusedFrames()\n\n");
+    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< NewUnusedFrames() [num_unused_frames = %d] \n\n", num_unused_frames);
     return unused_frames;
 }
 
@@ -36,11 +38,13 @@ int GetUnusedFrame(UnusedFrames unused_frames) {
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> GetUnusedFrame()\n");
 
     assert(unused_frames);
+
     unsigned int i;
     for (i = 0; i < num_pages; i++) {
         if (unused_frames[i]) {
             unused_frames[i] = false;
-            TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< GetUnusedFrame() --> %d\n\n", i);
+            num_unused_frames--;
+            TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< GetUnusedFrame() --> %d [num_unused_frames = %d]\n\n", i, num_unused_frames);
             return i;
         }
     }
@@ -59,8 +63,9 @@ void MarkFrameAsUsed(UnusedFrames unused_frames, unsigned int frame) {
     assert(unused_frames[frame]);
 
     unused_frames[frame] = false;
+    num_unused_frames--;
 
-    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< MarkFrameAsUsed()\n\n");
+    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< MarkFrameAsUsed() [num_unused_frames = %d]\n\n", num_unused_frames);
 }
 
 /*
@@ -73,6 +78,7 @@ void ReleaseUsedFrame(UnusedFrames unused_frames, unsigned int frame) {
     assert(!unused_frames[frame]);
 
     unused_frames[frame] = true;
+    num_unused_frames++;
 
-    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< ReleaseUsedFrame()\n\n");
+    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< ReleaseUsedFrame() [num_unused_frames = %d]\n\n", num_unused_frames);
 }
