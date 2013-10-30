@@ -67,8 +67,8 @@ int main(int argc, char *argv[]) {
          Pause();
      }
      TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< INIT PROGRAM END \n");
+*/
 
      return 0;
-*/
 }
 
