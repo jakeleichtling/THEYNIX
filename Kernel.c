@@ -31,9 +31,14 @@ KernelContext *SaveCurrentKernelContext(KernelContext *kernel_context, void *cur
 KernelContext *SaveKernelContextAndSwitch(KernelContext *kernel_context, void *current_pcb, void *next_pcb);
 
 /*
-  Copies the data in the source page number to the frame mapped by the dest page number.
+  Copies the data in the region 0 source page number to the frame mapped by the region 0 dest page number.
 */
 void CopyRegion0PageData(unsigned int source_page_number, unsigned int dest_page_number);
+
+/*
+  Copies the data in the region 1 source page number to the frame mapped by the region 1 dest page number.
+*/
+void CopyRegion1PageData(unsigned int source_page_number, unsigned int dest_page_number);
 
 /* Function Implementations */
 
