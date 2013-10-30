@@ -104,10 +104,7 @@ int KernelWait(int *status_ptr) {
 }
 
 int KernelGetPid(void) {
-    // Operating systems, wooooo!
-
-    // Return the PID from current PCB
-    return THEYNIX_EXIT_SUCCESS;
+    return current_proc->pid;
 }
 
 int KernelBrk(void *addr) {

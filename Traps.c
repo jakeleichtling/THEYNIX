@@ -25,6 +25,9 @@ void TrapKernel(UserContext *user_context) {
         case YALNIX_FORK:
             rc = KernelFork(user_context);
             break;
+        case YALNIX_GETPID:
+            rc = KernelGetPid();
+            break;
         default:
             TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "TrapKernel: Code %d undefined\n");
             rc = THEYNIX_EXIT_FAILURE;
