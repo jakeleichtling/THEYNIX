@@ -17,6 +17,9 @@ extern List *clock_block_procs;
 int KernelFork(UserContext *user_context) {
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> KernelFork()\n");
 
+    // Save the current user context.
+    current_proc->user_context = *user_context;
+
     // Make a new child PCB with the same user context as the parent.
     PCB *child_pcb = NewBlankPCBWithPageTables(current_proc->user_context, unused_frames);
     child_pcb->waiting_on_children = false;
@@ -33,16 +36,16 @@ int KernelFork(UserContext *user_context) {
     child_pcb->live_parent = current_proc;
 
     // Add the child to the ready queue
-    // ListEnqueue(ready_queue, child_pcb, child_pcb->pid);
+    ListEnqueue(ready_queue, child_pcb, child_pcb->pid);
 
     // Record the child's PID for later comparison.
     unsigned int child_pid = child_pcb->pid;
 
     // Set kernel_context_initialized to false and context switch to
     // child so that the KernelContext and kernel stack are copied from parent.
-    // ListEnqueue(ready_queue, current_proc, current_proc->pid);
+    ListEnqueue(ready_queue, current_proc, current_proc->pid);
     child_pcb->kernel_context_initialized = false;
-    // SwitchToProc(child_pcb, user_context);
+    SwitchToProc(child_pcb, user_context);
 
     // Compare the current PID to the child's PID to return correct value.
     if (child_pid == current_proc->pid) {
