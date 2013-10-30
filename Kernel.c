@@ -278,15 +278,15 @@ void CopyRegion1PageTableAndData(PCB *source, PCB *dest) { // make sure dest has
         }
     }
 
-    // Create a temporary region 1 page table in the kernel heap that starts out as a copy of the
-    // source region 1 page table. Point the TLB to it and flush.
-    TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Mark 2\n");
-    struct pte *temp_region_1_page_table = (struct pte *) calloc(NUM_PAGES_REG_1, sizeof(struct pte));
-    for (i = 0; i < NUM_PAGES_REG_1; i++) {
-        temp_region_1_page_table[i] = source->region_1_page_table[i];
-    }
-    WriteRegister(REG_PTBR1, (unsigned int) temp_region_1_page_table);
-    WriteRegister(REG_TLB_FLUSH, TLB_FLUSH_1);
+    // // Create a temporary region 1 page table in the kernel heap that starts out as a copy of the
+    // // source region 1 page table. Point the TLB to it and flush.
+    // TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Mark 2\n");
+    // struct pte *temp_region_1_page_table = (struct pte *) calloc(NUM_PAGES_REG_1, sizeof(struct pte));
+    // for (i = 0; i < NUM_PAGES_REG_1; i++) {
+    //     temp_region_1_page_table[i] = source->region_1_page_table[i];
+    // }
+    // WriteRegister(REG_PTBR1, (unsigned int) temp_region_1_page_table);
+    // WriteRegister(REG_TLB_FLUSH, TLB_FLUSH_1);
 
     // // If region_1[-1] is valid, map region_1[0] = dest_region_1[-1] and copy
     // // region_1[0] <-- region_1[-1] = source_region_1[-1].
