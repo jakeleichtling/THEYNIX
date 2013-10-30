@@ -24,6 +24,8 @@ int main(int argc, char *argv[]) {
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "Yay! My PID is %d\n", GetPid());
     Exec("init", NULL);
 
+    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "!!! NOOOOOO, this should not be called!!! %d\n\n\n");
+
 /* Delay test:
      rc = Delay(5);
      if (THEYNIX_EXIT_SUCCESS == rc) {
