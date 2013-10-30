@@ -9,7 +9,7 @@
 
 int KernelFork(UserContext *user_context);
 
-int KernelExec(char *filename, char **argvec);
+int KernelExec(char *filename, char **argvec, UserContext *user_context_ptr);
 
 void KernelExit(int status);
 

@@ -61,7 +61,7 @@ int KernelFork(UserContext *user_context) {
     return 0;
 }
 
-int KernelExec(char *filename, char **argvec) {
+int KernelExec(char *filename, char **argvec, UserContext *user_context_ptr) {
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> KernelExec()\n");
 
     // Copy the filename string and arguments to the Kernel heap.
@@ -91,8 +91,10 @@ int KernelExec(char *filename, char **argvec) {
     TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Mark 3\n");
     // Create the new region 1 page table, loading the executable text from the given file.
     // LoadProgram() also frees the entire region 1 before recreating it for the new program.
-    current_proc->user_context.pc = 0;
     LoadProgram(heap_filename, heap_argvec, current_proc);
+
+    // Now use this new user context!
+    *user_context_ptr = current_proc->user_context;
 
     TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Mark 4\n");
     // Free the filename string and arguments in the Kernel heap.
