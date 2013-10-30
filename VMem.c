@@ -114,6 +114,9 @@ int MapNewRegion0Page(unsigned int page_number, UnusedFrames unused_frames) {
     region_0_page_table[page_number].pfn = new_frame;
     region_0_page_table[page_number].prot = PROT_READ | PROT_WRITE;
 
+    // Flush!
+    WriteRegister(REG_TLB_FLUSH, page_number << PAGESHIFT);
+
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< MapNewFrame0()\n\n");
     return THEYNIX_EXIT_SUCCESS;
 }
@@ -132,6 +135,9 @@ void UnmapUsedRegion0Page(unsigned int page_number, UnusedFrames unused_frames) 
 
     region_0_page_table[page_number].valid = 0;
     WriteRegister(REG_TLB_FLUSH, (unsigned int) &region_0_page_table[page_number]);
+
+    // Flush!
+    WriteRegister(REG_TLB_FLUSH, page_number << PAGESHIFT);
 
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< UnmapUsedFrame0()\n\n");
 }
