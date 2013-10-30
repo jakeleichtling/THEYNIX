@@ -71,18 +71,21 @@ int KernelExec(char *filename, char **argvec) {
     strncpy(heap_filename, filename, filename_len);
 
     TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Mark 2\n");
-    int num_args = sizeof(argvec) / sizeof(char *);
-    char **heap_argvec = calloc(num_args + 1, sizeof(char *));
-    int i;
-    for (i = 0; i < num_args; i++) {
-        char *arg = argvec[i];
-        TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Copying arg %d: %s\n", i, arg);
+    char **heap_argvec = NULL;
+    if (argvec) {
+        int num_args = sizeof(argvec) / sizeof(char *);
+        char **heap_argvec = calloc(num_args + 1, sizeof(char *));
+        int i;
+        for (i = 0; i < num_args; i++) {
+            char *arg = argvec[i];
+            TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Copying arg %d: %s\n", i, arg);
 
-        int arg_len = strlen(arg);
-        char *heap_arg = calloc(arg_len + 1, sizeof(char));
-        strncpy(heap_arg, arg, arg_len);
+            int arg_len = strlen(arg);
+            char *heap_arg = calloc(arg_len + 1, sizeof(char));
+            strncpy(heap_arg, arg, arg_len);
 
-        heap_argvec[i] = heap_arg;
+            heap_argvec[i] = heap_arg;
+        }
     }
 
     TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Mark 3\n");
