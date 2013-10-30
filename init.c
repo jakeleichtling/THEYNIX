@@ -23,7 +23,6 @@ int main(int argc, char *argv[]) {
     int rc;
 
     rc = Fork();
-    TracePrintf(TRACE_LEVEL_DETAIL_INFO, "HIIIII \n");
     if (rc) {
         TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "Yay! I'm the parent, and my child's PID is %d", rc);
     } else {

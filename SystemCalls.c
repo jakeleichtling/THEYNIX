@@ -43,12 +43,12 @@ int KernelFork(UserContext *user_context) {
     child_pcb->kernel_context_initialized = false;
     SwitchToProc(child_pcb, user_context);
 
-    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< KernelFork()\n\n");
-
     // Compare the current PID to the child's PID to return correct value.
     if (child_pid == current_proc->pid) {
+        TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< KernelFork() [parent: pid = %d] \n\n", current_proc->pid);
         return 0;
     } else {
+        TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< KernelFork() [child: pid = %d] \n\n", current_proc->pid);
         return child_pid;
     }
 }
