@@ -25,6 +25,7 @@ int main(int argc, char *argv[]) {
     rc = Fork();
     if (rc) {
         TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "Yay! I'm the parent, and my child's PID is %d\n", rc);
+        Exec("init", NULL);
     } else {
         TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "Yay! I'm the child, and my PID is %d\n", GetPid());
         Delay(1);
