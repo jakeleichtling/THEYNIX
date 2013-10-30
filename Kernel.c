@@ -33,7 +33,7 @@ KernelContext *SaveKernelContextAndSwitch(KernelContext *kernel_context, void *c
 /*
   Copies the data in the source page number to the frame mapped by the dest page number.
 */
-void CopyPageData(unsigned int source_page_number, unsigned int dest_page_number);
+void CopyRegion0PageData(unsigned int source_page_number, unsigned int dest_page_number);
 
 /* Function Implementations */
 
@@ -213,7 +213,7 @@ void UseKernelStackForProc(PCB *pcb) {
   Then, for i = -2 to 0, maps kernel_stack[i+1] = dest_kernel_stack[i] and copies
   kernel_stack[i+1] <-- kernel_stack[i] = source_kernel_stack[i].
 */
-void CopyKernelStackPte(PCB *source, PCB *dest) {
+void CopyKernelStackPageTableAndData(PCB *source, PCB *dest) {
     unsigned int kernel_stack_base_page = ADDR_TO_PAGE(KERNEL_STACK_BASE);
     int i;
 
@@ -221,7 +221,7 @@ void CopyKernelStackPte(PCB *source, PCB *dest) {
     // kernel_stack[0] <-- kernel_stack[-1] = source_kernel_stack[-1].
     region_0_page_table[kernel_stack_base_page] = dest->kernel_stack_page_table[NUM_KERNEL_PAGES - 1];
     WriteRegister(REG_TLB_FLUSH, kernel_stack_base_page << PAGESHIFT);
-    CopyPageData(kernel_stack_base_page + NUM_KERNEL_PAGES - 1, kernel_stack_base_page);
+    CopyRegion0PageData(kernel_stack_base_page + NUM_KERNEL_PAGES - 1, kernel_stack_base_page);
 
     // Then, map kernel_stack[0] = source_kernel_stack[0].
     region_0_page_table[kernel_stack_base_page] = source->kernel_stack_page_table[0];
@@ -232,20 +232,98 @@ void CopyKernelStackPte(PCB *source, PCB *dest) {
     for (i = NUM_KERNEL_PAGES - 2; i >= 0; i--) {
         region_0_page_table[kernel_stack_base_page + i + 1] = dest->kernel_stack_page_table[i];
         WriteRegister(REG_TLB_FLUSH, (kernel_stack_base_page + i + 1) << PAGESHIFT);
-        CopyPageData(kernel_stack_base_page + i, kernel_stack_base_page + i + 1);
+        CopyRegion0PageData(kernel_stack_base_page + i, kernel_stack_base_page + i + 1);
+    }
+}
+
+/*
+  For each valid page in the source_region_1 table, allocates a frame in the dest_region_1
+  table with PROT_WRITE permission.
+
+  Creates a temporary region 1 page table in the kernel heap and points the TLB to it.
+
+  Maps region_1[0] = dest_region_1[-1] and, if region_1[-1] is valid, copies
+  region_1[0] <-- region_1[-1] = source_region_1[-1].
+
+  Maps region_1[0] = source_kernel_stack[0].
+
+  For i = -2 to 0, maps region_1[i+1] = dest_region_1[i]. If region_1[i] is valid, copies
+  region_1[i+1] <-- region_1[i] = source_region_1[i].
+
+  For each valid page table entry in the source_region_1 table, sets the corresponding
+  dest_region_1 page table entry to have the same protections.
+*/
+void CopyRegion1PageTableAndData(PCB *source, PCB *dest) { // make sure dest has a region 1 page table calloced
+    int i; // Must not be unsigned!
+
+    // For each valid page in the source_region_1 table, allocate a frame in the dest_region_1
+    // table with PROT_WRITE permission.
+    for (i = 0; i < NUM_PAGES_REG_1; i++) {
+        if (source->region_1_page_table[i].valid) {
+            dest->region_1_page_table[i].valid = 1;
+            dest->region_1_page_table[i].prot = PROT_WRITE;
+            dest->region_1_page_table[i].pfn = GetUnusedFrame(unused_frames);
+        }
+    }
+
+    // Create a temporary region 1 page table in the kernel heap and points the TLB to it.
+    // Don't forget to flush!
+    temp_region_1_page_table = (struct pte *) calloc(NUM_PAGES_REG_1, sizeof(struct pte));
+    WriteRegister(REG_PTBR1, (unsigned int) temp_region_1_page_table);
+    WriteRegister(REG_TLB_FLUSH, TLB_FLUSH_1);
+
+    // Map region_1[0] = dest_region_1[-1] and, if region_1[-1] is valid, copy
+    // region_1[0] <-- region_1[-1] = source_region_1[-1].
+    temp_region_1_page_table[0] = dest->region_1_page_table[NUM_PAGES_REG_1 - 1];
+    WriteRegister(REG_TLB_FLUSH, (VMEM_1_BASE + 0) << PAGESHIFT);
+    CopyRegion1PageData(NUM_PAGES_REG_1 - 1, 0);
+
+    // Map region_1[0] = source_kernel_stack[0].
+    temp_region_1_page_table[0] = source->region_1_page_table[0]
+    WriteRegister(REG_TLB_FLUSH, (VMEM_1_BASE + 0) << PAGESHIFT);
+
+    // For i = -2 to 0, maps region_1[i+1] = dest_region_1[i]. If region_1[i] is valid, copies
+    // region_1[i+1] <-- region_1[i] = source_region_1[i].
+    for (i = NUM_PAGES_REG_1 - 2; i >= 0; i--) {
+        temp_region_1_page_table[i + 1] = dest->region_1_page_table[i];
+        WriteRegister(REG_TLB_FLUSH, (VMEM_1_BASE + i + 1) << PAGESHIFT);
+        CopyRegion1PageData(i, i + 1);
+    }
+
+    // For each valid page table entry in the source_region_1 table, sets the corresponding
+    // dest_region_1 page table entry to have the same protections.
+    for (i = 0; i < NUM_PAGES_REG_1; i++) {
+        if (source->region_1_page_table[i].valid) {
+            dest->region_1_page_table[i].prot = source->region_1_page_table[i].prot;
+        }
     }
 }
 
 /*
   Copies the data in the source page number to the frame mapped by the dest page number.
 */
-void CopyPageData(unsigned int source_page_number, unsigned int dest_page_number) {
+void CopyRegion0PageData(unsigned int source_page_number, unsigned int dest_page_number) {
     char *source_byte_addr;
     char *dest_byte_addr;
     unsigned int i;
     for (i = 0; i < PAGESIZE; i++) {
         source_byte_addr = (char *)((source_page_number << PAGESHIFT) + i);
         dest_byte_addr = (char *)((dest_page_number << PAGESHIFT) + i);
+
+        *dest_byte_addr = *source_byte_addr;
+    }
+}
+
+/*
+  Copies the data in the source page number to the frame mapped by the dest page number.
+*/
+void CopyRegion1PageData(unsigned int source_page_number, unsigned int dest_page_number) {
+    char *source_byte_addr;
+    char *dest_byte_addr;
+    unsigned int i;
+    for (i = 0; i < PAGESIZE; i++) {
+        source_byte_addr = (char *)((source_page_number << PAGESHIFT) + i + VMEM_1_BASE);
+        dest_byte_addr = (char *)((dest_page_number << PAGESHIFT) + i + VMEM_1_BASE);
 
         *dest_byte_addr = *source_byte_addr;
     }
@@ -332,14 +410,14 @@ KernelContext *SaveKernelContextAndSwitch(KernelContext *kernel_context, void *_
     if (!next_pcb->kernel_context_initialized) {
         TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Initializing new Kernel Context for proc %p\n", next_pcb);
         next_pcb->kernel_context = current_pcb->kernel_context;
-        CopyKernelStackPte(current_pcb, next_pcb);
+        CopyKernelStackPageTableAndData(current_pcb, next_pcb);
         next_pcb->kernel_context_initialized = true;
     }
 
     // Use the new proc's kernel stack page table entries in the region 0 page table.
     UseKernelStackForProc(next_pcb);
 
-    // FLUSH!!!
+    // FLUSH EVERYTHING!!!
     WriteRegister(REG_TLB_FLUSH, TLB_FLUSH_ALL);
 
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< SaveKernelContextAndSwitch()\n");
