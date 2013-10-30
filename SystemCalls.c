@@ -50,10 +50,10 @@ int KernelFork(UserContext *user_context) {
     // Compare the current PID to the child's PID to return correct value.
     if (child_pid == current_proc->pid) {
         TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< KernelFork() [child: pid = %d] \n\n", current_proc->pid);
-        return child_pid;
+        return 0;
     } else {
         TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< KernelFork() [parent: pid = %d] \n\n", current_proc->pid);
-        return 0;
+        return child_pid;
     }
 
     return 0;
