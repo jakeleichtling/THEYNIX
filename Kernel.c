@@ -265,18 +265,18 @@ void CopyKernelStackPageTableAndData(PCB *source, PCB *dest) {
 void CopyRegion1PageTableAndData(PCB *source, PCB *dest) { // make sure dest has a region 1 page table calloced
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> CopyRegion1PageTableAndData()\n");
 
-    int i; // Must not be unsigned!
+    // int i; // Must not be unsigned!
 
-    // For each valid page in the source_region_1 table, allocate a frame in the dest_region_1
-    // table with PROT_WRITE permission.
-    TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Mark 1\n");
-    for (i = 0; i < NUM_PAGES_REG_1; i++) {
-        if (source->region_1_page_table[i].valid) {
-            dest->region_1_page_table[i].valid = 1;
-            dest->region_1_page_table[i].prot = PROT_WRITE;
-            dest->region_1_page_table[i].pfn = GetUnusedFrame(unused_frames);
-        }
-    }
+    // // For each valid page in the source_region_1 table, allocate a frame in the dest_region_1
+    // // table with PROT_WRITE permission.
+    // TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Mark 1\n");
+    // for (i = 0; i < NUM_PAGES_REG_1; i++) {
+    //     if (source->region_1_page_table[i].valid) {
+    //         dest->region_1_page_table[i].valid = 1;
+    //         dest->region_1_page_table[i].prot = PROT_WRITE;
+    //         dest->region_1_page_table[i].pfn = GetUnusedFrame(unused_frames);
+    //     }
+    // }
 
     // // Create a temporary region 1 page table in the kernel heap that starts out as a copy of the
     // // source region 1 page table. Point the TLB to it and flush.
