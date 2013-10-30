@@ -1,5 +1,7 @@
 #include "SystemCalls.h"
 
+#include <stdlib.h>
+
 #include "Log.h"
 #include "Kernel.h"
 #include "PMem.h"
