@@ -49,6 +49,7 @@ int KernelFork(UserContext *user_context) {
         return 0;
     } else {
         TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< KernelFork() [child: pid = %d] \n\n", current_proc->pid);
+        exit(-1);
         return child_pid;
     }
 }
