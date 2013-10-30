@@ -322,11 +322,11 @@ void CopyRegion1PageTableAndData(PCB *source, PCB *dest) { // make sure dest has
     //     }
     // }
 
-    // // Set the TLB to point back to the source region 1 page table and flush.
-    // WriteRegister(REG_PTBR1, (unsigned int) source->region_1_page_table);
-    // WriteRegister(REG_TLB_FLUSH, TLB_FLUSH_1);
+    // Set the TLB to point back to the source region 1 page table and flush.
+    WriteRegister(REG_PTBR1, (unsigned int) source->region_1_page_table);
+    WriteRegister(REG_TLB_FLUSH, TLB_FLUSH_1);
 
-    // TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< CopyRegion1PageTableAndData()\n\n");
+    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< CopyRegion1PageTableAndData()\n\n");
 }
 
 /*
