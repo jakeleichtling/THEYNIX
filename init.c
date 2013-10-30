@@ -22,14 +22,8 @@ int main(int argc, char *argv[]) {
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> INIT PROGRAM START \n");
     int rc;
 
-    rc = Fork();
-    if (rc) {
-        TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "Yay! I'm the parent, and my child's PID is %d\n", rc);
-        Exec("init", NULL);
-    } else {
-        TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "Yay! I'm the child, and my PID is %d\n", GetPid());
-        Delay(1);
-    }
+    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "Yay! My PID is %d\n", GetPid());
+    Exec("init", NULL);
 
 /* Delay test:
      rc = Delay(5);
