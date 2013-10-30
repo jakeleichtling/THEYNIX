@@ -43,7 +43,7 @@ int KernelFork(UserContext *user_context) {
 
     // Set kernel_context_initialized to false and context switch to
     // child so that the KernelContext and kernel stack are copied from parent.
-    // ListEnqueue(ready_queue, current_proc, current_proc->pid);
+    ListEnqueue(ready_queue, current_proc, current_proc->pid);
     child_pcb->kernel_context_initialized = false;
     SwitchToProc(child_pcb, user_context);
 
