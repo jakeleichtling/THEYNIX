@@ -15,9 +15,9 @@ extern List *clock_block_procs;
 int KernelFork(void) {
     // Make a new child PCB with the same user context as the parent.
     PCB *child_pcb = NewBlankPCBWithPageTables(current_proc->user_context, unused_frames);
-    waiting_on_children = false;
-    lowest_user_stack_page = current_proc->lowest_user_stack_page;
-    user_brk_page = current_proc->user_brk_page;
+    child_pcb->waiting_on_children = false;
+    child_pcb->lowest_user_stack_page = current_proc->lowest_user_stack_page;
+    child_pcb->user_brk_page = current_proc->user_brk_page;
 
     // Copy over region 1.
     CopyRegion1PageTableAndData(current_proc, child_pcb);
