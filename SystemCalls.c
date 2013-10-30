@@ -13,23 +13,45 @@ extern List *clock_block_procs;
 */
 
 int KernelFork(void) {
-    // Make new page tables: For each valid frame, copy the frame and make the same
-    // virtual address in the new page table point to the copy.
+    // Make a new child PCB with the same user context as the parent.
+    PCB *child_pcb = NewBlankPCBWithPageTables(current_proc->user_context, unused_frames);
+    waiting_on_children = false;
+    lowest_user_stack_page = current_proc->lowest_user_stack_page;
+    user_brk_page = current_proc->user_brk_page;
 
-    // Copy the parent PCB
-
-    // Get a new PID for the child
+    // Copy over region 1.
+    CopyRegion1PageTableAndData(current_proc, child_pcb);
 
     // Add the child to the parent's child list
+    ListEnqueue(current_proc->live_children, child_pcb, child_pcb->pid);
 
     // Set child's parent pointer
+    child_pcb->live_parent = current_proc;
 
     // Add the child to the ready queue
+    ListEnqueue(ready_queue, child_pcb, child_pcb->pid);
 
-    // Set PC of child proc's KernelContext to just before return
+    // Record the child's PID for later comparison.
+    unsigned int child_pid = child_pcb->pid;
 
-    // Compare current PID to parent PID to return correct value
-    return THEYNIX_EXIT_SUCCESS;
+    // Set kernel_context_initialized to false and context switch to
+    // child so that the KernelContext and kernel stack are copied from parent.
+    child_pcb->kernel_context_initialized = false;
+    int rc = KernelContextSwitch(&SaveKernelContextAndSwitch, old_proc, next_proc);
+    if (THEYNIX_EXIT_SUCCESS == rc) {
+        TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Succesfully switched kernel context in fork!\n");
+    } else {
+        TracePrintf(TRACE_LEVEL_TERMINAL_PROBLEM, "Failed to switch kernel context in fork!\n");
+        // TODO: more gracefully handle the failure case
+        exit(-1);
+    }
+
+    // Compare the current PID to the child's PID to return correct value.
+    if (child_pid == current_proc->pid) {
+        return 0;
+    } else {
+        return child_pid;
+    }
 }
 
 int KernelExec(char *filename, char **argvec) {

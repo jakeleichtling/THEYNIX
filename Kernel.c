@@ -210,6 +210,8 @@ void UseKernelStackForProc(PCB *pcb) {
 }
 
 /*
+  Note: This must be executed in the magic kernel context switch space!!!
+
   First, maps kernel_stack[0] = dest_kernel_stack[-1] and copies
   kernel_stack[0] <-- kernel_stack[-1] = source_kernel_stack[-1].
 

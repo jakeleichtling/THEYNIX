@@ -21,6 +21,15 @@ void recurse(int level) {
 int main(int argc, char *argv[]) {
      TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> INIT PROGRAM START \n");
      int rc;
+
+     int rc = fork();
+     if (rc) {
+        TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "Yay! I'm the parent, and my child's PID is %d", rc);
+     } else {
+        TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "Yay! I'm the child, and my PID is %d", getpid());
+     }
+
+/* Delay test:
      rc = Delay(5);
      if (THEYNIX_EXIT_SUCCESS == rc) {
         TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Init: delay for 5 ticks successful \n");
@@ -59,5 +68,6 @@ int main(int argc, char *argv[]) {
      TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< INIT PROGRAM END \n");
 
      return 0;
+*/
 }
 
