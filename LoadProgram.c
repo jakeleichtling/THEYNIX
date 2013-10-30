@@ -42,6 +42,8 @@ LoadProgram(char *name, char *args[], PCB *proc)
 {
   int fd;
   int (*entry)();
+  if (entry) { // To make the compiler warning go away without getting rid of entry.
+  }
   struct load_info li;
   int i;
   char *cp;
