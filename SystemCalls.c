@@ -26,31 +26,31 @@ int KernelFork(UserContext *user_context) {
     // Copy over region 1.
     CopyRegion1PageTableAndData(current_proc, child_pcb);
 
-    // // Add the child to the parent's child list
-    // ListEnqueue(current_proc->live_children, child_pcb, child_pcb->pid);
+    // Add the child to the parent's child list
+    ListEnqueue(current_proc->live_children, child_pcb, child_pcb->pid);
 
-    // // Set child's parent pointer
-    // child_pcb->live_parent = current_proc;
+    // Set child's parent pointer
+    child_pcb->live_parent = current_proc;
 
-    // // Add the child to the ready queue
-    // ListEnqueue(ready_queue, child_pcb, child_pcb->pid);
+    // Add the child to the ready queue
+    ListEnqueue(ready_queue, child_pcb, child_pcb->pid);
 
-    // // Record the child's PID for later comparison.
-    // unsigned int child_pid = child_pcb->pid;
+    // Record the child's PID for later comparison.
+    unsigned int child_pid = child_pcb->pid;
 
-    // // Set kernel_context_initialized to false and context switch to
-    // // child so that the KernelContext and kernel stack are copied from parent.
-    // child_pcb->kernel_context_initialized = false;
-    // SwitchToProc(child_pcb, user_context);
+    // Set kernel_context_initialized to false and context switch to
+    // child so that the KernelContext and kernel stack are copied from parent.
+    child_pcb->kernel_context_initialized = false;
+    SwitchToProc(child_pcb, user_context);
 
-    // // Compare the current PID to the child's PID to return correct value.
-    // if (child_pid == current_proc->pid) {
-    //     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< KernelFork() [child: pid = %d] \n\n", current_proc->pid);
-    //     return child_pid;
-    // } else {
-    //     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< KernelFork() [parent: pid = %d] \n\n", current_proc->pid);
-    //     return 0;
-    // }
+    // Compare the current PID to the child's PID to return correct value.
+    if (child_pid == current_proc->pid) {
+        TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< KernelFork() [child: pid = %d] \n\n", current_proc->pid);
+        return child_pid;
+    } else {
+        TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< KernelFork() [parent: pid = %d] \n\n", current_proc->pid);
+        return 0;
+    }
 
     return 0;
 }
