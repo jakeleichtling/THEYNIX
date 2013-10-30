@@ -39,15 +39,7 @@ int KernelFork(UserContext *user_context) {
     // Set kernel_context_initialized to false and context switch to
     // child so that the KernelContext and kernel stack are copied from parent.
     child_pcb->kernel_context_initialized = false;
-    SwitchToProc(child_pcb, user_context)
-    int rc = KernelContextSwitch(&SaveKernelContextAndSwitch, old_proc, next_proc);
-    if (THEYNIX_EXIT_SUCCESS == rc) {
-        TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Succesfully switched kernel context in fork!\n");
-    } else {
-        TracePrintf(TRACE_LEVEL_TERMINAL_PROBLEM, "Failed to switch kernel context in fork!\n");
-        // TODO: more gracefully handle the failure case
-        exit(-1);
-    }
+    SwitchToProc(child_pcb, user_context);
 
     // Compare the current PID to the child's PID to return correct value.
     if (child_pid == current_proc->pid) {
