@@ -96,11 +96,14 @@ int KernelExec(char *filename, char **argvec) {
     TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Mark 4\n");
     // Free the filename string and arguments in the Kernel heap.
     free(heap_filename);
-    for (i = 0; i < num_args; i++) {
-        char *heap_arg = heap_argvec[i];
-        free(heap_arg);
+    if (argvec) {
+        int num_args = sizeof(argvec) / sizeof(char *);
+        for (i = 0; i < num_args; i++) {
+            char *heap_arg = heap_argvec[i];
+            free(heap_arg);
+        }
+        free(heap_argvec);
     }
-    free(heap_argvec);
 
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< KernelExec()\n\n");
 
