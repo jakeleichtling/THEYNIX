@@ -261,6 +261,8 @@ void CopyKernelStackPageTableAndData(PCB *source, PCB *dest) {
   dest_region_1 page table entry to have the same protections.
 */
 void CopyRegion1PageTableAndData(PCB *source, PCB *dest) { // make sure dest has a region 1 page table calloced
+    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> CopyRegion1PageTableAndData()");
+
     int i; // Must not be unsigned!
 
     // For each valid page in the source_region_1 table, allocate a frame in the dest_region_1
@@ -304,6 +306,8 @@ void CopyRegion1PageTableAndData(PCB *source, PCB *dest) { // make sure dest has
             dest->region_1_page_table[i].prot = source->region_1_page_table[i].prot;
         }
     }
+
+    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< CopyRegion1PageTableAndData()");
 }
 
 /*

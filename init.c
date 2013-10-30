@@ -19,8 +19,8 @@ void recurse(int level) {
 }
 
 int main(int argc, char *argv[]) {
-     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> INIT PROGRAM START \n");
-     int rc;
+    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> INIT PROGRAM START \n");
+    int rc;
 
     rc = Fork();
     if (rc) {
