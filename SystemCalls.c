@@ -76,6 +76,8 @@ int KernelExec(char *filename, char **argvec) {
     int i;
     for (i = 0; i < num_args; i++) {
         char *arg = argvec[i];
+        TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Copying arg %d: %s\n", i, arg);
+
         int arg_len = strlen(arg);
         char *heap_arg = calloc(arg_len + 1, sizeof(char));
         strncpy(heap_arg, arg, arg_len);
