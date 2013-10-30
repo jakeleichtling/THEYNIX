@@ -62,6 +62,8 @@ int KernelFork(UserContext *user_context) {
 }
 
 int KernelExec(char *filename, char **argvec) {
+    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> KernelExec()\n");
+
     // Copy the filename string and arguments to the Kernel heap.
     int filename_len = strlen(filename);
     char *heap_filename = calloc(filename_len + 1, sizeof(char));
@@ -92,6 +94,8 @@ int KernelExec(char *filename, char **argvec) {
         free(heap_arg);
     }
     free(heap_argvec);
+
+    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< KernelExec()\n\n");
 
     // Return
     return THEYNIX_EXIT_SUCCESS;
