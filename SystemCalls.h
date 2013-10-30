@@ -7,7 +7,7 @@
   Prototypes for the Yalnix system calls.
 */
 
-int KernelFork(void);
+int KernelFork(UserContext *user_context);
 
 int KernelExec(char *filename, char **argvec);
 

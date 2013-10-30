@@ -14,7 +14,7 @@ extern List *clock_block_procs;
   Implementations of Yalnix system calls.
 */
 
-int KernelFork(void) {
+int KernelFork(UserContext *user_context) {
     // Make a new child PCB with the same user context as the parent.
     PCB *child_pcb = NewBlankPCBWithPageTables(current_proc->user_context, unused_frames);
     child_pcb->waiting_on_children = false;
@@ -39,6 +39,7 @@ int KernelFork(void) {
     // Set kernel_context_initialized to false and context switch to
     // child so that the KernelContext and kernel stack are copied from parent.
     child_pcb->kernel_context_initialized = false;
+    SwitchToProc(child_pcb, user_context)
     int rc = KernelContextSwitch(&SaveKernelContextAndSwitch, old_proc, next_proc);
     if (THEYNIX_EXIT_SUCCESS == rc) {
         TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Succesfully switched kernel context in fork!\n");

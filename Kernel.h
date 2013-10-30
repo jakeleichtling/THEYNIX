@@ -60,4 +60,6 @@ void SwitchToNextProc(UserContext *user_context);
 
 void CopyRegion1PageTableAndData(PCB *source, PCB *dest);
 
+void SwitchToProc(PCB *next_proc, UserContext *user_context);
+
 #endif

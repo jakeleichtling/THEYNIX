@@ -22,6 +22,9 @@ void TrapKernel(UserContext *user_context) {
         case YALNIX_DELAY:
             rc = KernelDelay(user_context->regs[0], user_context);
             break;
+        case YALNIX_FORK:
+            rc = KernelFork(user_context);
+            break;
         default:
             TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "TrapKernel: Code %d undefined\n");
             rc = THEYNIX_EXIT_FAILURE;
@@ -48,7 +51,7 @@ void DecrementTicksRemaining(void *_proc) {
 void TrapClock(UserContext *user_context) {
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> TrapClock(%p)\n", user_context);
     ListMap(clock_block_procs, &DecrementTicksRemaining);
-    
+
     // place current proc in end of the ready queue
     ListAppend(ready_queue, current_proc, current_proc->pid);
 
@@ -73,7 +76,7 @@ void TrapMemory(UserContext *user_context) {
 
     if (YALNIX_MAPERR == user_context->code) { // "address not mapped"
         if (((unsigned int) user_context->addr) < VMEM_1_BASE) {
-            TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, 
+            TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM,
                 "User program tried to address kernel space @ %p\n", user_context->addr);
             //TODO: kill program rather than die
             exit(-1);
