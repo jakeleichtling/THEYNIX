@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "LoadProgram.h"
 #include "Log.h"
 #include "Kernel.h"
 #include "PMem.h"
