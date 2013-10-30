@@ -283,7 +283,7 @@ LoadProgram(char *name, char *args[], PCB *proc)
   /*
    * Zero out the uninitialized data area
    */
-  bzero(li.id_end, li.ud_end - li.id_end);
+  bzero((void *) li.id_end, li.ud_end - li.id_end);
 
   /*
    * Set the entry point in the exception frame.
