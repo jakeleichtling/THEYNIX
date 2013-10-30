@@ -136,6 +136,7 @@ void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {
     // Load the idle program, but first make sure we are pointing to its region 1 page table.
     PCB *idle_proc = NewBlankPCBWithPageTables(model_user_context, unused_frames);
     WriteRegister(REG_PTBR1, (unsigned int) idle_proc->region_1_page_table);
+    WriteRegister(REG_TLB_FLUSH, TLB_FLUSH_1);
     rc = LoadProgram("idle", NULL, idle_proc);
     if (rc != SUCCESS) {
         TracePrintf(TRACE_LEVEL_TERMINAL_PROBLEM, "KernelStart: FAILED TO LOAD IDLE!!\n");
@@ -148,6 +149,7 @@ void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {
     // Make init the current proc.
     current_proc = init_proc;
     WriteRegister(REG_PTBR1, (unsigned int) init_proc->region_1_page_table);
+    WriteRegister(REG_TLB_FLUSH, TLB_FLUSH_1);
 
     // Use the init proc's user context after returning from KernelStart().
     *uctxt = init_proc->user_context;
@@ -323,9 +325,8 @@ void CopyRegion1PageTableAndData(PCB *source, PCB *dest) { // make sure dest has
     // }
 
     // Set the TLB to point back to the source region 1 page table and flush.
-    unsigned int old_reg_ptbr1 = ReadRegister(REG_PTBR1);
     WriteRegister(REG_PTBR1, (unsigned int) source->region_1_page_table);
-    // WriteRegister(REG_TLB_FLUSH, TLB_FLUSH_1);
+    WriteRegister(REG_TLB_FLUSH, TLB_FLUSH_1);
 
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< CopyRegion1PageTableAndData()\n\n");
 }
