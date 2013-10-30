@@ -25,6 +25,9 @@ int main(int argc, char *argv[]) {
     Exec("init", NULL);
 
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "!!! NOOOOOO, this should not be called!!! %d\n\n\n");
+    Exec("init", NULL);
+
+    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "!!! AHHHHHH WHYYYYYY, this should not be called!!! %d\n\n\n");
 
 /* Delay test:
      rc = Delay(5);
