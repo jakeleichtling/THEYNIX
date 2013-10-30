@@ -268,7 +268,7 @@ void CopyRegion1PageTableAndData(PCB *source, PCB *dest) { // make sure dest has
 
     // Create a temporary region 1 page table in the kernel heap and points the TLB to it.
     // Don't forget to flush!
-    temp_region_1_page_table = (struct pte *) calloc(NUM_PAGES_REG_1, sizeof(struct pte));
+    struct pte *temp_region_1_page_table = (struct pte *) calloc(NUM_PAGES_REG_1, sizeof(struct pte));
     WriteRegister(REG_PTBR1, (unsigned int) temp_region_1_page_table);
     WriteRegister(REG_TLB_FLUSH, TLB_FLUSH_1);
 
