@@ -22,22 +22,6 @@ void CreateRegion1PageTable(PCB *pcb) {
 }
 
 /*
-  Frees all of the physical frames used by the valid region 1 page table entries,
-  and marks all region 1 page table entries as invalid.
-*/
-void FreeRegion1PageTable(PCB *pcb, UnusedFrames unused_frames) {
-    unsigned int i;
-    for (i = 0; i < NUM_PAGES_REG_1; i++) {
-        if (pcb->region_1_page_table[i].valid) {
-            pcb->region_1_page_table[i].valid = 0;
-
-            unsigned int frame_number = pcb->region_1_page_table[i].pfn;
-            ReleaseUsedFrame(unused_frames, frame_number);
-        }
-    }
-}
-
-/*
   Starting at the given page number in region 1, maps num_pages pages to newly allocated
   frames. All of the page table entries covered must be invalid prior to this call, and all will be
   valid, with the given protections, after the call. Returns THEYNIX_EXIT_FAILURE if there
@@ -153,15 +137,17 @@ void UnmapUsedRegion0Page(unsigned int page_number, UnusedFrames unused_frames) 
 }
 
 /*
-  For each valid page in the current process's region 1 page table, releases the corresponding
-  frame and marks the page as invalid.
+  Frees all of the physical frames used by the valid region 1 page table entries,
+  and marks all region 1 page table entries as invalid.
 */
-void ReleaseAllRegion1ForCurrentProc() {
-    int i;
+void FreeRegion1PageTable(PCB *pcb, UnusedFrames unused_frames) {
+    unsigned int i;
     for (i = 0; i < NUM_PAGES_REG_1; i++) {
-        if (current_proc->region_1_page_table[i].valid) {
-            ReleaseUsedFrame(unused_frames, current_proc->region_1_page_table[i].pfn);
-            current_proc->region_1_page_table[i].valid = 0;
+        if (pcb->region_1_page_table[i].valid) {
+            pcb->region_1_page_table[i].valid = 0;
+
+            unsigned int frame_number = pcb->region_1_page_table[i].pfn;
+            ReleaseUsedFrame(unused_frames, frame_number);
         }
     }
 }

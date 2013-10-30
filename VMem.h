@@ -52,9 +52,3 @@ int MapNewRegion0Page(unsigned int page_number, UnusedFrames unused_frames);
   Unmaps a valid region 0 page, freeing the frame the page was mapped to.
 */
 void UnmapUsedRegion0Page(unsigned int page_number, UnusedFrames unused_frames);
-
-/*
-  For each valid page in the current process's region 1 page table, releases the corresponding
-  frame and marks the page as invalid.
-*/
-void ReleaseAllRegion1ForCurrentProc();

@@ -82,7 +82,7 @@ int KernelExec(char *filename, char **argvec) {
     }
 
     // Release all frames in the region 1 page table.
-    ReleaseAllRegion1ForCurrentProc();
+    FreeRegion1PageTable(current_proc, unused_frames);
 
     // Create the new region 1 page table, loading the executable text from the given file.
     LoadProgram(heap_filename, heap_argvec, current_proc);
