@@ -3,6 +3,7 @@
 #include <assert.h>
 #include <stdlib.h>
 
+#include "Kernel.h"
 #include "Log.h"
 
 extern PCB *current_proc;
