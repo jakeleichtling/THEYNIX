@@ -23,12 +23,12 @@ int main(int argc, char *argv[]) {
     // Delay(2);
 
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "Yay! My PID is %d\n", GetPid());
-    // int rc = Fork();
-    // if (rc == 0) {
-    //     char *args[2];
-    //     args[0] = "bo";
-    //     args[1] = "zo";
-    //     Exec("die_stupidly", args);
+    int rc = Fork();
+    if (rc == 0) {
+        char *args[2];
+        args[0] = "bo";
+        args[1] = "zo";
+        Exec("die_stupidly", args);
     // } else {
     //     Delay(2);
     //     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "letting child die....\n");
@@ -47,7 +47,7 @@ int main(int argc, char *argv[]) {
     //     int status;
     //     Wait(&status);
     //     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "Childed exited with status: %d\n", status);
-    // }
+    }
     // TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< INIT PROGRAM END \n");
 
     return 0;
