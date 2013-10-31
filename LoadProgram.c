@@ -224,7 +224,6 @@ LoadProgram(char *name, char *args[], PCB *proc)
   ==>> protection of (PROT_READ | PROT_WRITE).
   */
   unsigned int bottom_stack_page = ADDR_TO_PAGE(VMEM_1_LIMIT) - stack_npg;
-  bottom_stack_page -= VMEM_1_BASE >> PAGESHIFT;
   MapNewRegion1Pages(proc, unused_frames, bottom_stack_page, stack_npg,
       PROT_READ | PROT_WRITE);
 
