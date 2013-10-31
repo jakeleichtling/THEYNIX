@@ -38,7 +38,7 @@ int MapNewRegion1Pages(PCB *pcb, UnusedFrames unused_frames, unsigned int start_
             page_num < start_page_num + num_pages - REGION_1_BASE_PAGE;
             page_num++) {
         assert(page_num >= REGION_1_BASE_PAGE);
-        assert(page_num < ADDR_TO_PAGE(VMEM_2_LIMIT);
+        assert(page_num < ADDR_TO_PAGE(VMEM_2_LIMIT));
         assert(!(pcb->region_1_page_table[page_num].valid));
 
         pcb->region_1_page_table[page_num].pfn = GetUnusedFrame(unused_frames);
