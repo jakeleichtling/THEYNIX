@@ -3,7 +3,6 @@
 #include <assert.h>
 #include <stdlib.h>
 
-#include "Kernel.h"
 #include "Log.h"
 
 extern PCB *current_proc;
@@ -23,8 +22,7 @@ void CreateRegion1PageTable(PCB *pcb) {
 }
 
 /*
-  Starting at the given page number in region 1 (absolute page number, so first region 1 page = 128),
-  maps num_pages pages to newly allocated
+  Starting at the given page number in region 1, maps num_pages pages to newly allocated
   frames. All of the page table entries covered must be invalid prior to this call, and all will be
   valid, with the given protections, after the call. Returns THEYNIX_EXIT_FAILURE if there
   is not enough physical memory available to complete this call.
@@ -34,11 +32,8 @@ int MapNewRegion1Pages(PCB *pcb, UnusedFrames unused_frames, unsigned int start_
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> MapNewRegion1Pages()\n");
 
     unsigned int page_num;
-    for (page_num = start_page_num - REGION_1_BASE_PAGE;
-            page_num < start_page_num + num_pages - REGION_1_BASE_PAGE;
-            page_num++) {
-        assert(page_num >= REGION_1_BASE_PAGE);
-        assert(page_num < ADDR_TO_PAGE(VMEM_1_LIMIT));
+    for (page_num = start_page_num; page_num < start_page_num + num_pages; page_num++) {
+        assert(page_num < NUM_PAGES_REG_1);
         assert(!(pcb->region_1_page_table[page_num].valid));
 
         pcb->region_1_page_table[page_num].pfn = GetUnusedFrame(unused_frames);
@@ -57,8 +52,7 @@ int MapNewRegion1Pages(PCB *pcb, UnusedFrames unused_frames, unsigned int start_
 }
 
 /*
-  Starting at the given page number in region 1 (absolute page number, so first region 1 page = 128),
-  unmaps num_pages pages to allocated
+  Starting at the given page number in region 1, unmaps num_pages pages to allocated
   frames. All of the page table entries covered must be valid prior to this call, and all will be
   invalid after the call.
 */
@@ -67,9 +61,7 @@ void UnmapRegion1Pages(PCB *pcb, UnusedFrames unused_frames, unsigned int start_
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> UnmapNewRegion1Pages()\n");
 
     unsigned int page_num;
-    for (page_num = start_page_num - REGION_1_BASE_PAGE;
-            page_num < start_page_num + num_pages - REGION_1_BASE_PAGE;
-            page_num++) {
+    for (page_num = start_page_num; page_num < start_page_num + num_pages; page_num++) {
         assert(page_num < NUM_PAGES_REG_1);
         assert(pcb->region_1_page_table[page_num].valid);
 
