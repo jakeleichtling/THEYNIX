@@ -146,7 +146,7 @@ void KernelExit(int status, UserContext *user_context) {
     // Free all frames
     FreeRegion1PageTable(current_proc, unused_frames);
     free(current_proc->region_1_page_table);
-    
+
     FreeRegion0StackPages(current_proc, unused_frames);
     free(current_proc->kernel_stack_page_table);
 
@@ -154,7 +154,7 @@ void KernelExit(int status, UserContext *user_context) {
     if (current_proc->live_parent) {
         ListRemoveById(current_proc->live_parent->live_children, current_proc->pid);
         ListAppend(current_proc->live_parent->zombie_children, current_proc, current_proc->pid);
-        // If parent is waiting_on_children, move parent proc to ready queue 
+        // If parent is waiting_on_children, move parent proc to ready queue
         // from blocked, and reset waiting_on_chilrden
         if (current_proc->live_parent->waiting_on_children) {
             current_proc->live_parent->waiting_on_children = false;
@@ -209,7 +209,7 @@ int KernelBrk(void *addr) {
     // TODO: verify memory
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> KernelBrk(%p)\n", addr);
 
-    unsigned int new_user_brk_page = ADDR_TO_PAGE(addr - 1) + 1;
+    unsigned int new_user_brk_page = ADDR_TO_PAGE(addr - 1) + 1 - REGION_1_BASE_PAGE;
 
     // Ensure we aren't imposing on user stack limits.
     if (new_user_brk_page >= current_proc->lowest_user_stack_page) {
