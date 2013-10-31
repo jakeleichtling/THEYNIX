@@ -2,6 +2,7 @@
 #include "PMem.h"
 
 #define NUM_PAGES_REG_1 VMEM_1_SIZE / PAGESIZE
+#define REGION_1_BASE_PAGE ADDR_TO_PAGE(VMEM_1_BASE)
 
 /*
   Functions for dealing with virtual memory.
