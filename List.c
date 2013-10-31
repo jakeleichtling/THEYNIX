@@ -14,12 +14,12 @@ bool ListTestList() {
 
     int x = 5;
     unsigned int x_id = 6;
-    ListEnqueue(list, &x, x_id);
+    ListPush(list, &x, x_id);
     assert(!ListEmpty(list));
 
     int y = 10;
     unsigned int y_id = 11;
-    ListEnqueue(list, &y, y_id);
+    ListPush(list, &y, y_id);
 
     // Test Find By Id finds element
     assert(ListFindById(list, x_id));
@@ -104,7 +104,7 @@ bool ListEmpty(List *list) {
     return (list->sentinel == list->head);
 }
 
-void ListEnqueue(List *list, void *data, unsigned int id) {
+void ListPush(List *list, void *data, unsigned int id) {
     assert(list);
 
     ListNode *ln = malloc(sizeof(ListNode));
@@ -116,7 +116,9 @@ void ListEnqueue(List *list, void *data, unsigned int id) {
 }
 
 void *ListDequeue(List *list) {
-    assert(!ListEmpty(list));
+    if (ListEmpty(list)) {
+        return NULL;
+    }
 
     ListNode *ln = list->head;
     void* data = ln->data;
@@ -175,7 +177,7 @@ void ListInsertByIdOrder(List *list, void *data, unsigned int id) {
 
     // If list is empty or new id is smallest, simply put in front
     if (ListEmpty(list) || list->head->id > id) {
-        ListEnqueue(list, data, id);
+        ListPush(list, data, id);
         return;
     }
 
@@ -194,10 +196,14 @@ void ListInsertByIdOrder(List *list, void *data, unsigned int id) {
     ln->data = data;
 }
 
+void ListEnqueue(List *list, void *data, unsigned int id) {
+    ListAppend(list, data, id);
+}
+
 void ListAppend(List *list, void *data, unsigned int id) {
     assert(list);
     if (ListEmpty(list)) {
-        ListEnqueue(list, data, id);
+        ListPush(list, data, id);
         return;
     }
 

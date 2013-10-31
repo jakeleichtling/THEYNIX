@@ -36,20 +36,17 @@ int KernelFork(UserContext *user_context) {
     CopyRegion1PageTableAndData(current_proc, child_pcb);
 
     // Add the child to the parent's child list
-    ListEnqueue(current_proc->live_children, child_pcb, child_pcb->pid);
+    ListAppend(current_proc->live_children, child_pcb, child_pcb->pid);
 
     // Set child's parent pointer
     child_pcb->live_parent = current_proc;
-
-    // Add the child to the ready queue
-    ListEnqueue(ready_queue, child_pcb, child_pcb->pid);
 
     // Record the child's PID for later comparison.
     unsigned int child_pid = child_pcb->pid;
 
     // Set kernel_context_initialized to false and context switch to
     // child so that the KernelContext and kernel stack are copied from parent.
-    ListEnqueue(ready_queue, current_proc, current_proc->pid);
+    ListAppend(ready_queue, current_proc, current_proc->pid);
     child_pcb->kernel_context_initialized = false;
     SwitchToProc(child_pcb, user_context);
 
@@ -76,10 +73,11 @@ int KernelExec(char *filename, char **argvec, UserContext *user_context_ptr) {
 
     TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Mark 2\n");
     char **heap_argvec = NULL;
+    int num_args = 0;
     if (argvec) {
-        int num_args = sizeof(argvec) / sizeof(char *);
-        char **heap_argvec = calloc(num_args + 1, sizeof(char *));
         int i;
+        for (i = 0; argvec[i]; i++, num_args++);
+        char **heap_argvec = calloc(num_args + 1, sizeof(char *));
         for (i = 0; i < num_args; i++) {
             char *arg = argvec[i];
             TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Copying arg %d: %s\n", i, arg);
@@ -103,8 +101,7 @@ int KernelExec(char *filename, char **argvec, UserContext *user_context_ptr) {
     TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Mark 4\n");
     // Free the filename string and arguments in the Kernel heap.
     free(heap_filename);
-    if (argvec) {
-        int num_args = sizeof(argvec) / sizeof(char *);
+    if (heap_argvec) { // why is load program consuming this???
         int i;
         for (i = 0; i < num_args; i++) {
             char *heap_arg = heap_argvec[i];
@@ -121,10 +118,11 @@ int KernelExec(char *filename, char **argvec, UserContext *user_context_ptr) {
 
 
 void KernelExit(int status, UserContext *user_context) {
+    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> KernelExit(%p)\n", user_context);
     // If initial process, halt system
-    // TODO: check
-    if (current_proc->pid == 0) {
-        TracePrintf(TRACE_LEVEL_TERMINAL_PROBLEM, "Init Proc exited. Halting!\n");
+    if (current_proc->pid == INIT_PID) {
+        TracePrintf(TRACE_LEVEL_TERMINAL_PROBLEM, "Init Proc exited w/ status %d. Halting!\n", status);
+        exit(1);
     }
 
     // Empty out child lists
@@ -168,9 +166,11 @@ void KernelExit(int status, UserContext *user_context) {
 
     // Context switch
     SwitchToNextProc(user_context);
+    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< KernelExit()\n");
 }
 
 int KernelWait(int *status_ptr, UserContext *user_context) {
+    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> KernelWait(%p)\n", user_context);
     // If zombie children list is not empty, collect exit status of one, remove PCB from list, and free
     if (!ListEmpty(current_proc->zombie_children)) {
         PCB *child = (PCB *) ListDequeue(current_proc->zombie_children);
@@ -196,6 +196,7 @@ int KernelWait(int *status_ptr, UserContext *user_context) {
     // already been freed, so only free PCB
     free(child);
 
+    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< KernelWait()\n");
     // Return the exit status
     return THEYNIX_EXIT_SUCCESS;
 }

@@ -26,6 +26,8 @@ void Idle();
 */
 void InitBookkeepingStructs();
 
+KernelContext *CopyKernelContextAndStack(KernelContext *kernel_context, void *__current_pcb,
+        void *__next_pcb);
 KernelContext *SaveCurrentKernelContext(KernelContext *kernel_context, void *current_pcb, void *next_pcb);
 
 KernelContext *SaveKernelContextAndSwitch(KernelContext *kernel_context, void *current_pcb, void *next_pcb);
@@ -55,25 +57,19 @@ void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {
     // to the REG_VECTOR_BASE register
     TrapTableInit();
 
-    // DEBUG: Print the value at the address of TrapClock().
-    unsigned int **trap_table_ptr = (unsigned int **) ReadRegister(REG_VECTOR_BASE);
-    unsigned int value_at_addr_of_trap_clock = *(trap_table_ptr[TRAP_CLOCK]);
-    TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Value at address of TrapClock(): %u\n",
-            value_at_addr_of_trap_clock);
-
     // Create the init proc
     UserContext model_user_context = *uctxt;
-    PCB *init_proc = NewBlankPCB(model_user_context);
+    idle_proc = NewBlankPCB(model_user_context);
 
     // Perform the malloc for the init proc's kernel stack page table before making page tables.
-    init_proc->kernel_stack_page_table =
+    idle_proc->kernel_stack_page_table =
             (struct pte *) calloc(KERNEL_STACK_MAXSIZE / PAGESIZE, sizeof(struct pte));
 
     // Build the initial page table for region 0 such that page = frame for all valid pages.
     region_0_page_table = (struct pte *) calloc(VMEM_0_SIZE / PAGESIZE, sizeof(struct pte));
 
     // Create the init proc's page table for region 1.
-    CreateRegion1PageTable(init_proc);
+    CreateRegion1PageTable(idle_proc);
 
     // Create the PTEs for the kernel text and data with the proper protections.
     unsigned int i;
@@ -92,21 +88,21 @@ void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {
     // Create the PTEs for the init proc's kernel stack with page = frame and the proper protections.
     unsigned int kernel_stack_base_page = ADDR_TO_PAGE(KERNEL_STACK_BASE);
     for (i = 0; i < NUM_KERNEL_PAGES; i++) {
-        init_proc->kernel_stack_page_table[i].valid = 1;
-        init_proc->kernel_stack_page_table[i].pfn = i + kernel_stack_base_page;
+        idle_proc->kernel_stack_page_table[i].valid = 1;
+        idle_proc->kernel_stack_page_table[i].pfn = i + kernel_stack_base_page;
         MarkFrameAsUsed(unused_frames, i + kernel_stack_base_page);
 
-        init_proc->kernel_stack_page_table[i].prot = PROT_READ | PROT_WRITE;
+        idle_proc->kernel_stack_page_table[i].prot = PROT_READ | PROT_WRITE;
     }
-    UseKernelStackForProc(init_proc);
-    init_proc->kernel_context_initialized = true;
+    UseKernelStackForProc(idle_proc);
+    idle_proc->kernel_context_initialized = true;
 
     // Set the TLB registers for the region 0 page table.
     WriteRegister(REG_PTBR0, (unsigned int) region_0_page_table);
     WriteRegister(REG_PTLR0, VMEM_0_SIZE / PAGESIZE);
 
     // Set the TLB registers for the region 1 page table.
-    WriteRegister(REG_PTBR1, (unsigned int) init_proc->region_1_page_table);
+    WriteRegister(REG_PTBR1, (unsigned int) idle_proc->region_1_page_table);
     WriteRegister(REG_PTLR1, VMEM_1_SIZE / PAGESIZE);
 
     // Enable virtual memory. Wooooo!
@@ -114,46 +110,38 @@ void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {
     virtual_memory_enabled = true;
     WriteRegister(REG_VM_ENABLE, 1);
 
-    // DEBUG: Print the value at the address of TrapClock().
-    trap_table_ptr = (unsigned int **) ReadRegister(REG_VECTOR_BASE);
-    value_at_addr_of_trap_clock = *(trap_table_ptr[TRAP_CLOCK]);
-    TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Value at address of TrapClock(): %u\n",
-            value_at_addr_of_trap_clock);
-
     InitBookkeepingStructs();
+
+    int rc = LoadProgram("idle", NULL, idle_proc);
+    if (rc != SUCCESS) {
+        TracePrintf(TRACE_LEVEL_TERMINAL_PROBLEM, "KernelStart: FAILED TO LOAD IDLE!!\n");
+        exit(THEYNIX_EXIT_FAILURE);
+    }
 
     // Load the init program.
     char *init_program_name = "init";
     if (cmd_args[0]) {
         init_program_name = cmd_args[0];
     }
-    int rc = LoadProgram(init_program_name, cmd_args, init_proc);
+    // Load the idle program, but first make sure we are pointing to its region 1 page table.
+    PCB *init_proc = NewBlankPCBWithPageTables(model_user_context, unused_frames);
+    WriteRegister(REG_PTBR1, (unsigned int) init_proc->region_1_page_table);
+    WriteRegister(REG_TLB_FLUSH, TLB_FLUSH_1);
+    rc = LoadProgram(init_program_name, cmd_args, init_proc);
     if (rc != SUCCESS) {
         TracePrintf(TRACE_LEVEL_TERMINAL_PROBLEM, "KernelStart: FAILED TO LOAD INIT!!\n");
         exit(THEYNIX_EXIT_FAILURE);
     }
 
-    // Load the idle program, but first make sure we are pointing to its region 1 page table.
-    PCB *idle_proc = NewBlankPCBWithPageTables(model_user_context, unused_frames);
+    // Make init the current proc.
+    current_proc = idle_proc;
     WriteRegister(REG_PTBR1, (unsigned int) idle_proc->region_1_page_table);
     WriteRegister(REG_TLB_FLUSH, TLB_FLUSH_1);
-    rc = LoadProgram("idle", NULL, idle_proc);
-    if (rc != SUCCESS) {
-        TracePrintf(TRACE_LEVEL_TERMINAL_PROBLEM, "KernelStart: FAILED TO LOAD IDLE!!\n");
-        exit(THEYNIX_EXIT_FAILURE);
-    }
 
-    // Put idle in the ready queue.
-    ListEnqueue(ready_queue, idle_proc, idle_proc->pid);
-
-    // Make init the current proc.
-    current_proc = init_proc;
-    WriteRegister(REG_PTBR1, (unsigned int) init_proc->region_1_page_table);
-    WriteRegister(REG_TLB_FLUSH, TLB_FLUSH_1);
+    ListAppend(ready_queue, init_proc, init_proc->pid);
 
     // Use the init proc's user context after returning from KernelStart().
-    *uctxt = init_proc->user_context;
-    TracePrintf(TRACE_LEVEL_DETAIL_INFO, "RESUMED!!!\n\n");
+    *uctxt = idle_proc->user_context;
 }
 
 int SetKernelBrk(void *addr) {
@@ -400,10 +388,16 @@ void SaveKernelContext() {
 }
 
 void SwitchToNextProc(UserContext *user_context) {
-    assert(!ListEmpty(ready_queue));
+    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> SwitchToNextProc()\n");
     PCB *next_proc = ListDequeue(ready_queue);
+    if (next_proc) {
+        SwitchToProc(next_proc, user_context);
+    } else {
+        TracePrintf(TRACE_LEVEL_DETAIL_INFO, "No waiting procs, idling\n");
+        SwitchToProc(idle_proc, user_context);
+    }
 
-    SwitchToProc(next_proc, user_context);
+    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< SwitchToNextProc()\n");
 }
 
 void SwitchToProc(PCB *next_proc, UserContext *user_context) {
@@ -411,10 +405,14 @@ void SwitchToProc(PCB *next_proc, UserContext *user_context) {
     assert(user_context);
     assert(next_proc);
 
+    // Savecurrent user state
+    current_proc->user_context = *user_context;
+
     TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Loading next proc context into %p\n", user_context);
     *user_context = next_proc->user_context;
     // Set the TLB registers for the region 1 page table.
     WriteRegister(REG_PTBR1, (unsigned int) next_proc->region_1_page_table);
+    WriteRegister(REG_TLB_FLUSH, TLB_FLUSH_1);
 
     PCB *old_proc = current_proc;
     current_proc = next_proc;
@@ -428,6 +426,19 @@ void SwitchToProc(PCB *next_proc, UserContext *user_context) {
     }
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< SwitchToProc()\n");
 }
+
+KernelContext *CopyKernelContextAndStack(KernelContext *kernel_context, void *__current_pcb,
+        void *__next_pcb) {
+    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> CopyKernelContextAndStack()\n");
+    PCB *current_pcb = (PCB *) __current_pcb;
+    PCB *next_pcb = (PCB *) __next_pcb;
+    next_pcb->kernel_context = current_pcb->kernel_context;
+    CopyKernelStackPageTableAndData(current_pcb, next_pcb);
+    next_pcb->kernel_context_initialized = true;
+    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< CopyKernelContextAndStack()\n");
+    return kernel_context;
+}
+
 
 KernelContext *SaveCurrentKernelContext(KernelContext *kernel_context, void *current_pcb,
         void *next_pcb) {
@@ -444,8 +455,9 @@ KernelContext *SaveKernelContextAndSwitch(KernelContext *kernel_context, void *_
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> SaveKernelContextAndSwitch()\n");
     PCB *current_pcb = (PCB *) __current_pcb;
     PCB *next_pcb = (PCB *) __next_pcb;
-
-    SaveCurrentKernelContext(kernel_context, current_pcb, next_pcb);
+    
+    //save context
+    current_pcb->kernel_context = *kernel_context;
     if (!next_pcb->kernel_context_initialized) {
         TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Initializing new Kernel Context for proc %p\n", next_pcb);
         next_pcb->kernel_context = current_pcb->kernel_context;

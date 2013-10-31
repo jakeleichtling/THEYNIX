@@ -44,7 +44,7 @@ void TrapKernel(UserContext *user_context) {
             break;
     }
     user_context->regs[0] = rc;
-    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< TrapKernel(%p)\n", user_context);
+    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< TrapKernel() rc=%d\n", rc);
 }
 
 void DecrementTicksRemaining(void *_proc) {
@@ -65,8 +65,9 @@ void TrapClock(UserContext *user_context) {
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> TrapClock(%p)\n", user_context);
     ListMap(clock_block_procs, &DecrementTicksRemaining);
 
-    // place current proc in end of the ready queue
-    ListAppend(ready_queue, current_proc, current_proc->pid);
+    if (current_proc->pid != IDLE_PID) {
+        ListAppend(ready_queue, current_proc, current_proc->pid);
+    }
 
     SwitchToNextProc(user_context);
 
@@ -75,6 +76,7 @@ void TrapClock(UserContext *user_context) {
 
 void TrapIllegal(UserContext *user_context) {
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> TrapIllegal(%p)\n", user_context);
+    KernelExit(KILLED_TRAP_ILLEGAL, user_context);
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< TrapIllegal(%p)\n", user_context);
 }
 
@@ -88,11 +90,15 @@ void TrapMemory(UserContext *user_context) {
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> TrapMemory(%p)\n", user_context);
 
     if (YALNIX_MAPERR == user_context->code) { // "address not mapped"
+        if (user_context->addr == NULL) {
+            TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM,
+                "User program tried to dereference null (%p)\n", user_context->addr);
+            KernelExit(KILLED_NULL, user_context);
+        }
         if (((unsigned int) user_context->addr) < VMEM_1_BASE) {
             TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM,
                 "User program tried to address kernel space @ %p\n", user_context->addr);
-            //TODO: kill program rather than die
-            exit(-1);
+            KernelExit(KILLED_ILL_KERNEL_MEM_ACC, user_context);
         }
         unsigned int addr_page = ADDR_TO_PAGE(user_context->addr) - ADDR_TO_PAGE(VMEM_1_BASE);
         if (ValidStackGrowth(addr_page)) {
@@ -103,7 +109,7 @@ void TrapMemory(UserContext *user_context) {
                 int new_frame = GetUnusedFrame(unused_frames);
                 if (new_frame == THEYNIX_EXIT_FAILURE) {
                     TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "GetUnusedFrame() failed.\n");
-                    KillCurrentProc();
+                    KernelExit(KILLED_OUT_OF_FRAMES, user_context);
                 }
                 assert(!current_proc->region_1_page_table[page_to_alloc].valid);
 
@@ -123,12 +129,12 @@ void TrapMemory(UserContext *user_context) {
                 TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM,
                     "Out of range memory access at %p.\n", user_context->addr);
             }
-            KillCurrentProc();
+            KernelExit(KILLED_INVALID_MEM, user_context);
         }
     } else if (YALNIX_ACCERR == user_context->code) { // "invalid permissions"
         TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM,
             "Invalid memory permission at %p.\n", user_context->addr);
-        KillCurrentProc();
+        KernelExit(KILLED_INVALID_MEM, user_context);
     } else {
         TracePrintf(TRACE_LEVEL_TERMINAL_PROBLEM,
             "Unknown TRAP_MEMORY user_context->code %d\n", user_context->code);
