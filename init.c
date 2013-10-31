@@ -29,26 +29,26 @@ int main(int argc, char *argv[]) {
         args[0] = "bo";
         args[1] = "zo";
         Exec("die_stupidly", args);
-    // } else {
-    //     Delay(2);
-    //     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "letting child die....\n");
-    //     int status;
-    //     Wait(&status);
-    //     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "Childed exited with status: %d\n", status);
-    // }
-    // rc = Fork();
-    // if (rc == 0) {
-    //     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "==== I'm the child %d, delaying...\n", GetPid());
-    //     Delay(2);
-    //     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "==== I'm the child, done waiting!\n", GetPid());
-    //     Exit(1);
-    // } else {
-    //     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "Waiting on child: %d\n", rc);
-    //     int status;
-    //     Wait(&status);
-    //     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "Childed exited with status: %d\n", status);
+    } else {
+        // Delay(2);
+        TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "letting child die....\n");
+        int status;
+        Wait(&status);
+        TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "Childed exited with status: %d\n", status);
     }
-    // TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< INIT PROGRAM END \n");
+    rc = Fork();
+    if (rc == 0) {
+        TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "==== I'm the child %d, delaying...\n", GetPid());
+        // Delay(2);
+        TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "==== I'm the child, done waiting!\n", GetPid());
+        Exit(1);
+    } else {
+        TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "Waiting on child: %d\n", rc);
+        int status;
+        Wait(&status);
+        TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "Childed exited with status: %d\n", status);
+    }
+    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< INIT PROGRAM END \n");
 
     return 0;
 }
