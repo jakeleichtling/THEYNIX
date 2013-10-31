@@ -20,7 +20,7 @@ void recurse(int level) {
 
 int main(int argc, char *argv[]) {
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> INIT PROGRAM START \n");
-    Delay(2);
+    // Delay(2);
 
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "Yay! My PID is %d\n", GetPid());
     int rc = Fork();
