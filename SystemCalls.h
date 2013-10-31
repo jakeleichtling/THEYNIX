@@ -11,9 +11,9 @@ int KernelFork(UserContext *user_context);
 
 int KernelExec(char *filename, char **argvec, UserContext *user_context_ptr);
 
-void KernelExit(int status);
+void KernelExit(int status, UserContext *user_context);
 
-int KernelWait(int *status_ptr);
+int KernelWait(int *status_ptr, UserContext *user_context);
 
 int KernelGetPid(void);
 

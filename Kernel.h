@@ -15,6 +15,9 @@
 
 #define KILL -1337
 
+#define INIT_PID 1
+#define IDLE_PID 0
+
 /* Global Variables */
 
 List *locks;
@@ -24,6 +27,7 @@ List *pipes;
 Tty *ttys;
 
 PCB *current_proc;
+PCB *idle_proc;
 List *ready_queue;
 List *clock_block_procs;
 

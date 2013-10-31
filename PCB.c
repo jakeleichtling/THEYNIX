@@ -66,7 +66,3 @@ PCB *NewBlankPCBWithPageTables(UserContext model_user_context, UnusedFrames unus
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< NewBlankPCBWithPageTables()\n");
     return pcb;
 }
-
-void KillCurrentProc() {
-    // TODO
-}

@@ -20,6 +20,12 @@ void CreateRegion1PageTable(PCB *pcb);
 void FreeRegion1PageTable(PCB *pcb, UnusedFrames unused_frames);
 
 /*
+  Frees the physical frames used by the valid region 0 stack page table entries,
+  and marks them as invalid.
+*/
+void FreeRegion0StackPages(PCB *pcb, UnusedFrames unused_frames);
+
+/*
   Starting at the given page number in region 1, maps num_pages pages to newly allocated
   frames. All of the page table entries covered must be invalid prior to this call, and all will be
   valid, with the given protections, after the call. Returns THEYNIX_EXIT_FAILURE if there

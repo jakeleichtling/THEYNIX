@@ -20,54 +20,36 @@ void recurse(int level) {
 
 int main(int argc, char *argv[]) {
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> INIT PROGRAM START \n");
+    Delay(2);
 
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "Yay! My PID is %d\n", GetPid());
-    Exec("init", NULL);
+    int rc = Fork();
+    if (rc == 0) {
+        char *args[2];
+        args[0] = "bo";
+        args[1] = "zo";
+        Exec("die_stupidly", args);
+    } else {
+        Delay(2);
+        TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "letting child die....\n");
+        int status;
+        Wait(&status);
+        TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "Childed exited with status: %d\n", status);
+    }
+    rc = Fork();
+    if (rc == 0) {
+        TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "==== I'm the child %d, delaying...\n", GetPid());
+        Delay(2);
+        TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "==== I'm the child, done waiting!\n", GetPid());
+        Exit(1);
+    } else {
+        TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "Waiting on child: %d\n", rc);
+        int status;
+        Wait(&status);
+        TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "Childed exited with status: %d\n", status);
+    }
+    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< INIT PROGRAM END \n");
 
-    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "!!! NOOOOOO, this should not be called!!! %d\n\n\n");
-    Exec("init", NULL);
-
-    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "!!! AHHHHHH WHYYYYYY, this should not be called!!! %d\n\n\n");
-
-/* Delay test:
-     rc = Delay(5);
-     if (THEYNIX_EXIT_SUCCESS == rc) {
-        TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Init: delay for 5 ticks successful \n");
-     } else {
-        TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Init: delay for 5 ticks failed \n");
-     }
-
-     rc = Delay(0);
-     if (THEYNIX_EXIT_SUCCESS == rc) {
-        TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Init: delay for 0 ticks successful \n");
-     } else {
-        TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Init: delay for 0 ticks failed \n");
-     }
-
-     rc = Delay(-1);
-     if (THEYNIX_EXIT_SUCCESS == rc) {
-        TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Init: delay for -1 ticks successful (should fail) \n");
-     } else {
-        TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Init: delay for -1 ticks failed (should fail) \n");
-     }
-
-     // Malloc a ton of mem to test brk
-     char *buff = calloc(BIG_HEAP, sizeof(char));
-     if (buff) {
-         TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Init: calloced %d bytes \n", BIG_HEAP);
-     } else {
-         TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Init: callocing %d bytes failed\n", BIG_HEAP);
-     }
-     free(buff);
-
-     recurse(0);
-
-     while (true) {
-         Pause();
-     }
-     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< INIT PROGRAM END \n");
-*/
-
-     return 0;
+    return 0;
 }
 

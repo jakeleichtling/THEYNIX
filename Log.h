@@ -23,4 +23,12 @@
 //#define ERROR THEYNIX_EXIT_FAILURE TODO: conflicts with yalnix.h!!!
 #define SUCCESS THEYNIX_EXIT_SUCCESS
 
+
+// Kill Signals
+#define KILLED_OUT_OF_FRAMES -10
+#define KILLED_INVALID_MEM -11
+#define KILLED_TRAP_ILLEGAL -12
+#define KILLED_ILL_KERNEL_MEM_ACC -13
+#define KILLED_NULL -14
+
 #endif

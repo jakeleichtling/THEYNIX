@@ -66,6 +66,4 @@ PCB *NewBlankPCB(UserContext model_user_context);
 */
 PCB *NewBlankPCBWithPageTables(UserContext model_user_context, UnusedFrames unused_frames);
 
-void KillCurrentProc();
-
 #endif

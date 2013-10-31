@@ -35,7 +35,7 @@ void ListDestroy(List *list);
 bool ListEmpty(List *list);
 
 // Add a new node to the front of the list.
-void ListEnqueue(List *list, void *data, unsigned int id);
+void ListPush(List *list, void *data, unsigned int id);
 
 // Remove and return the first element in the list.
 void *ListDequeue(List *list);
@@ -52,6 +52,9 @@ void ListInsertByIdOrder(List *list, void *data, unsigned int id);
 
 // Append to end of list
 void ListAppend(List *list, void *data, unsigned int id);
+
+// Same as append
+void ListEnqueue(List *list, void *data, unsigned int id);
 
 // Apply the given function to each item in the list. The function is passed
 // the (void*) data.
