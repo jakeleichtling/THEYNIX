@@ -23,32 +23,32 @@ int main(int argc, char *argv[]) {
     // Delay(2);
 
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "Yay! My PID is %d\n", GetPid());
-    int rc = Fork();
-    if (rc == 0) {
-        char *args[2];
-        args[0] = "bo";
-        args[1] = "zo";
-        Exec("die_stupidly", args);
-    } else {
-        Delay(2);
-        TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "letting child die....\n");
-        int status;
-        Wait(&status);
-        TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "Childed exited with status: %d\n", status);
-    }
-    rc = Fork();
-    if (rc == 0) {
-        TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "==== I'm the child %d, delaying...\n", GetPid());
-        Delay(2);
-        TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "==== I'm the child, done waiting!\n", GetPid());
-        Exit(1);
-    } else {
-        TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "Waiting on child: %d\n", rc);
-        int status;
-        Wait(&status);
-        TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "Childed exited with status: %d\n", status);
-    }
-    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< INIT PROGRAM END \n");
+    // int rc = Fork();
+    // if (rc == 0) {
+    //     char *args[2];
+    //     args[0] = "bo";
+    //     args[1] = "zo";
+    //     Exec("die_stupidly", args);
+    // } else {
+    //     Delay(2);
+    //     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "letting child die....\n");
+    //     int status;
+    //     Wait(&status);
+    //     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "Childed exited with status: %d\n", status);
+    // }
+    // rc = Fork();
+    // if (rc == 0) {
+    //     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "==== I'm the child %d, delaying...\n", GetPid());
+    //     Delay(2);
+    //     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "==== I'm the child, done waiting!\n", GetPid());
+    //     Exit(1);
+    // } else {
+    //     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "Waiting on child: %d\n", rc);
+    //     int status;
+    //     Wait(&status);
+    //     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "Childed exited with status: %d\n", status);
+    // }
+    // TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< INIT PROGRAM END \n");
 
     return 0;
 }
