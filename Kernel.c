@@ -409,6 +409,7 @@ void SwitchToProc(PCB *next_proc, UserContext *user_context) {
     current_proc->user_context = *user_context;
 
     TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Loading next proc context into %p\n", user_context);
+    TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Loading next proc PID: %d\n", next_proc->pid);
     *user_context = next_proc->user_context;
     // Set the TLB registers for the region 1 page table.
     WriteRegister(REG_PTBR1, (unsigned int) next_proc->region_1_page_table);
@@ -455,7 +456,7 @@ KernelContext *SaveKernelContextAndSwitch(KernelContext *kernel_context, void *_
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> SaveKernelContextAndSwitch()\n");
     PCB *current_pcb = (PCB *) __current_pcb;
     PCB *next_pcb = (PCB *) __next_pcb;
-    
+
     //save context
     current_pcb->kernel_context = *kernel_context;
     if (!next_pcb->kernel_context_initialized) {
