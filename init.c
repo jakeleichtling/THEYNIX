@@ -50,7 +50,7 @@ int main(int argc, char *argv[]) {
     //     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "Child exited with status: %d\n", status);
     // }
 
-    // TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< INIT PROGRAM END \n");
+    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< INIT PROGRAM END \n");
 
     return 0;
 }
