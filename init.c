@@ -20,9 +20,12 @@ void recurse(int level) {
 
 int main(int argc, char *argv[]) {
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> INIT PROGRAM START \n");
-    Delay(2);
 
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "Yay! My PID is %d\n", GetPid());
+    int status;
+    int wait_rc;
+    wait_rc = Wait(&status);
+    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "Waited with no children. rc = %d\n", wait_rc);
     int rc = Fork();
     if (rc == 0) {
         char *args[2];
@@ -30,9 +33,8 @@ int main(int argc, char *argv[]) {
         args[1] = "zo";
         Exec("die_stupidly", args);
     } else {
+        TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "Wait for child to die....\n");
         Delay(2);
-        TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "letting child die....\n");
-        int status;
         Wait(&status);
         TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "Childed exited with status: %d\n", status);
     }
@@ -45,10 +47,11 @@ int main(int argc, char *argv[]) {
         Exit(1);
     } else {
         TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "Waiting on child: %d\n", rc);
-        int status;
         Wait(&status);
         TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "Child exited with status: %d\n", status);
     }
+    wait_rc = Wait(&status);
+    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "Waited with no children. rc = %d\n", wait_rc);
 
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< INIT PROGRAM END \n");
 

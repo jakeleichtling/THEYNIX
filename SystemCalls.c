@@ -77,7 +77,7 @@ int KernelExec(char *filename, char **argvec, UserContext *user_context_ptr) {
     if (argvec) {
         int i;
         for (i = 0; argvec[i]; i++, num_args++);
-        char **heap_argvec = calloc(num_args + 1, sizeof(char *));
+        heap_argvec = calloc(num_args + 1, sizeof(char *));
         for (i = 0; i < num_args; i++) {
             char *arg = argvec[i];
             TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Copying arg %d: %s\n", i, arg);
