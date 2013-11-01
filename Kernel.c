@@ -405,7 +405,7 @@ void SwitchToProc(PCB *next_proc, UserContext *user_context) {
     assert(user_context);
     assert(next_proc);
 
-    // Savecurrent user state
+    // Save current user state
     current_proc->user_context = *user_context;
 
     TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Loading next proc context into %p\n", user_context);
@@ -425,6 +425,10 @@ void SwitchToProc(PCB *next_proc, UserContext *user_context) {
         // TODO: more gracefully handle the failure case
         exit(-1);
     }
+
+    // Restore user state of new current process
+    *user_context = current_proc->user_context;
+
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< SwitchToProc()\n");
 }
 

@@ -12,7 +12,7 @@ int main(int argc, char *argv[]) {
     for (i = 0; i < argc; i++) {
         TracePrintf(TRACE_LEVEL_DETAIL_INFO, "%s\n", argv[i]);
     }
-    
+
     TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Now I'm going to dereference null!\n");
 
     char * n = (char *) NULL;
