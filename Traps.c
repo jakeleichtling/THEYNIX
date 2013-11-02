@@ -38,8 +38,12 @@ void TrapKernel(UserContext *user_context) {
         case YALNIX_EXIT:
             KernelExit(user_context->regs[0], user_context);
             break;
+        case YALNIX_BRK:
+            rc = KernelBrk((void *) user_context->regs[0]);
+            break;
         default:
             TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "TrapKernel: Code %d undefined\n");
+            KernelExit(KILLED_KERNEL_TRAP_NOT_DEFINED, user_context);
             rc = THEYNIX_EXIT_FAILURE;
             break;
     }
@@ -146,6 +150,8 @@ void TrapMemory(UserContext *user_context) {
 
 void TrapMath(UserContext *user_context) {
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> TrapMath(%p)\n", user_context);
+    TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "Killing proc on trap math \n");
+    KernelExit(KILLED_TRAP_MATH, user_context);
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< TrapMath(%p)\n", user_context);
 }
 
@@ -160,7 +166,9 @@ void TrapTtyTransmit(UserContext *user_context) {
 }
 
 void TrapNotDefined(UserContext *user_context) {
-    TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Unknown TRAP call.\n");
+    TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "Unknown TRAP call. Killing proc\n");
+    KernelExit(KILLED_KERNEL_TRAP_NOT_DEFINED, user_context);
+
 }
 
 void TrapTableInit() {

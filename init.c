@@ -4,7 +4,7 @@
 
 #include "Log.h"
 
-#define BIG_HEAP 1048576
+#define BIG_HEAP 1048
 #define MAX_REC 100
 
 int data;
@@ -20,6 +20,11 @@ void recurse(int level) {
 
 int main(int argc, char *argv[]) {
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> INIT PROGRAM START \n");
+
+    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, " Mallocing %d bytes \n", BIG_HEAP);
+    char *mem = malloc(BIG_HEAP);
+    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, " mem addr = %p \n", mem);
+    free(mem);
 
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "Yay! My PID is %d\n", GetPid());
     int status;
