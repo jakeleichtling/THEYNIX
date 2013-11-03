@@ -313,29 +313,57 @@ int KernelDelay(int clock_ticks, UserContext *user_context) {
     return THEYNIX_EXIT_SUCCESS;
 }
 
-int KernelTtyRead(int tty_id, void *buf, int len) {
+int KernelTtyRead(int tty_id, void *buf, int len, UserContext *user_context) {
+    if (!ValidateUserArg((unsigned int) buf, len, PROT_READ | PROT_WRITE)) {
+        return THEYNIX_EXIT_FAILURE;
+    }
     // Get the TTY state
+    Tty term = ttys[tty_id];
 
     // If the TTY has any line buffers, then consume as much as is there up to len
-    // (could be multiple buffers, do the book keeping in Tty.c)
+    int consumed = 0;
+    LineBuffer *lb = (LineBuffer *) ListDequeue(term.line_buffers);
+    if (lb) { // at least one line waiting to be consumed
+        strncpy(buf, lb->buffer, len);
+        if (lb->length > len) {
+            int leftovers_length = lb->length - len;
+            char *leftovers = calloc(leftovers_length, sizeof(char));
+            strncpy(leftovers, lb->buffer + consumed, leftovers_length);
+            free(lb->buffer);
+            lb->buffer = leftovers;
+            lb->length = leftovers_length;
+            ListPush(term.line_buffers, lb, 0);
 
+            return len;
+        } else {
+            int copied = lb->length;
+            free(lb->buffer);
+            free(lb);
+            return copied;
+        }
+    }
     // Otherwise, add proc to TTY waiting to receive queue, set tty_receive_len,
-    // remove self from ready queue, and context switch!
-
-    // Note: The following happens in a different function that is called for TRAP_TTY_RECEIVE.
-    // On TRAP_TTY_RECEIVE, the corresponding TTY adds the new line buffer. If there are any
-    // procs waiting to receive, it starts with the first one and goes through them. It looks
-    // at their tty_receive_len, builds a new buffer holding min(tty_receive_len, chars in first line buffer) and
-    // puts this min in tty_receive_len for the proc, and points the proc's tty_receive_buf to
-    // this buffer. The TTY then "consumes" what it used to make this buffer, then moves
-    // the buffer off of its waiting to receive queue and adds it to the ready queue.
+    // alloc receive buffer, and context switch!
+    ListEnqueue(term.waiting_to_receive, current_proc, current_proc->pid);
+    current_proc->tty_receive_len = len;
+    current_proc->tty_receive_buffer = calloc(len, sizeof(char));
+    SwitchToNextProc(user_context);
 
     // When control returns here, the process copies tty_recieve_buf to buf, frees tty_receive_buf,
     // and returns tty_receive_len.
-    return THEYNIX_EXIT_SUCCESS;
+    strncpy(buf, current_proc->tty_receive_buffer, len);
+    int copied;
+    if (current_proc->tty_receive_len > len) {
+        copied = len;
+    } else {
+        copied = current_proc->tty_receive_len;
+    }
+    free(current_proc->tty_receive_buffer);
+
+    return copied;
 }
 
-int KernelTtyWrite(int tty_id, void *buf, int len) {
+int KernelTtyWrite(int tty_id, void *buf, int len, UserContext *user_context) {
     // Get the TTY state
 
     // Set tty_transmit_len = len

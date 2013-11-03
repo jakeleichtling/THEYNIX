@@ -157,6 +157,11 @@ void TrapMath(UserContext *user_context) {
 
 void TrapTtyRecieve(UserContext *user_context) {
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> TrapTtyRecieve(%p)\n", user_context);
+    int tty_id = user_context->regs[0];
+    void *buf = (void *) user_context->regs[1];
+    int len = user_context->regs[2];
+    int rc = KernelTtyRead(tty_id, buf, len, user_context);
+    user_context->regs[0] = rc;
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< TrapTtyRecieve(%p)\n", user_context);
 }
 
