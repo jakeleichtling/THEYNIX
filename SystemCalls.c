@@ -20,6 +20,35 @@ extern List *ready_queue;
   Implementations of Yalnix system calls.
 */
 
+// validate pointer arg
+bool ValidateUserArg(unsigned int arg, int num_bytes, unsigned long permissions) {
+    if (arg > VMEM_1_LIMIT) {
+        return false;
+    }
+    if (arg < VMEM_1_BASE) {
+        return false;
+    }
+
+    int start_page = ADDR_TO_PAGE(arg - VMEM_1_BASE);
+    int finish_page = start_page + (num_bytes >> PAGESHIFT);
+    int i;
+    for (i = start_page; i <= finish_page; i++) {
+        bool valid = current_proc->region_1_page_table[i].valid == 1;
+        bool has_permissions = (current_proc->region_1_page_table[i].prot & permissions)
+             == permissions;
+        if (!(valid && has_permissions)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+// validate string arg for read access
+bool ValidateUserString(char *str) {
+    int len = strlen(str);
+    return ValidateUserArg((unsigned int) str, len * sizeof(char), PROT_READ);
+}
+
 int KernelFork(UserContext *user_context) {
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> KernelFork()\n");
 
@@ -64,6 +93,10 @@ int KernelFork(UserContext *user_context) {
 
 int KernelExec(char *filename, char **argvec, UserContext *user_context_ptr) {
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> KernelExec()\n");
+    if (!ValidateUserString(filename)) {
+        TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "Invalid filename str for exec\n");
+        return THEYNIX_EXIT_FAILURE;
+    }
 
     // Copy the filename string and arguments to the Kernel heap.
     TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Mark 1\n");
@@ -77,6 +110,21 @@ int KernelExec(char *filename, char **argvec, UserContext *user_context_ptr) {
     if (argvec) {
         int i;
         for (i = 0; argvec[i]; i++, num_args++);
+
+        // Validate char* array
+        if (!ValidateUserArg((unsigned int) argvec, num_args, PROT_READ)) {
+            TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "Invalid char array for exec args\n");
+            return THEYNIX_EXIT_FAILURE;
+        }
+        
+        // Validate each string
+        for (i = 0; i < num_args; i++) {
+            if (!ValidateUserString(argvec[i])) {
+                TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "Invalid string for exec arg %d\n", i);
+                return THEYNIX_EXIT_FAILURE;
+            }
+        }
+
         heap_argvec = calloc(num_args + 1, sizeof(char *));
         for (i = 0; i < num_args; i++) {
             char *arg = argvec[i];
@@ -171,6 +219,10 @@ void KernelExit(int status, UserContext *user_context) {
 
 int KernelWait(int *status_ptr, UserContext *user_context) {
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> KernelWait(%p)\n", user_context);
+    if (!ValidateUserArg((unsigned int) status_ptr, sizeof(int *), PROT_READ | PROT_WRITE)) {
+        TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "Invalid stats ptr in wait\n");
+        return THEYNIX_EXIT_FAILURE;
+    }
     // If zombie children list is not empty, collect exit status of one, remove PCB from list, and free
     if (!ListEmpty(current_proc->zombie_children)) {
         PCB *child = (PCB *) ListDequeue(current_proc->zombie_children);
@@ -206,7 +258,6 @@ int KernelGetPid(void) {
 }
 
 int KernelBrk(void *addr) {
-    // TODO: verify memory
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> KernelBrk(%p)\n", addr);
 
     unsigned int new_user_brk_page = ADDR_TO_PAGE(addr - 1) + 1 - REGION_1_BASE_PAGE;
