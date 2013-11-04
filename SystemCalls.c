@@ -365,24 +365,33 @@ int KernelTtyRead(int tty_id, void *buf, int len, UserContext *user_context) {
 
 int KernelTtyWrite(int tty_id, void *buf, int len, UserContext *user_context) {
     // Get the TTY state
+    Tty term = ttys[tty_id];
 
     // Set tty_transmit_len = len
+    current_proc->tty_transmit_len = len;
 
     // Copy first len chars of buf into a kernel heap string poitned to by tty_transmit_buffer
     // Set tty_transmit_pointer to tty_transmit_buffer
-
+    current_proc->tty_transmit_buffer = calloc(len, sizeof(char));
+    strncpy(current_proc->tty_transmit_buffer, buf, len);
+    current_proc->tty_transmit_pointer = current_proc->tty_transmit_buffer;
+    
+    bool queue_prev_empty = ListEmpty(term.waiting_to_transmit);
+ 
     // Enqueue self in waiting to transmit for TTY
+    ListEnqueue(term.waiting_to_transmit, current_proc, current_proc->pid);
 
     // If I'm the only one, call TtyTransmit with len = min(TERMINAL_MAX_LINE, tty_transmit_len)
+    if (queue_prev_empty) {
+        if (TERMINAL_MAX_LINE < len) {
+            TtyTransmit(tty_id, current_proc->tty_transmit_buffer, TERMINAL_MAX_LINE);
+        } else {
+            TtyTransmit(tty_id, current_proc->tty_transmit_buffer, len);
+        }
+    }
 
     // Remove from ready queue and context switch
-
-    // Note: The following happens in a different function that is called for TRAP_TTY_TRANSMIT.
-    // Look at first proc on waiting to transmit queue. If tty_transmit_len <= TERMINAL_MAX_LINE,
-    // then free tty_transmit_buffer, remove from waiting queue, and move to ready queue, then
-    // transmit for next proc on waiting queue, or return if its empty. Else,
-    // tty_transmit_len -= TERMINAL_MAX_LINE, tty_transmit_pointer += TERMINAL_MAX_LINE,
-    // call TtyTransmit with new len and pointer, and return.
+    SwitchToNextProc(user_context);
 
     // When control returns here, return success
     return THEYNIX_EXIT_SUCCESS;

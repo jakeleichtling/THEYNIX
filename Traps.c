@@ -3,6 +3,7 @@
 #include <assert.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include <string.h>
 #include <yalnix.h>
 #include <hardware.h>
 
@@ -40,6 +41,20 @@ void TrapKernel(UserContext *user_context) {
             break;
         case YALNIX_BRK:
             rc = KernelBrk((void *) user_context->regs[0]);
+            break;
+        case YALNIX_TTY_READ:
+            // regs[0] = tty_id
+            // regs[1] = buf
+            // regs[2] = len
+            rc = KernelTtyRead(user_context->regs[0], (void *) user_context->regs[1],
+                 user_context->regs[2], user_context);
+            break;
+        case YALNIX_TTY_WRITE:
+            // regs[0] = tty_id
+            // regs[1] = buf
+            // regs[2] = len
+            rc = KernelTtyWrite(user_context->regs[0], (void *) user_context->regs[1],
+                 user_context->regs[2], user_context);
             break;
         default:
             TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "TrapKernel: Code %d undefined\n");
@@ -157,16 +172,77 @@ void TrapMath(UserContext *user_context) {
 
 void TrapTtyRecieve(UserContext *user_context) {
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> TrapTtyRecieve(%p)\n", user_context);
-    int tty_id = user_context->regs[0];
-    void *buf = (void *) user_context->regs[1];
-    int len = user_context->regs[2];
-    int rc = KernelTtyRead(tty_id, buf, len, user_context);
-    user_context->regs[0] = rc;
+    int tty_id = user_context->code;
+    Tty term = ttys[tty_id];
+    if (ListEmpty(term.waiting_to_receive)) { // no waiting procs
+        LineBuffer *lb = calloc(1, sizeof(LineBuffer));
+        lb->buffer = calloc(TERMINAL_MAX_LINE, sizeof(char));
+        lb->length = TtyReceive(tty_id, lb->buffer, TERMINAL_MAX_LINE);
+        ListEnqueue(term.line_buffers, lb, 0);
+    } else { // at least one proc waiting
+        PCB *waiting_proc = (PCB *) ListDequeue(term.waiting_to_receive);
+        assert(waiting_proc->tty_receive_buffer);
+
+        ListAppend(ready_queue, waiting_proc, waiting_proc->pid);
+        char *input = calloc(TERMINAL_MAX_LINE, sizeof(char));
+        int input_length = TtyReceive(tty_id, input, TERMINAL_MAX_LINE);
+        if (input_length <= waiting_proc->tty_receive_len) {
+            strncpy(waiting_proc->tty_receive_buffer, input, input_length);
+        } else {
+            strncpy(waiting_proc->tty_receive_buffer, input, waiting_proc->tty_receive_len);
+            int remaining_length = input_length - waiting_proc->tty_receive_len;
+            char *remaining = calloc(remaining_length, sizeof(char));
+            strncpy(remaining, input + waiting_proc->tty_receive_len, remaining_length);
+            LineBuffer *lb = calloc(1, sizeof(LineBuffer));
+            lb->buffer = input;
+            lb->length = remaining_length;
+            ListEnqueue(term.line_buffers, lb, 0);
+        }
+        free(input);
+    }
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< TrapTtyRecieve(%p)\n", user_context);
 }
 
 void TrapTtyTransmit(UserContext *user_context) {
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> TrapTtyTransmit(%p)\n", user_context);
+    int tty_id = user_context->code;
+    Tty term = ttys[tty_id];
+    assert(!ListEmpty(term.waiting_to_transmit));
+
+    // Unblock the waiting proc
+    PCB *waiting_proc = (PCB *) ListDequeue(term.waiting_to_transmit);
+    if (waiting_proc->tty_transmit_len > TERMINAL_MAX_LINE) { // not completely transmitted
+        waiting_proc->tty_transmit_pointer += TERMINAL_MAX_LINE;
+        waiting_proc->tty_transmit_len -= TERMINAL_MAX_LINE;
+
+        // put back in front of transmit queue
+        ListPush(term.waiting_to_transmit, waiting_proc, waiting_proc->pid);
+        if (TERMINAL_MAX_LINE > waiting_proc->tty_transmit_len) {
+            TtyTransmit(tty_id, waiting_proc->tty_transmit_pointer, 
+                waiting_proc->tty_transmit_len);
+        } else {
+            TtyTransmit(tty_id, waiting_proc->tty_transmit_pointer, 
+                TERMINAL_MAX_LINE);
+        }
+    } else { // transmission complete
+        ListAppend(ready_queue, waiting_proc, waiting_proc->pid);
+        free(waiting_proc->tty_transmit_buffer);
+    }
+
+    if (ListEmpty(term.waiting_to_transmit)) {
+        return; // no other procs waiting on this term
+    }
+
+    // Get the next proc waiting to submit
+    PCB *next_to_transmit = (PCB *) ListDequeue(term.waiting_to_transmit);
+    if (TERMINAL_MAX_LINE > next_to_transmit->tty_transmit_len) {
+        TtyTransmit(tty_id, next_to_transmit->tty_transmit_pointer, 
+            next_to_transmit->tty_transmit_len);
+    } else {
+        TtyTransmit(tty_id, next_to_transmit->tty_transmit_pointer, 
+            TERMINAL_MAX_LINE);
+    }
+
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< TrapTtyTransmit(%p)\n", user_context);
 }
 
