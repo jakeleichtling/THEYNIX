@@ -60,6 +60,9 @@ void ListEnqueue(List *list, void *data, unsigned int id);
 // the (void*) data.
 void ListMap(List *list, void (*ftn) (void*));
 
+// Returns the head element but does not remove!
+void *ListPeak(List *list);
+
 // Test driver. Returns true on success.
 bool ListTestList();
 

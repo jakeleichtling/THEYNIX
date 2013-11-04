@@ -209,14 +209,12 @@ void TrapTtyTransmit(UserContext *user_context) {
     Tty term = ttys[tty_id];
     assert(!ListEmpty(term.waiting_to_transmit));
 
-    // Unblock the waiting proc
-    PCB *waiting_proc = (PCB *) ListDequeue(term.waiting_to_transmit);
+    // Get the currently transmitting proc
+    PCB *waiting_proc = (PCB *) ListPeak(term.waiting_to_transmit);
     if (waiting_proc->tty_transmit_len > TERMINAL_MAX_LINE) { // not completely transmitted
         waiting_proc->tty_transmit_pointer += TERMINAL_MAX_LINE;
         waiting_proc->tty_transmit_len -= TERMINAL_MAX_LINE;
 
-        // put back in front of transmit queue
-        ListPush(term.waiting_to_transmit, waiting_proc, waiting_proc->pid);
         if (TERMINAL_MAX_LINE > waiting_proc->tty_transmit_len) {
             TtyTransmit(tty_id, waiting_proc->tty_transmit_pointer, 
                 waiting_proc->tty_transmit_len);
@@ -225,6 +223,8 @@ void TrapTtyTransmit(UserContext *user_context) {
                 TERMINAL_MAX_LINE);
         }
     } else { // transmission complete
+        // since done, take off transmitting list
+        ListRemoveById(term.waiting_to_transmit, waiting_proc->pid);
         ListAppend(ready_queue, waiting_proc, waiting_proc->pid);
         free(waiting_proc->tty_transmit_buffer);
     }
@@ -234,7 +234,7 @@ void TrapTtyTransmit(UserContext *user_context) {
     }
 
     // Get the next proc waiting to submit
-    PCB *next_to_transmit = (PCB *) ListDequeue(term.waiting_to_transmit);
+    PCB *next_to_transmit = (PCB *) ListPeak(term.waiting_to_transmit);
     if (TERMINAL_MAX_LINE > next_to_transmit->tty_transmit_len) {
         TtyTransmit(tty_id, next_to_transmit->tty_transmit_pointer, 
             next_to_transmit->tty_transmit_len);

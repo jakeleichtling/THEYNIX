@@ -228,3 +228,7 @@ void ListMap(List *list, void (*ftn) (void*)) {
         }
     }
 }
+
+void *ListPeak(List *list) {
+    return list->head->data;
+}

@@ -170,7 +170,7 @@ void KernelExit(int status, UserContext *user_context) {
     // If initial process, halt system
     if (current_proc->pid == INIT_PID) {
         TracePrintf(TRACE_LEVEL_TERMINAL_PROBLEM, "Init Proc exited w/ status %d. Halting!\n", status);
-        exit(1);
+        Halt();
     }
 
     // Empty out child lists
@@ -314,7 +314,16 @@ int KernelDelay(int clock_ticks, UserContext *user_context) {
 }
 
 int KernelTtyRead(int tty_id, void *buf, int len, UserContext *user_context) {
+    if (tty_id < 0 || tty_id >= NUM_TERMINALS) {
+        TracePrintf(TRACE_LEVEL_TERMINAL_PROBLEM, "Program tried to read from invalid term\n");
+        return THEYNIX_EXIT_FAILURE;
+    }
+    if (len < 0) {
+        TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "negative print length\n");
+        return THEYNIX_EXIT_FAILURE;
+    }
     if (!ValidateUserArg((unsigned int) buf, len, PROT_READ | PROT_WRITE)) {
+        TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "Invalid read string\n");
         return THEYNIX_EXIT_FAILURE;
     }
     // Get the TTY state
@@ -364,6 +373,19 @@ int KernelTtyRead(int tty_id, void *buf, int len, UserContext *user_context) {
 }
 
 int KernelTtyWrite(int tty_id, void *buf, int len, UserContext *user_context) {
+    if (tty_id < 0 || tty_id >= NUM_TERMINALS) {
+        TracePrintf(TRACE_LEVEL_TERMINAL_PROBLEM, "Program tried to write to invalid term\n");
+        return THEYNIX_EXIT_FAILURE;
+    }
+    if (len < 0) {
+        TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "negative print length\n");
+        return THEYNIX_EXIT_FAILURE;
+    }
+    if (!ValidateUserArg((unsigned int) buf, len, PROT_READ)) {
+        TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "Invalid write string\n");
+        return THEYNIX_EXIT_FAILURE;
+    }
+
     // Get the TTY state
     Tty term = ttys[tty_id];
 
