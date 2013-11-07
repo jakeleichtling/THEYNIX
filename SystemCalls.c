@@ -116,7 +116,7 @@ int KernelExec(char *filename, char **argvec, UserContext *user_context_ptr) {
             TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "Invalid char array for exec args\n");
             return THEYNIX_EXIT_FAILURE;
         }
-        
+
         // Validate each string
         for (i = 0; i < num_args; i++) {
             if (!ValidateUserString(argvec[i])) {
@@ -397,9 +397,9 @@ int KernelTtyWrite(int tty_id, void *buf, int len, UserContext *user_context) {
     current_proc->tty_transmit_buffer = calloc(len, sizeof(char));
     strncpy(current_proc->tty_transmit_buffer, buf, len);
     current_proc->tty_transmit_pointer = current_proc->tty_transmit_buffer;
-    
+
     bool queue_prev_empty = ListEmpty(term.waiting_to_transmit);
- 
+
     // Enqueue self in waiting to transmit for TTY
     ListEnqueue(term.waiting_to_transmit, current_proc, current_proc->pid);
 

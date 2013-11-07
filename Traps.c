@@ -43,16 +43,10 @@ void TrapKernel(UserContext *user_context) {
             rc = KernelBrk((void *) user_context->regs[0]);
             break;
         case YALNIX_TTY_READ:
-            // regs[0] = tty_id
-            // regs[1] = buf
-            // regs[2] = len
             rc = KernelTtyRead(user_context->regs[0], (void *) user_context->regs[1],
                  user_context->regs[2], user_context);
             break;
         case YALNIX_TTY_WRITE:
-            // regs[0] = tty_id
-            // regs[1] = buf
-            // regs[2] = len
             rc = KernelTtyWrite(user_context->regs[0], (void *) user_context->regs[1],
                  user_context->regs[2], user_context);
             break;
@@ -216,10 +210,10 @@ void TrapTtyTransmit(UserContext *user_context) {
         waiting_proc->tty_transmit_len -= TERMINAL_MAX_LINE;
 
         if (TERMINAL_MAX_LINE > waiting_proc->tty_transmit_len) {
-            TtyTransmit(tty_id, waiting_proc->tty_transmit_pointer, 
+            TtyTransmit(tty_id, waiting_proc->tty_transmit_pointer,
                 waiting_proc->tty_transmit_len);
         } else {
-            TtyTransmit(tty_id, waiting_proc->tty_transmit_pointer, 
+            TtyTransmit(tty_id, waiting_proc->tty_transmit_pointer,
                 TERMINAL_MAX_LINE);
         }
     } else { // transmission complete
@@ -236,10 +230,10 @@ void TrapTtyTransmit(UserContext *user_context) {
     // Get the next proc waiting to submit
     PCB *next_to_transmit = (PCB *) ListPeak(term.waiting_to_transmit);
     if (TERMINAL_MAX_LINE > next_to_transmit->tty_transmit_len) {
-        TtyTransmit(tty_id, next_to_transmit->tty_transmit_pointer, 
+        TtyTransmit(tty_id, next_to_transmit->tty_transmit_pointer,
             next_to_transmit->tty_transmit_len);
     } else {
-        TtyTransmit(tty_id, next_to_transmit->tty_transmit_pointer, 
+        TtyTransmit(tty_id, next_to_transmit->tty_transmit_pointer,
             TERMINAL_MAX_LINE);
     }
 
