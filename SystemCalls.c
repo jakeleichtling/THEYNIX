@@ -430,7 +430,7 @@ int KernelPipeInit(int *pipe_idp) {
     return THEYNIX_EXIT_SUCCESS;
 }
 
-int KernelPipeRead(int pipe_id, void *buf, int len) {
+int KernelPipeRead(int pipe_id, void *buf, int len, UserContext *user_context) {
     // Get the pipe
 
     // If we have enough chars available, copy into buffer and consume those from pipe
@@ -445,7 +445,7 @@ int KernelPipeRead(int pipe_id, void *buf, int len) {
     return THEYNIX_EXIT_SUCCESS;
 }
 
-int KernelPipeWrite(int pipe_id, void *buf, int len) {
+int KernelPipeWrite(int pipe_id, void *buf, int len, UserContext *user_context) {
     // Write into pipe's buffer, expanding buffer capacity if necessary
 
     // If another proc is waiting and enough characters available, move him to ready

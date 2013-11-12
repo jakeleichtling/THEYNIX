@@ -27,9 +27,9 @@ int KernelTtyWrite(int tty_id, void *buf, int len, UserContext *user_context);
 
 int KernelPipeInit(int *pipe_idp);
 
-int KernelPipeRead(int pipe_id, void *buf, int len);
+int KernelPipeRead(int pipe_id, void *buf, int len, UserContext *user_context);
 
-int KernelPipeWrite(int pipe_id, void *buf, int len);
+int KernelPipeWrite(int pipe_id, void *buf, int len, UserContext *user_context);
 
 int KernelLockInit(int *lock_idp);
 
