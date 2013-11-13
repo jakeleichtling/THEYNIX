@@ -14,4 +14,6 @@ CVar *CVarNewCVar() {
 
     cvar->id = next_synch_resource_id++;
     cvar->waiting_procs = ListNewList();
+
+    return cvar;
 }
