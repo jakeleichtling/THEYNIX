@@ -15,4 +15,9 @@ struct CVar {
 
 typedef struct Lock Lock;
 
+/*
+  Constructs a new cvar with default fields.
+*/
+CVar *CVarNewCVar();
+
 #endif

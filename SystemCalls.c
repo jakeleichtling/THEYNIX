@@ -5,6 +5,7 @@
 #include <stdbool.h>
 #include <assert.h>
 
+#include "CVar.h"
 #include "LoadProgram.h"
 #include "Log.h"
 #include "Lock.h"
