@@ -19,10 +19,10 @@ int main(int argc, char *argv[]) {
     TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Acquiring the lock... again!\n");
     Acquire(lock_id);
 
-    // Spawn 5 processes, each of which waits on the lock.
+    // Spawn 3 processes, each of which waits on the lock.
     int rc;
     int i;
-    int n = 5;
+    int n = 3;
     bool is_parent = true;
     for (i = 0; i < n; i++) {
         rc = Fork();
