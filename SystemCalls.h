@@ -33,7 +33,7 @@ int KernelPipeWrite(int pipe_id, void *buf, int len, UserContext *user_context);
 
 int KernelLockInit(int *lock_idp);
 
-int KernelAcquire(int lock_id);
+int KernelAcquire(int lock_id, UserContext *user_context);
 
 int KernelRelease(int lock_id);
 

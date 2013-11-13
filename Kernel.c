@@ -53,6 +53,8 @@ void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {
     unused_frames = NewUnusedFrames(pmem_size);
     virtual_memory_enabled = false;
 
+    next_synch_resource_id = 0;
+
     // Initialize the interrupt vector table and write the base address
     // to the REG_VECTOR_BASE register
     TrapTableInit();

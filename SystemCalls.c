@@ -7,6 +7,7 @@
 
 #include "LoadProgram.h"
 #include "Log.h"
+#include "Lock.h"
 #include "Kernel.h"
 #include "PMem.h"
 #include "VMem.h"
@@ -424,7 +425,7 @@ int KernelPipeInit(int *pipe_idp) {
     if (!ValidateUserArg((unsigned int) pipe_idp, sizeof(int), PROT_READ | PROT_WRITE)){
         return THEYNIX_EXIT_FAILURE;
     }
-    
+
     // Make a new rod
     Pipe *p = PipeNewPipe();
 
@@ -479,7 +480,7 @@ int KernelPipeWrite(int pipe_id, void *buf, int len, UserContext *user_context) 
     }
 
     // Write into pipe's buffer, expanding buffer capacity if necessary
-    
+
     if (len > PipeSpotsRemaining(p)) { // need to increase size of buffer
         int new_buffer_size = p->num_chars_available + len;
         char *new_buffer = calloc(new_buffer_size, sizeof(char));
@@ -504,21 +505,44 @@ int KernelPipeWrite(int pipe_id, void *buf, int len, UserContext *user_context) 
 }
 
 int KernelLockInit(int *lock_idp) {
-    // Make the lock and save it in the list
+    // Make a new lock.
+    Lock *lock = LockNewLock();
 
-    // Set lock_id
+    // Save the lock to the list of locks.
+    ListEnqueue(locks, lock, lock->id);
+
+    // Save the lock id as a side effect.
+    *lock_idp = lock->id;
 
     // Return success
     return THEYNIX_EXIT_SUCCESS;
 }
 
-int KernelAcquire(int lock_id) {
-    // while (!available) context switch (but stay in ready queue)
+int KernelAcquire(int lock_id, UserContext *user_context) {
+    // Find the lock.
+    Lock *lock = (Lock *) ListFindById(locks, lock_id);
 
-    // Set available = false
-    // Set owner_id = my pid
+    // If the lock didn't exist, return ERROR.
+    if (!lock) {
+        return ERROR;
+    }
 
-    // Return success
+    // If the lock is available, take it and return.
+    if (!lock->acquired) {
+        lock->acquired = true;
+        lock->owner_id = current_proc->pid;
+
+        return THEYNIX_EXIT_SUCCESS;
+    }
+
+    // Otherwise, add ourselves to waiting queue for the lock
+    // and context switch.
+    ListEnqueue(lock->waiting_procs, current_proc, current_proc->pid);
+    SwitchToNextProc(user_context);
+
+    // Once we return, we have the lock and are out of the waiting procs list!
+    assert(lock->owner_id == current_proc->pid);
+    assert(lock->acquired);
     return THEYNIX_EXIT_SUCCESS;
 }
 
