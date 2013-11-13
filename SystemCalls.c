@@ -543,6 +543,11 @@ int KernelAcquire(int lock_id, UserContext *user_context) {
         return ERROR;
     }
 
+    // If I already have the lock, do nothing and return.
+    if (lock->acquired && lock->owner_id == current_proc->pid) {
+        return THEYNIX_EXIT_SUCCESS;
+    }
+
     // If the lock is available, take it and return.
     if (!lock->acquired) {
         lock->acquired = true;
@@ -563,9 +568,22 @@ int KernelAcquire(int lock_id, UserContext *user_context) {
 }
 
 int KernelRelease(int lock_id) {
-    // Check owner_id == my pid, return error if false
+    // Ensure that I currently own the lock.
+    if (!lock->acquired || lock->owner_id != current_proc->pid) {
+        return ERROR;
+    }
 
-    // Set available = true
+    // If there are no processes waiting on the lock, mark it as available and return.
+    if (ListEmpty(lock->waiting_procs)) {
+        lock->acquired = false;
+        return;
+    }
+
+    // Pop a process from the waiting queue, give the lock to it, and put it on the ready queue.
+    PCB *unblocked_proc = (PCB *) ListDequeue(lock->waiting_procs);
+    lock->owner_id = unblocked_proc->pid;
+    ListEnqueue(ready_queue, unblocked_proc, unblocked_proc->pid);
+
     return THEYNIX_EXIT_SUCCESS;
 }
 
