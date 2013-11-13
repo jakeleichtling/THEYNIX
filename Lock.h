@@ -1,7 +1,7 @@
 #ifndef _LOCK_H_
 #define _LOCK_H_
 
-#import "List.h"
+#include "List.h"
 
 /*
   Code for mutual exclusion locks.
