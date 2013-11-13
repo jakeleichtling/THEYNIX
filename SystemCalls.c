@@ -655,7 +655,7 @@ int KernelCvarWait(int cvar_id, int lock_id, UserContext *user_context) {
     SwitchToNextProc(user_context);
 
     // Reacquire the lock. If I get any errors, return ERROR.
-    if (KernelAcquire(lock_id) == ERROR) {
+    if (KernelAcquire(lock_id, user_context) == ERROR) {
         return ERROR;
     }
 
