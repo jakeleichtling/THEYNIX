@@ -568,7 +568,8 @@ int KernelRelease(int lock_id) {
     // If there are no processes waiting on the lock, mark it as available and return.
     if (ListEmpty(lock->waiting_procs)) {
         lock->acquired = false;
-        return;
+
+        return THEYNIX_EXIT_SUCCESS;
     }
 
     // Pop a process from the waiting queue, give the lock to it, and put it on the ready queue.
