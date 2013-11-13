@@ -10,6 +10,7 @@
 #include "Kernel.h"
 #include "PMem.h"
 #include "VMem.h"
+#include "Pipe.h"
 
 extern UnusedFrames unused_frames;
 extern List *clock_block_procs;
@@ -420,38 +421,102 @@ int KernelTtyWrite(int tty_id, void *buf, int len, UserContext *user_context) {
 }
 
 int KernelPipeInit(int *pipe_idp) {
+    if (!ValidateUserArg((unsigned int) pipe_idp, sizeof(int), PROT_READ | PROT_WRITE)){
+        return THEYNIX_EXIT_FAILURE;
+    }
+    
     // Make a new rod
+    Pipe *p = PipeNewPipe();
 
     // Put it in the rod list
+    ListEnqueue(pipes, p, p->id);
 
     // Put the rod id into pointer
+    *pipe_idp = p->id;
 
     // Return success
     return THEYNIX_EXIT_SUCCESS;
 }
 
 int KernelPipeRead(int pipe_id, void *buf, int len, UserContext *user_context) {
+    if (len <= 0) {
+        return THEYNIX_EXIT_FAILURE;
+    }
+
+    if (!ValidateUserArg((unsigned int) buf, sizeof(char) * len, PROT_WRITE)) {
+        return THEYNIX_EXIT_FAILURE;
+    }
+
     // Get the pipe
+    Pipe *p = (Pipe *) ListFindById(pipes, pipe_id);
+    if (!p) {
+        TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "No pipe exists for id %d\n", pipe_id);
+        return THEYNIX_EXIT_FAILURE;
+    }
 
     // If we have enough chars available, copy into buffer and consume those from pipe
+    if (p->num_chars_available >= len) {
+        return PipeCopyIntoBuffer(p, (char *) buf, len);
+    }
 
     // Otherwise, add to the waiting to read queue for the pipe, remove from ready queue, and context switch!
+    ListAppend(p->waiting_to_read, current_proc, len);
+
+    SwitchToNextProc(user_context);
 
     // Read from the pipe and consume the characters
+    assert(p->num_chars_available >= len);
+    PipeCopyIntoBuffer(p, (char *) buf, len);
 
     // If another proc waiting to read and enough characters available, move next to ready
+    PCB *next_proc = (PCB *) ListFindFirstLessThanIdAndRemove(p->waiting_to_read, p->num_chars_available);
+    if (next_proc) {
+        ListAppend(ready_queue, next_proc, next_proc->pid);
+    }
 
     // Return num chars read (should be len?)
-    return THEYNIX_EXIT_SUCCESS;
+    return len;
 }
 
 int KernelPipeWrite(int pipe_id, void *buf, int len, UserContext *user_context) {
+    if (len <= 0) {
+        return THEYNIX_EXIT_FAILURE;
+    }
+
+    if (!ValidateUserArg((unsigned int) buf, sizeof(char) * len, PROT_READ)) {
+        return THEYNIX_EXIT_FAILURE;
+    }
+
+    // Get the pipe
+    Pipe *p = (Pipe *) ListFindById(pipes, pipe_id);
+    if (!p) {
+        TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "No pipe exists for id %d\n", pipe_id);
+        return THEYNIX_EXIT_FAILURE;
+    }
+
     // Write into pipe's buffer, expanding buffer capacity if necessary
+    
+    if (len > PipeSpotsRemaining(p)) { // need to increase size of buffer
+        int new_buffer_size = p->num_chars_available + len;
+        char *new_buffer = calloc(new_buffer_size, sizeof(char));
+        strncpy(new_buffer, p->buffer_ptr, p->num_chars_available);
+        p->buffer_ptr = new_buffer + p->num_chars_available;
+        free(p->buffer);
+        p->buffer = new_buffer;
+        p->buffer_capacity = new_buffer_size;
+    }
+    assert(len <= PipeSpotsRemaining(p));
+
+    PipeCopyIntoBuffer(p, (char *) buf, len);
 
     // If another proc is waiting and enough characters available, move him to ready
+    PCB *next_proc = (PCB *) ListFindFirstLessThanIdAndRemove(p->waiting_to_read, p->num_chars_available);
+    if (next_proc) {
+        ListAppend(ready_queue, next_proc, next_proc->pid);
+    }
 
     // Return len
-    return THEYNIX_EXIT_SUCCESS;
+    return len;
 }
 
 int KernelLockInit(int *lock_idp) {

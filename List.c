@@ -146,6 +146,23 @@ ListNode *ListFindNodeById(List *list, unsigned int id) {
     return NULL; // No match
 }
 
+void *ListFindFirstLessThanIdAndRemove(List *list, unsigned int id) {
+    if (ListEmpty(list)) {
+        return NULL;
+    }
+
+    ListNode *iter = list->head;
+
+    while (iter != list->sentinel) {
+        if (iter->id >= id) {
+            return iter->data;
+        }
+        iter = iter->next;
+    }
+
+    return NULL; // No match
+}
+
 void *ListFindById(List *list, unsigned int id) {
     ListNode *node = ListFindNodeById(list, id);
     if (node) { // found

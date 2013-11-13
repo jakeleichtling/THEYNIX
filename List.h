@@ -46,6 +46,10 @@ void *ListFindById(List *list, unsigned int id);
 // Remove the first element with the given id
 void *ListRemoveById(List *list, unsigned int id);
 
+// Return first element with id less than or equal to the given id
+// element is removed
+void *ListFindFirstLessThanIdAndRemove(List *list, unsigned int id);
+
 // Insert immediately before the first element that has a greater ID.
 // List will be in sorted order if only this method is used to add elements.
 void ListInsertByIdOrder(List *list, void *data, unsigned int id);

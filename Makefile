@@ -22,18 +22,18 @@ ALL = $(KERNEL_ALL) $(USER_APPS)
 KERNEL_ALL = yalnix
 
 #List all kernel source files here.
-KERNEL_SRCS = Kernel.c PCB.c SystemCalls.c Traps.c VMem.c List.c PMem.c Tty.c LoadProgram.c
+KERNEL_SRCS = Kernel.c PCB.c SystemCalls.c Traps.c VMem.c List.c PMem.c Tty.c LoadProgram.c Pipe.c
 #List the objects to be formed form the kernel source files here.  Should be the same as the prvious list, replacing ".c" with ".o"
-KERNEL_OBJS = Kernel.o PCB.o SystemCalls.o Traps.o VMem.o List.o PMem.o Tty.o LoadProgram.o
+KERNEL_OBJS = Kernel.o PCB.o SystemCalls.o Traps.o VMem.o List.o PMem.o Tty.o LoadProgram.o Pipe.o
 #List all of the header files necessary for your kernel
 KERNEL_INCS = CVar.h Lock.h PMem.h Traps.h Kernel.h Log.h Pipe.h Tty.h List.h PCB.h SystemCalls.h VMem.h
 
 #List all user programs here.
-USER_APPS = init idle die_stupidly orphan io_test
+USER_APPS = init idle die_stupidly orphan io_test pipe_test
 #List all user program source files here.  SHould be the same as the previous list, with ".c" added to each file
-USER_SRCS = init.c idle.c die_stupidly.c orphan.c io_test.c
+USER_SRCS = init.c idle.c die_stupidly.c orphan.c io_test.c pipe_test.c
 #List the objects to be formed form the user  source files here.  Should be the same as the prvious list, replacing ".c" with ".o"
-USER_OBJS = init.o idle.o die_stupidly.o orphan.o io_test.o
+USER_OBJS = init.o idle.o die_stupidly.o orphan.o io_test.o pipe_test.o
 #List all of the header files necessary for your user programs
 USER_INCS = Log.h
 
