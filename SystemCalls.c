@@ -634,7 +634,7 @@ int KernelCvarBroadcast(int cvar_id) {
     return THEYNIX_EXIT_SUCCESS;
 }
 
-int KernelCvarWait(int cvar_id, int lock_id) {
+int KernelCvarWait(int cvar_id, int lock_id, UserContext *user_context) {
     // Find the cvar.
     CVar *cvar = (CVar *) ListFindById(cvars, cvar_id);
 

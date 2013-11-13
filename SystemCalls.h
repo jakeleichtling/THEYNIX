@@ -43,7 +43,7 @@ int KernelCvarSignal(int cvar_id);
 
 int KernelCvarBroadcast(int cvar_id);
 
-int KernelCvarWait(int cvar_id, int lock_id);
+int KernelCvarWait(int cvar_id, int lock_id, UserContext *user_context);
 
 int KernelReclaim(int id);
 
