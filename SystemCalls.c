@@ -552,6 +552,14 @@ int KernelAcquire(int lock_id, UserContext *user_context) {
 }
 
 int KernelRelease(int lock_id) {
+    // Find the lock.
+    Lock *lock = ListFindById(locks, lock_id);
+
+    // If the lock didn't exist, return ERROR.
+    if (!lock) {
+        return ERROR;
+    }
+
     // Ensure that I currently own the lock.
     if (!lock->acquired || lock->owner_id != current_proc->pid) {
         return ERROR;
