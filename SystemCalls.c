@@ -611,7 +611,7 @@ int KernelCvarSignal(int cvar_id) {
 
     // Remove a process from the waiting queue and put it on the ready queue.
     PCB *waiting_proc = ListDequeue(cvar->waiting_procs);
-    ListEnqueue(ready_queue, waiting_proc);
+    ListEnqueue(ready_queue, waiting_proc, waiting_proc->pid);
 
     return THEYNIX_EXIT_SUCCESS;
 }
