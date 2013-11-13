@@ -22,9 +22,9 @@ ALL = $(KERNEL_ALL) $(USER_APPS)
 KERNEL_ALL = yalnix
 
 #List all kernel source files here.
-KERNEL_SRCS = Kernel.c PCB.c SystemCalls.c Traps.c VMem.c List.c PMem.c Tty.c LoadProgram.c Pipe.c
+KERNEL_SRCS = Kernel.c PCB.c SystemCalls.c Traps.c VMem.c List.c PMem.c Tty.c LoadProgram.c Pipe.c Lock.c
 #List the objects to be formed form the kernel source files here.  Should be the same as the prvious list, replacing ".c" with ".o"
-KERNEL_OBJS = Kernel.o PCB.o SystemCalls.o Traps.o VMem.o List.o PMem.o Tty.o LoadProgram.o Pipe.o
+KERNEL_OBJS = Kernel.o PCB.o SystemCalls.o Traps.o VMem.o List.o PMem.o Tty.o LoadProgram.o Pipe.o Lock.o
 #List all of the header files necessary for your kernel
 KERNEL_INCS = CVar.h Lock.h PMem.h Traps.h Kernel.h Log.h Pipe.h Tty.h List.h PCB.h SystemCalls.h VMem.h
 
