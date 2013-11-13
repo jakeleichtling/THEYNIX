@@ -13,7 +13,7 @@ struct CVar {
     List *waiting_procs;
 };
 
-typedef struct Lock Lock;
+typedef struct CVar CVar;
 
 /*
   Constructs a new cvar with default fields.
