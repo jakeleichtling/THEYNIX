@@ -61,8 +61,15 @@ void TrapKernel(UserContext *user_context) {
             rc = KernelPipeWrite(user_context->regs[0], (void *) user_context->regs[1],
                 user_context->regs[2], user_context);
             break;
+        case YALNIX_LOCK_INIT:
+            rc = KernelLockInit(user_context->regs[0]);
+            break;
         case YALNIX_LOCK_ACQUIRE:
             rc = KernelAcquire(user_context->regs[0], user_context);
+            break;
+        case YALNIX_LOCK_RELEASE:
+            rc = KernelAcquire(user_context->regs[0]);
+            break;
         default:
             TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "TrapKernel: Code %d undefined\n");
             KernelExit(KILLED_KERNEL_TRAP_NOT_DEFINED, user_context);
