@@ -154,8 +154,10 @@ void *ListFindFirstLessThanIdAndRemove(List *list, unsigned int id) {
     ListNode *iter = list->head;
 
     while (iter != list->sentinel) {
-        if (iter->id >= id) {
-            return iter->data;
+        if (iter->id <= id) {
+            void *result = iter->data;
+            ListRemoveById(list, iter->id);
+            return result;
         }
         iter = iter->next;
     }

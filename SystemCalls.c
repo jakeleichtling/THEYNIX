@@ -455,28 +455,12 @@ int KernelPipeRead(int pipe_id, void *buf, int len, UserContext *user_context) {
         return THEYNIX_EXIT_FAILURE;
     }
 
-    // If we have enough chars available, copy into buffer and consume those from pipe
-    if (p->num_chars_available >= len) {
-        return PipeCopyIntoBuffer(p, (char *) buf, len);
+    // Block until there are enough chars available
+    while (p->num_chars_available < len) {
+        ListAppend(p->waiting_to_read, current_proc, len);
+        SwitchToNextProc(user_context);
     }
-
-    // Otherwise, add to the waiting to read queue for the pipe, remove from ready queue, and context switch!
-    ListAppend(p->waiting_to_read, current_proc, len);
-
-    SwitchToNextProc(user_context);
-
-    // Read from the pipe and consume the characters
-    assert(p->num_chars_available >= len);
-    PipeCopyIntoBuffer(p, (char *) buf, len);
-
-    // If another proc waiting to read and enough characters available, move next to ready
-    PCB *next_proc = (PCB *) ListFindFirstLessThanIdAndRemove(p->waiting_to_read, p->num_chars_available);
-    if (next_proc) {
-        ListAppend(ready_queue, next_proc, next_proc->pid);
-    }
-
-    // Return num chars read (should be len?)
-    return len;
+    return PipeCopyIntoUserBuffer(p, (char *) buf, len);
 }
 
 int KernelPipeWrite(int pipe_id, void *buf, int len, UserContext *user_context) {
@@ -508,7 +492,7 @@ int KernelPipeWrite(int pipe_id, void *buf, int len, UserContext *user_context) 
     }
     assert(len <= PipeSpotsRemaining(p));
 
-    PipeCopyIntoBuffer(p, (char *) buf, len);
+    PipeCopyIntoPipeBuffer(p, (char *) buf, len);
 
     // If another proc is waiting and enough characters available, move him to ready
     PCB *next_proc = (PCB *) ListFindFirstLessThanIdAndRemove(p->waiting_to_read, p->num_chars_available);
