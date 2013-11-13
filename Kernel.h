@@ -45,7 +45,7 @@ unsigned int kernel_data_start_page;
 
 struct pte *region_0_page_table;
 
-unsigned int next_synch_resource_id = 0;
+unsigned int next_synch_resource_id;
 
 /* Function Prototypes */
 
