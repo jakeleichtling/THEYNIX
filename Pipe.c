@@ -4,11 +4,11 @@
 #include <assert.h>
 #include <string.h>
 
-unsigned int next_pipe_id = 0;
+extern unsigned int next_synch_resource_id;
 
 Pipe *PipeNewPipe() {
     Pipe *p = calloc(1, sizeof(Pipe));
-    p->id = next_pipe_id++;
+    p->id = next_synch_resource_id++;
     p->waiting_to_read = ListNewList();
     return p;
 }

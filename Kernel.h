@@ -45,6 +45,8 @@ unsigned int kernel_data_start_page;
 
 struct pte *region_0_page_table;
 
+unsigned int next_synch_resource_id = 0;
+
 /* Function Prototypes */
 
 void SetKernelData(void *_KernelDataStart, void *_KernelDataEnd);
