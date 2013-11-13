@@ -1,5 +1,7 @@
 #include "Lock.h"
 
+#include <stdlib.h>
+
 #include "Kernel.h"
 
 extern unsigned int next_synch_resource_id;
@@ -13,7 +15,7 @@ Lock *LockNewLock() {
     lock->id = next_synch_resource_id++;
     lock->acquired = false;
 
-    waiting_procs = ListNewList();
+    lock->waiting_procs = ListNewList();
 
     return lock;
 }
