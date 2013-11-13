@@ -22,11 +22,14 @@ int main(int argc, char *argv[]) {
     int rc;
     int i;
     int n = 5;
+    bool is_parent = true;
     for (i = 0; i < n; i++) {
         rc = Fork();
 
         if (0 == rc) { // Child process
             TracePrintf(TRACE_LEVEL_DETAIL_INFO, "I'm a child with PID %d and I WANT the lock!\n", GetPid());
+
+            is_parent = false;
 
             Acquire(lock_id);
 
@@ -42,4 +45,11 @@ int main(int argc, char *argv[]) {
     TracePrintf(TRACE_LEVEL_DETAIL_INFO, "I'm process %d and I am RELEASING the lock!\n", GetPid());
 
     Release(lock_id);
+
+    int status;
+    if (is_parent) {
+        for (i = 0; i < n; i++) {
+            Wait(&status);
+        }
+    }
 }
