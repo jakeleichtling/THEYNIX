@@ -53,4 +53,6 @@ int main(int argc, char *argv[]) {
             Wait(&status);
         }
     }
+
+    return 0;
 }
