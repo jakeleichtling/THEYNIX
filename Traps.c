@@ -68,7 +68,7 @@ void TrapKernel(UserContext *user_context) {
             rc = KernelAcquire(user_context->regs[0], user_context);
             break;
         case YALNIX_LOCK_RELEASE:
-            rc = KernelAcquire(user_context->regs[0]);
+            rc = KernelRelease(user_context->regs[0]);
             break;
         default:
             TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "TrapKernel: Code %d undefined\n");
