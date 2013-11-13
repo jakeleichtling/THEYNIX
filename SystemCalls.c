@@ -553,7 +553,7 @@ int KernelAcquire(int lock_id, UserContext *user_context) {
 
 int KernelRelease(int lock_id) {
     // Find the lock.
-    Lock *lock = ListFindById(locks, lock_id);
+    Lock *lock = (Lock *) ListFindById(locks, lock_id);
 
     // If the lock didn't exist, return ERROR.
     if (!lock) {
@@ -581,37 +581,83 @@ int KernelRelease(int lock_id) {
 }
 
 int KernelCvarInit(int *cvar_idp) {
-    // Make a CVARRRR and put it in the list
+    // Make a new cvar.
+    CVar *cvar = CVarNewCVar();
 
-    // Set cvar_id
+    // Save the cvar to the list of cvars.
+    ListEnqueue(cvars, cvar, cvar->id);
+
+    // Save the cvar ID as a side effect.
+    *cvar_idp = cvar-> id;
+
+    // Return success.
     return THEYNIX_EXIT_SUCCESS;
 }
 
 int KernelCvarSignal(int cvar_id) {
-    // If cvar wait queue is empty, then return
+    // Find the cvar.
+    CVar *cvar = (CVar *) ListFindById(cvars, cvar_id);
 
-    // Else, pop proc and add to ready queue
+    // If the cvar didn't exist, return ERROR.
+    if (!cvar) {
+        return ERROR;
+    }
+
+    // If no processes are waiting on the cvar, then return.
+    if (ListEmpty(cvar->waiting_procs)) {
+        return THEYNIX_EXIT_SUCCESS;
+    }
+
+    // Remove a process from the waiting queue and put it on the ready queue.
+    PCB *waiting_proc = ListDequeue(cvar->waiting_procs);
+    ListEnqueue(ready_queue, waiting_proc);
+
     return THEYNIX_EXIT_SUCCESS;
 }
 
 int KernelCvarBroadcast(int cvar_id) {
-    // For each proc in cvar wait queue, pop and add to ready queue
+    // Find the cvar.
+    CVar *cvar = (CVar *) ListFindById(cvars, cvar_id);
+
+    // If the cvar didn't exist, return ERROR.
+    if (!cvar) {
+        return ERROR;
+    }
+
+    // For each proc in cvar wait queue, remove and add to ready queue
+    while (!ListEmpty(cvar->waiting_procs)) {
+        PCB *waiting_proc = ListDequeue(cvar->waiting_procs);
+        ListEnqueue(ready_queue, waiting_proc);
+    }
+
     return THEYNIX_EXIT_SUCCESS;
 }
 
 int KernelCvarWait(int cvar_id, int lock_id) {
-    // Make sure I own the lock
-    // Release lock
+    // Find the cvar.
+    CVar *cvar = (CVar *) ListFindById(cvars, cvar_id);
 
-    // Remove from ready queue
-    // Add to CVar wait queue
-    // Context switch
+    // If the cvar didn't exist, return ERROR.
+    if (!cvar) {
+        return ERROR;
+    }
 
-    // While (lock is not available)
-        // Remove from ready queue
-        // Add to cvar wait queue
+    // Release the lock. If I get any errors, return ERROR.
+    if (KernelRelease(lock_id) == ERROR) {
+        return ERROR;
+    }
 
-    // Set lock.avail = false and owner is meeeee!
+    // Add the current proc to the cvar's list of waiting procs.
+    ListEnqueue(cvar->waiting_procs, current_proc);
+
+    // Context switch.
+    SwitchToNextProc(user_context);
+
+    // Reacquire the lock. If I get any errors, return ERROR.
+    if (KernelAcquire(lock_id) == ERROR) {
+        return ERROR;
+    }
+
     return THEYNIX_EXIT_SUCCESS;
 }
 

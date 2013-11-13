@@ -70,6 +70,21 @@ void TrapKernel(UserContext *user_context) {
         case YALNIX_LOCK_RELEASE:
             rc = KernelRelease(user_context->regs[0]);
             break;
+        case YALNIX_CVAR_INIT:
+            // TODO
+            break;
+        case YALNIX_CVAR_SIGNAL:
+            // TODO
+            break;
+        case YALNIX_CVAR_BROADCAST:
+            // TODO
+            break;
+        case YALNIX_CVAR_WAIT:
+            // TODO
+            break;
+        case YALNIX_RECLAIM:
+            // TODO
+            break;
         default:
             TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "TrapKernel: Code %d undefined\n");
             KernelExit(KILLED_KERNEL_TRAP_NOT_DEFINED, user_context);
