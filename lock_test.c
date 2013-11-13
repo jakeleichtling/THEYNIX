@@ -1,3 +1,8 @@
+#include <hardware.h>
+#include <string.h>
+#include <stdlib.h>
+
+#include "Log.h"
 
 int main(int argc, char *argv[]) {
     // Create a single lock that the initial process obtains.
@@ -17,7 +22,7 @@ int main(int argc, char *argv[]) {
     int rc;
     int i;
     int n = 5;
-    for (i = 0; i < n); i++) {
+    for (i = 0; i < n; i++) {
         rc = Fork();
 
         if (0 == rc) { // Child process
