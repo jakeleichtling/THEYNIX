@@ -18,4 +18,9 @@ struct Lock {
 
 typedef struct Lock Lock;
 
+/*
+  Constructs a new lock with default fields.
+*/
+Lock *LockNewLock();
+
 #endif
