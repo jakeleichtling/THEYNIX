@@ -4,6 +4,8 @@
 #include <assert.h>
 #include <string.h>
 
+#include "Kernel.h"
+
 extern unsigned int next_synch_resource_id;
 
 Pipe *PipeNewPipe() {
