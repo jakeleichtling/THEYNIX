@@ -62,7 +62,7 @@ void TrapKernel(UserContext *user_context) {
                 user_context->regs[2], user_context);
             break;
         case YALNIX_LOCK_INIT:
-            rc = KernelLockInit(user_context->regs[0]);
+            rc = KernelLockInit((int *) user_context->regs[0]);
             break;
         case YALNIX_LOCK_ACQUIRE:
             rc = KernelAcquire(user_context->regs[0], user_context);
