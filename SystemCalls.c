@@ -7,6 +7,7 @@
 
 #include "LoadProgram.h"
 #include "Log.h"
+#include "Lock.h"
 #include "Kernel.h"
 #include "PMem.h"
 #include "VMem.h"
