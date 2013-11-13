@@ -33,7 +33,7 @@ int main(int argc, char *argv[]) {
 
         Exit(0);
     }
-    TracePrintf(TRACE_LEVEL_DETAIL_INFO, "I will write \" %s \" to my child\n", parent_to_child_message);
+    TracePrintf(TRACE_LEVEL_DETAIL_INFO, "I will write \"%s\" to my child\n", parent_to_child_message);
     PipeWrite(parent_to_child_pipe, (void *) parent_to_child_message, 20);
 
     TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Reading from child_to_parent_pipe (%d) \n", child_to_parent_pipe);

@@ -27,7 +27,10 @@ Pipe *PipeNewPipe();
 // Reads len chars into user_buf
 // User must ensure there are more chars available
 // then needed when making this call
-int PipeCopyIntoBuffer(Pipe *p, char *user_buf, int len);
+int PipeCopyIntoUserBuffer(Pipe *p, char *user_buf, int len);
+
+// Read len chars from user_buf into pipes buffer
+int PipeCopyIntoPipeBuffer(Pipe *p, char *user_buf, int len);
 
 int PipeSpotsRemaining(Pipe *p);
 
