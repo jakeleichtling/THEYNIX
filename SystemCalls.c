@@ -628,7 +628,7 @@ int KernelCvarBroadcast(int cvar_id) {
     // For each proc in cvar wait queue, remove and add to ready queue
     while (!ListEmpty(cvar->waiting_procs)) {
         PCB *waiting_proc = ListDequeue(cvar->waiting_procs);
-        ListEnqueue(ready_queue, waiting_proc);
+        ListEnqueue(ready_queue, waiting_proc, waiting_proc->pid);
     }
 
     return THEYNIX_EXIT_SUCCESS;
