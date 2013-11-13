@@ -649,7 +649,7 @@ int KernelCvarWait(int cvar_id, int lock_id) {
     }
 
     // Add the current proc to the cvar's list of waiting procs.
-    ListEnqueue(cvar->waiting_procs, current_proc);
+    ListEnqueue(cvar->waiting_procs, current_proc, current_proc->pid);
 
     // Context switch.
     SwitchToNextProc(user_context);
