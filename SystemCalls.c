@@ -527,6 +527,7 @@ int KernelAcquire(int lock_id, UserContext *user_context) {
 
     // If the lock didn't exist, return ERROR.
     if (!lock) {
+        TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "Lock %d does not exist.\n" lock_id);
         return ERROR;
     }
 
@@ -560,11 +561,13 @@ int KernelRelease(int lock_id) {
 
     // If the lock didn't exist, return ERROR.
     if (!lock) {
+        TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "Lock %d does not exist.\n" lock_id);
         return ERROR;
     }
 
     // Ensure that I currently own the lock.
     if (!lock->acquired || lock->owner_id != current_proc->pid) {
+        TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "I don't own lock %d.\n" lock_id);
         return ERROR;
     }
 
@@ -603,6 +606,7 @@ int KernelCvarSignal(int cvar_id) {
 
     // If the cvar didn't exist, return ERROR.
     if (!cvar) {
+        TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "Cvar %d does not exist.\n" cvar_id);
         return ERROR;
     }
 
@@ -624,6 +628,7 @@ int KernelCvarBroadcast(int cvar_id) {
 
     // If the cvar didn't exist, return ERROR.
     if (!cvar) {
+        TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "Cvar %d does not exist.\n" cvar_id);
         return ERROR;
     }
 
@@ -642,11 +647,13 @@ int KernelCvarWait(int cvar_id, int lock_id, UserContext *user_context) {
 
     // If the cvar didn't exist, return ERROR.
     if (!cvar) {
+        TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "Cvar %d does not exist.\n" cvar_id);
         return ERROR;
     }
 
     // Release the lock. If I get any errors, return ERROR.
     if (KernelRelease(lock_id) == ERROR) {
+        TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "Releasing lock %d failed.\n" lock_id);
         return ERROR;
     }
 
@@ -658,6 +665,7 @@ int KernelCvarWait(int cvar_id, int lock_id, UserContext *user_context) {
 
     // Reacquire the lock. If I get any errors, return ERROR.
     if (KernelAcquire(lock_id, user_context) == ERROR) {
+        TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "Acquiring lock %d failed.\n" lock_id);
         return ERROR;
     }
 
