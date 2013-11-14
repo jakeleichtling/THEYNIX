@@ -84,7 +84,7 @@ void testCase0() {
     Wait(&rc);
 
     if (rc) {
-      TracePrintf(TRACE_LEVEL_DETAIL_INFO, (stderr, "pthread_join failed at i = %d\n", i);
+       TracePrintf(TRACE_LEVEL_DETAIL_INFO, "pthread_join failed at i = %d\n", i);
       exit(-1);
     }
 
@@ -135,7 +135,7 @@ void testCase1() {
     Wait(&rc);
 
     if (rc) {
-      TracePrintf(TRACE_LEVEL_DETAIL_INFO, (stderr, "pthread_join failed at i = %d\n", i);
+       TracePrintf(TRACE_LEVEL_DETAIL_INFO, "pthread_join failed at i = %d\n", i);
       exit(-1);
     }
 
