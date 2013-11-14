@@ -76,6 +76,7 @@ void testCase0() {
     direction_names[i] = malloc(sizeof(DirectionNameSleep));
     direction_names[i]->direction = TO_NORWICH;
     direction_names[i]->name = i;
+    direction_names[i]->sleep_duration = 1;
 
     char *direction = calloc(16, sizeof(char));
     char *name = calloc(16, sizeof(char));
