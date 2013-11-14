@@ -14,7 +14,7 @@ typedef struct {
   int direction;
   int name;
   int sleep_duration;
-} DirectionNameSleep;
+} DirectionNameSleepd;
 
 /* Function Prototypes */
 

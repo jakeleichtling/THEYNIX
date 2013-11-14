@@ -15,8 +15,6 @@ void testCase1();
 /* Function Implementations */
 
 int main(int argc, char **argv) {
-  ledyardBridgeInit();
-
   testCase0();
   testCase1();
 
