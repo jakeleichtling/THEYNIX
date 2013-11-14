@@ -52,6 +52,7 @@ void testCase0() {
     sprintf(name, "%d\0", direction_names[i]->name);
     sprintf(sleep_duration, "%d\0", direction_names[i]->sleep_duration);
 
+    TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Forking car %d.\n", i);
     char *argvec[] = { "LedyardBridge", direction, name, sleep_duration };
     rc = Fork();
     if (rc == 0) {
@@ -72,6 +73,7 @@ void testCase0() {
     sprintf(name, "%d\0", direction_names[i]->name);
     sprintf(sleep_duration, "%d\0", direction_names[i]->sleep_duration);
 
+    TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Forking car %d.\n", i);
     char *argvec[] = { "LedyardBridge", direction, name, sleep_duration };
     rc = Fork();
     if (rc == 0) {
