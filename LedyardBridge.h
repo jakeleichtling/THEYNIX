@@ -15,5 +15,5 @@ typedef struct {
 
 /* Function Prototypes */
 
-void init();
+void ledyardBridgeInit();
 void *oneCar(void *direction_name_sleep);
