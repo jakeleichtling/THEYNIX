@@ -607,6 +607,9 @@ int KernelRelease(int lock_id) {
 }
 
 int KernelCvarInit(int *cvar_idp) {
+    if (!ValidateUserArg((unsigned int) cvar_idp, sizeof(int), PROT_READ | PROT_WRITE)){
+        return THEYNIX_EXIT_FAILURE;
+    }
     // Make a new cvar.
     CVar *cvar = CVarNewCVar();
 
@@ -694,5 +697,38 @@ int KernelCvarWait(int cvar_id, int lock_id, UserContext *user_context) {
 
 int KernelReclaim(int id) {
     // Find appropriate struct in kernel lists, remove from list, and freeeeeeeeeeeee
-    return THEYNIX_EXIT_SUCCESS;
+    Lock *l = ListRemoveById(locks, id);
+    if (l) { // resource was lock
+        if (l->acquired) {
+            TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "Lock acquired, can't free\n");
+            return THEYNIX_EXIT_FAILURE;
+        }
+        if (!ListEmpty(l->waiting_procs)) {
+            TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "Procs waiting on lock, can't free\n");
+            return THEYNIX_EXIT_FAILURE;
+        }
+        return THEYNIX_EXIT_SUCCESS;
+    }
+
+    CVar *c = ListRemoveById(cvars, id);
+    if (c) { // resource was cvar
+        if (!ListEmpty(c->waiting_procs)) {
+            TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "Procs waiting on cvar, can't free\n");
+            return THEYNIX_EXIT_FAILURE;
+        }
+        return THEYNIX_EXIT_SUCCESS;
+    }
+
+    Pipe *p = ListRemoveById(pipes, id);
+    if (p) { //resource was pipe
+        if (!ListEmpty(p->waiting_to_read)) {
+            TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, 
+                "Procs waiting to read on pipe, can't free\n");
+            return THEYNIX_EXIT_FAILURE;
+        }
+        return THEYNIX_EXIT_SUCCESS;
+    }
+
+    TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "%d is not a valid resource id\n", id);
+    return THEYNIX_EXIT_FAILURE;
 }

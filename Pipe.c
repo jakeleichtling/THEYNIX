@@ -34,9 +34,9 @@ int PipeCopyIntoPipeBuffer(Pipe *p, char *user_buf, int len) {
 }
 
 void PipeDestroyPipe(Pipe *p) {
-    while (!ListEmpty(p->waiting_to_read)) {
-        ListDequeue(p->waiting_to_read); // Empty list
-    }
+    // List should be empty because reclaim
+    // will fail if it isn't
+    assert(ListEmpty(p->waiting_to_read));
 
     ListDestroy(p->waiting_to_read);
 

@@ -71,19 +71,19 @@ void TrapKernel(UserContext *user_context) {
             rc = KernelRelease(user_context->regs[0]);
             break;
         case YALNIX_CVAR_INIT:
-            // TODO
+            rc = KernelCvarInit((int *) user_context->regs[0]);
             break;
         case YALNIX_CVAR_SIGNAL:
-            // TODO
+            rc = KernelCvarSignal(user_context->regs[0]);
             break;
         case YALNIX_CVAR_BROADCAST:
-            // TODO
+            rc = KernelCvarBroadcast(user_context->regs[0]);
             break;
         case YALNIX_CVAR_WAIT:
-            // TODO
+            rc = KernelCvarWait(user_context->regs[0], user_context->regs[1], user_context);
             break;
         case YALNIX_RECLAIM:
-            // TODO
+            rc = KernelReclaim(user_context->regs[0]);
             break;
         default:
             TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "TrapKernel: Code %d undefined\n");
