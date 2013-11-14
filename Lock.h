@@ -23,4 +23,11 @@ typedef struct Lock Lock;
 */
 Lock *LockNewLock();
 
+/*
+  Free the lock.
+
+  The list of waiting processes must be empty.
+*/
+void LockDestroy(Lock *lock);
+
 #endif

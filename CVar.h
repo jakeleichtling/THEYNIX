@@ -20,4 +20,11 @@ typedef struct CVar CVar;
 */
 CVar *CVarNewCVar();
 
+/*
+  Free the cvar.
+
+  The list of waiting processes must be empty.
+*/
+void CVarDestroy(CVar *cvar);
+
 #endif

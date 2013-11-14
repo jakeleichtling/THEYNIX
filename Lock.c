@@ -19,3 +19,14 @@ Lock *LockNewLock() {
 
     return lock;
 }
+
+/*
+  Free the lock.
+
+  The list of waiting processes must be empty.
+*/
+void LockDestroy(Lock *lock) {
+    ListDestroy(lock->waiting_procs);
+
+    free(lock);
+}

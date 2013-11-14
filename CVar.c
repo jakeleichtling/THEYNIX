@@ -17,3 +17,14 @@ CVar *CVarNewCVar() {
 
     return cvar;
 }
+
+/*
+  Free the cvar.
+
+  The list of waiting processes must be empty.
+*/
+void CVarDestroy(CVar *cvar) {
+    ListDestroy(cvar->waiting_procs);
+
+    free(cvar);
+}
