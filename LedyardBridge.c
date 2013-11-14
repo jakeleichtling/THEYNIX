@@ -109,11 +109,13 @@ void arriveBridge(int direction, int name) {
 
   num_cars_waiting[direction]--;
 
+  TracePrintf(TRACE_LEVEL_DETAIL_INFO, "~~~ %d: Releasing the lock.\n", name);
   rc = Release(mutex);
   if (rc == ERROR) {
     TracePrintf(TRACE_LEVEL_DETAIL_INFO, "~~~ Mutex release failed.\n");
     exit(-1);
   }
+  TracePrintf(TRACE_LEVEL_DETAIL_INFO, "~~~ %d: Lock released.\n", name);
 }
 
 /*
@@ -130,7 +132,7 @@ void onBridge(int direction, int name) {
   }
 
   TracePrintf(TRACE_LEVEL_DETAIL_INFO, "~~~ %d: I'm on the bridge, yo, going in direction %d.\n", name, direction);
-  TracePrintf(TRACE_LEVEL_DETAIL_INFO, "~~~ \tThere are %d cars waiting to gO to hanover and %d cars waiting to gO to norwich.\n", num_cars_waiting[TO_HANOVER], num_cars_waiting[TO_NORWICH]);
+  TracePrintf(TRACE_LEVEL_DETAIL_INFO, "~~~ \tThere are %d cars waiting to go to hanover and %d cars waiting to go to norwich.\n", num_cars_waiting[TO_HANOVER], num_cars_waiting[TO_NORWICH]);
 
   rc = Release(mutex);
   if (rc == ERROR) {
