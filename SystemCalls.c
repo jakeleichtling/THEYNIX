@@ -606,7 +606,7 @@ int KernelCvarSignal(int cvar_id) {
 
     // If the cvar didn't exist, return ERROR.
     if (!cvar) {
-        TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "Cvar %d does not exist.\n" cvar_id);
+        TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "Cvar %d does not exist.\n", cvar_id);
         return ERROR;
     }
 
@@ -628,7 +628,7 @@ int KernelCvarBroadcast(int cvar_id) {
 
     // If the cvar didn't exist, return ERROR.
     if (!cvar) {
-        TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "Cvar %d does not exist.\n" cvar_id);
+        TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "Cvar %d does not exist.\n", cvar_id);
         return ERROR;
     }
 
@@ -647,7 +647,7 @@ int KernelCvarWait(int cvar_id, int lock_id, UserContext *user_context) {
 
     // If the cvar didn't exist, return ERROR.
     if (!cvar) {
-        TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "Cvar %d does not exist.\n" cvar_id);
+        TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "Cvar %d does not exist.\n", cvar_id);
         return ERROR;
     }
 
