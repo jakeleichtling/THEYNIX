@@ -93,11 +93,12 @@ void testCase0() {
     TracePrintf(TRACE_LEVEL_DETAIL_INFO, "~~~ Sleep duration set for %s --> %s\n", name, sleep_duration);
 
     // char *argvec[] = { "LedyardBridge", direction, name, sleep_duration };
-    char *argvec[4];
+    char *argvec[5];
     argvec[0] = "LedyardBridge";
     argvec[1] = direction;
     argvec[2] = name;
     argvec[3] = sleep_duration;
+    argvec[4] = NULL;
     TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Forking car %d.\n", i);
     rc = Fork();
     if (rc == 0) {
