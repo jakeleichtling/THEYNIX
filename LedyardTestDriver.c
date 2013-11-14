@@ -62,6 +62,7 @@ void testCase0() {
     sprintf(direction, "%d\0", direction_names[i]->direction);
     sprintf(name, "%d\0", direction_names[i]->name);
     sprintf(sleep_duration, "%d\0", direction_names[i]->sleep_duration);
+    TracePrintf(TRACE_LEVEL_DETAIL_INFO, "~~~ Sleep duration set for %s --> %s\n", name, sleep_duration);
 
     char *argvec[] = { "LedyardBridge", direction, name, sleep_duration };
     TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Forking car %d.\n", i);
@@ -75,14 +76,17 @@ void testCase0() {
     direction_names[i] = malloc(sizeof(DirectionNameSleep));
     direction_names[i]->direction = TO_NORWICH;
     direction_names[i]->name = i;
+    direction_names[i]->sleep_duration = 1;
 
-    char *direction = calloc(16, sizeof(char));
+    // char *direction = calloc(16, sizeof(char));
+    char direction[16];
     char *name = calloc(16, sizeof(char));
     char *sleep_duration = calloc(16, sizeof(char));
 
     sprintf(direction, "%d\0", direction_names[i]->direction);
     sprintf(name, "%d\0", direction_names[i]->name);
     sprintf(sleep_duration, "%d\0", direction_names[i]->sleep_duration);
+    TracePrintf(TRACE_LEVEL_DETAIL_INFO, "~~~ Sleep duration set for %s --> %s\n", name, sleep_duration);
 
     char *argvec[] = { "LedyardBridge", direction, name, sleep_duration };
     TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Forking car %d.\n", i);
@@ -135,6 +139,7 @@ void testCase1() {
     sprintf(direction, "%d\0", direction_names[i]->direction);
     sprintf(name, "%d\0", direction_names[i]->name);
     sprintf(sleep_duration, "%d\0", direction_names[i]->sleep_duration);
+    TracePrintf(TRACE_LEVEL_DETAIL_INFO, "~~~ Sleep duration set for %s --> %s\n", name, sleep_duration);
 
     char *argvec[] = { "LedyardBridge", direction, name, sleep_duration };
     rc = Fork();

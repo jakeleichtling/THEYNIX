@@ -61,10 +61,12 @@ void *oneCar(void *direction_name_sleep_void_pointer) {
 
   arriveBridge(direction, name); // Now the car is on the bridge.
 
+  TracePrintf(TRACE_LEVEL_DETAIL_INFO, "~~~ %d: Delaying for %d.\n", name, sleep_duration);
   Delay(sleep_duration);
 
   onBridge(direction, name);
 
+  TracePrintf(TRACE_LEVEL_DETAIL_INFO, "~~~ %d: Delaying for %d.\n", name, sleep_duration);
   Delay(sleep_duration);
 
   exitBridge(direction, name); // Now the car is off the bridge.
@@ -78,11 +80,15 @@ void *oneCar(void *direction_name_sleep_void_pointer) {
  it gets on the bridge. Otherwise, it waits to be awoken by an exiting car.
  */
 void arriveBridge(int direction, int name) {
+  TracePrintf(TRACE_LEVEL_DETAIL_INFO, "~~~ %d: >>> arriveBridge()\n", name);
+
   TracePrintf(TRACE_LEVEL_DETAIL_INFO, "~~~ %d: I want to go on the bridge with direction: %d\n", name, direction);
   int rc;
 
   // Obtain the lock that protects the bridge state.
+  TracePrintf(TRACE_LEVEL_DETAIL_INFO, "~~~ %d: Acquiring lock.\n", name);
   rc = Acquire(mutex);
+  TracePrintf(TRACE_LEVEL_DETAIL_INFO, "~~~ %d: Lock acquired.\n", name);
   if (rc == ERROR) {
     TracePrintf(TRACE_LEVEL_DETAIL_INFO, "~~~ Mutex lock failed.\n");
     exit(-1);
@@ -109,45 +115,59 @@ void arriveBridge(int direction, int name) {
 
   num_cars_waiting[direction]--;
 
+  TracePrintf(TRACE_LEVEL_DETAIL_INFO, "~~~ %d: Releasing the lock.\n", name);
   rc = Release(mutex);
   if (rc == ERROR) {
     TracePrintf(TRACE_LEVEL_DETAIL_INFO, "~~~ Mutex release failed.\n");
     exit(-1);
   }
+  TracePrintf(TRACE_LEVEL_DETAIL_INFO, "~~~ %d: Lock released.\n", name);
+
+  TracePrintf(TRACE_LEVEL_DETAIL_INFO, "~~~ %d: <<< arriveBridge()\n\n", name);
 }
 
 /*
  Do stuff while you are on the bridge!
  */
 void onBridge(int direction, int name) {
+  TracePrintf(TRACE_LEVEL_DETAIL_INFO, "~~~ %d: >>> onBridge()\n", name);
+
   int rc;
 
   // Obtain the lock that protects the bridge state.
+  TracePrintf(TRACE_LEVEL_DETAIL_INFO, "~~~ %d: Acquiring lock.\n", name);
   rc = Acquire(mutex);
+  TracePrintf(TRACE_LEVEL_DETAIL_INFO, "~~~ %d: Lock acquired.\n", name);
   if (rc == ERROR) {
     TracePrintf(TRACE_LEVEL_DETAIL_INFO, "~~~ Mutex lock failed.\n");
     exit(-1);
   }
 
   TracePrintf(TRACE_LEVEL_DETAIL_INFO, "~~~ %d: I'm on the bridge, yo, going in direction %d.\n", name, direction);
-  TracePrintf(TRACE_LEVEL_DETAIL_INFO, "~~~ \tThere are %d cars waiting to gO to hanover and %d cars waiting to gO to norwich.\n", num_cars_waiting[TO_HANOVER], num_cars_waiting[TO_NORWICH]);
+  TracePrintf(TRACE_LEVEL_DETAIL_INFO, "~~~ \tThere are %d cars waiting to go to hanover and %d cars waiting to go to norwich.\n", num_cars_waiting[TO_HANOVER], num_cars_waiting[TO_NORWICH]);
 
   rc = Release(mutex);
   if (rc == ERROR) {
     TracePrintf(TRACE_LEVEL_DETAIL_INFO, "~~~ Mutex release failed.\n");
     exit(-1);
   }
+
+  TracePrintf(TRACE_LEVEL_DETAIL_INFO, "~~~ %d: <<< onBridge()\n\n", name);
 }
 
 /*
  Get off the bridge!
  */
 void exitBridge(int direction, int name) {
+  TracePrintf(TRACE_LEVEL_DETAIL_INFO, "~~~ %d: >>> exitBridge()\n", name);
+
   TracePrintf(TRACE_LEVEL_DETAIL_INFO, "~~~ %d: I want to get off the bridge with direction: %d.\n", name, direction);
   int rc;
 
   // Obtain the lock that protects the bridge state.
+  TracePrintf(TRACE_LEVEL_DETAIL_INFO, "~~~ %d: Acquiring lock.\n", name);
   rc = Acquire(mutex);
+  TracePrintf(TRACE_LEVEL_DETAIL_INFO, "~~~ %d: Lock acquired.\n", name);
   if (rc == ERROR) {
     TracePrintf(TRACE_LEVEL_DETAIL_INFO, "~~~ Mutex lock failed.\n");
     exit(-1);
@@ -174,4 +194,6 @@ void exitBridge(int direction, int name) {
     int opposite_direction = direction == TO_NORWICH ? TO_HANOVER : TO_NORWICH;
       CvarBroadcast(cvar[opposite_direction]);
   }
+
+  TracePrintf(TRACE_LEVEL_DETAIL_INFO, "~~~ %d: <<< exitBridge()\n\n", name);
 }
