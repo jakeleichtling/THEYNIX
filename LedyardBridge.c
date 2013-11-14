@@ -36,7 +36,7 @@ void init() {
 }
 
 int main(int argc, char *argv[]) {
-  TracePrintf(TRACE_LEVEL_DETAIL_INFO, ">>> New car entered main!\n", i);
+  TracePrintf(TRACE_LEVEL_DETAIL_INFO, ">>> New car entered main!\n");
 
   int direction = atoi(argv[1]);
   int name = atoi(argv[2]);
