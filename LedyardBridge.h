@@ -18,6 +18,6 @@ typedef struct {
 
 /* Function Prototypes */
 
-void ledyardBridgeInit();
+void ledyardBridgeInit(void);
 
 #endif

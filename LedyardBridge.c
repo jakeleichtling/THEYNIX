@@ -29,7 +29,7 @@ void exitBridge(int direction, int name);
 
 /* Function Implementations */
 
-void ledyardBridgeInit() {
+void ledyardBridgeInit(void) {
   CvarInit(&(cvar[0]));
   CvarInit(&(cvar[1]));
 
