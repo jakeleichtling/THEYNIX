@@ -14,11 +14,10 @@ typedef struct {
   int direction;
   int name;
   int sleep_duration;
-} DirectionNameSleepd;
+} DirectionNameSleep;
 
 /* Function Prototypes */
 
 void ledyardBridgeInit();
-void *oneCar(void *direction_name_sleep);
 
 #endif

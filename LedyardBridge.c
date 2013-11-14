@@ -22,6 +22,7 @@ int num_cars_waiting[] = { 0, 0 };
 int bridge_direction;
 
 /* Function Prototypes */
+void *oneCar(void *direction_name_sleep_void_pointer);
 void arriveBridge(int direction, int name);
 void onBridge(int direction, int name);
 void exitBridge(int direction, int name);
