@@ -78,7 +78,8 @@ void testCase0() {
     direction_names[i]->name = i;
     direction_names[i]->sleep_duration = 1;
 
-    char *direction = calloc(16, sizeof(char));
+    // char *direction = calloc(16, sizeof(char));
+    char direction[16];
     char *name = calloc(16, sizeof(char));
     char *sleep_duration = calloc(16, sizeof(char));
 
