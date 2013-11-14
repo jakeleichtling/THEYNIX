@@ -82,7 +82,9 @@ void arriveBridge(int direction, int name) {
   int rc;
 
   // Obtain the lock that protects the bridge state.
+  TracePrintf(TRACE_LEVEL_DETAIL_INFO, "~~~ %d: Acquiring lock.\n", name);
   rc = Acquire(mutex);
+  TracePrintf(TRACE_LEVEL_DETAIL_INFO, "~~~ %d: Lock acquired.\n", name);
   if (rc == ERROR) {
     TracePrintf(TRACE_LEVEL_DETAIL_INFO, "~~~ Mutex lock failed.\n");
     exit(-1);
@@ -125,7 +127,9 @@ void onBridge(int direction, int name) {
   int rc;
 
   // Obtain the lock that protects the bridge state.
+  TracePrintf(TRACE_LEVEL_DETAIL_INFO, "~~~ %d: Acquiring lock.\n", name);
   rc = Acquire(mutex);
+  TracePrintf(TRACE_LEVEL_DETAIL_INFO, "~~~ %d: Lock acquired.\n", name);
   if (rc == ERROR) {
     TracePrintf(TRACE_LEVEL_DETAIL_INFO, "~~~ Mutex lock failed.\n");
     exit(-1);
@@ -149,7 +153,9 @@ void exitBridge(int direction, int name) {
   int rc;
 
   // Obtain the lock that protects the bridge state.
+  TracePrintf(TRACE_LEVEL_DETAIL_INFO, "~~~ %d: Acquiring lock.\n", name);
   rc = Acquire(mutex);
+  TracePrintf(TRACE_LEVEL_DETAIL_INFO, "~~~ %d: Lock acquired.\n", name);
   if (rc == ERROR) {
     TracePrintf(TRACE_LEVEL_DETAIL_INFO, "~~~ Mutex lock failed.\n");
     exit(-1);
