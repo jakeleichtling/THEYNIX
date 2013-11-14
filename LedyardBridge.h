@@ -20,6 +20,7 @@ typedef struct DirectionNameSleep DirectionNameSleep;
 
 /* Function Prototypes */
 
-void LedyardBridgeInit();
+//void LedyardBridgeInit();
+void exitBridge(int direction, int name);
 
 #endif
