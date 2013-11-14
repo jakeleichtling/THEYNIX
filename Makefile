@@ -29,11 +29,11 @@ KERNEL_OBJS = Kernel.o PCB.o SystemCalls.o Traps.o VMem.o List.o PMem.o Tty.o Lo
 KERNEL_INCS = CVar.h Lock.h PMem.h Traps.h Kernel.h Log.h Pipe.h Tty.h List.h PCB.h SystemCalls.h VMem.h
 
 #List all user programs here.
-USER_APPS = init idle die_stupidly orphan io_test pipe_test lock_test TestDriver LedyardBridge
+USER_APPS = init idle die_stupidly orphan io_test pipe_test lock_test LedyardTestDriver LedyardBridge
 #List all user program source files here.  SHould be the same as the previous list, with ".c" added to each file
-USER_SRCS = init.c idle.c die_stupidly.c orphan.c io_test.c pipe_test.c lock_test.c TestDriver.c LedyardBridge.c
+USER_SRCS = init.c idle.c die_stupidly.c orphan.c io_test.c pipe_test.c lock_test.c LedyardTestDriver.c LedyardBridge.c
 #List the objects to be formed form the user  source files here.  Should be the same as the prvious list, replacing ".c" with ".o"
-USER_OBJS = init.o idle.o die_stupidly.o orphan.o io_test.o pipe_test.o lock_test.o TestDriver.o LedyardBridge.o
+USER_OBJS = init.o idle.o die_stupidly.o orphan.o io_test.o pipe_test.o lock_test.o LedyardTestDriver.o LedyardBridge.o
 #List all of the header files necessary for your user programs
 USER_INCS = Log.h
 
