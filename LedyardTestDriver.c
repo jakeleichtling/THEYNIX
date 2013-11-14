@@ -16,7 +16,7 @@ extern int mutex;
 /* Function Prototypes */
 
 void testCase0();
-// void testCase1();
+void testCase1();
 
 /* Function Implementations */
 
@@ -27,7 +27,7 @@ int main(int argc, char **argv) {
   LockInit(&mutex);
 
   testCase0();
-  testCase1();
+  // testCase1();
 
   return 0;
 }
