@@ -44,9 +44,9 @@ void testCase0() {
     direction_names[i]->name = i;
     direction_names[i]->sleep_duration = 1;
 
-    char direction[16];
-    char name[16];
-    char sleep_duration[16];
+    char *direction = calloc(16, sizeof(char));
+    char *name = calloc(16, sizeof(char));
+    char *sleep_duration = calloc(16, sizeof(char));
 
     sprintf(direction, "%d\0", direction_names[i]->direction);
     sprintf(name, "%d\0", direction_names[i]->name);
@@ -65,9 +65,9 @@ void testCase0() {
     direction_names[i]->direction = TO_NORWICH;
     direction_names[i]->name = i;
 
-    char direction[16];
-    char name[16];
-    char sleep_duration[16];
+    char *direction = calloc(16, sizeof(char));
+    char *name = calloc(16, sizeof(char));
+    char *sleep_duration = calloc(16, sizeof(char));
 
     sprintf(direction, "%d\0", direction_names[i]->direction);
     sprintf(name, "%d\0", direction_names[i]->name);

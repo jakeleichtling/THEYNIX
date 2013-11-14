@@ -48,6 +48,8 @@ bool ValidateUserArg(unsigned int arg, int num_bytes, unsigned long permissions)
 
 // validate string arg for read access
 bool ValidateUserString(char *str) {
+    // TODO: Make sure the string exists and is accessible before we get the length.
+
     int len = strlen(str);
     return ValidateUserArg((unsigned int) str, len * sizeof(char), PROT_READ);
 }
