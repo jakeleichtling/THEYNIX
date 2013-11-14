@@ -10,14 +10,16 @@
 
 /* Types */
 
-typedef struct {
+struct DirectionNameSleep {
   int direction;
   int name;
   int sleep_duration;
-} DirectionNameSleep;
+};
+
+typedef struct DirectionNameSleep DirectionNameSleep;
 
 /* Function Prototypes */
 
-void ledyardBridgeInit(void);
+void LedyardBridgeInit();
 
 #endif
