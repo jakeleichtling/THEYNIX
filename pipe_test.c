@@ -13,8 +13,8 @@ int main(int argc, char *argv[]) {
     PipeInit(&parent_to_child_pipe);
     PipeInit(&child_to_parent_pipe);
 
-    char *parent_to_child_message = "Hello Child\0";
-    char *child_to_parent_message = "Can I have some pizza?\0";
+    char *parent_to_child_message = "Hello Child";
+    char *child_to_parent_message = "Can I have some pizza?";
 
     int rc = Fork();
     if (0 == rc) {

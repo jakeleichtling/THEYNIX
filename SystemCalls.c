@@ -23,7 +23,14 @@ extern List *ready_queue;
   Implementations of Yalnix system calls.
 */
 
-// validate pointer arg
+bool ValidatePage(unsigned int page, unsigned long permissions) {
+    bool valid = current_proc->region_1_page_table[page].valid == 1;
+    bool has_permissions = (current_proc->region_1_page_table[page].prot & permissions)
+         == permissions;
+
+    return valid && has_permissions;
+}
+
 bool ValidateUserArg(unsigned int arg, int num_bytes, unsigned long permissions) {
     if (arg > VMEM_1_LIMIT) {
         return false;
@@ -36,10 +43,7 @@ bool ValidateUserArg(unsigned int arg, int num_bytes, unsigned long permissions)
     int finish_page = start_page + (num_bytes >> PAGESHIFT);
     int i;
     for (i = start_page; i <= finish_page; i++) {
-        bool valid = current_proc->region_1_page_table[i].valid == 1;
-        bool has_permissions = (current_proc->region_1_page_table[i].prot & permissions)
-             == permissions;
-        if (!(valid && has_permissions)) {
+        if (!ValidatePage(i, permissions)) {
             return false;
         }
     }
@@ -48,10 +52,26 @@ bool ValidateUserArg(unsigned int arg, int num_bytes, unsigned long permissions)
 
 // validate string arg for read access
 bool ValidateUserString(char *str) {
-    // TODO: Make sure the string exists and is accessible before we get the length.
+    if (((unsigned int) str) > VMEM_1_LIMIT) {
+        return false;
+    }
+    if (((unsigned int) str) < VMEM_1_BASE) {
+        return false;
+    }
 
-    int len = strlen(str);
-    return ValidateUserArg((unsigned int) str, len * sizeof(char), PROT_READ);
+    int start_page = ADDR_TO_PAGE(str - VMEM_1_BASE);
+    if (!ValidatePage(start_page, PROT_READ)) {
+        return false;
+    }
+    int current_page = start_page;
+    while (*str != '\0') {
+       str++;
+       current_page = ADDR_TO_PAGE(str - VMEM_1_BASE);
+       if (!ValidatePage(current_page, PROT_READ)) {
+           return false;
+       }
+    }
+    return true;
 }
 
 int KernelFork(UserContext *user_context) {
