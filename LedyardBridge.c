@@ -89,7 +89,7 @@ void arriveBridge(int direction, int name) {
 
   // Obtain the lock that protects the bridge state.
   rc = Acquire(mutex);
-  if (rc) {
+  if (rc == ERROR) {
     TracePrintf(TRACE_LEVEL_DETAIL_INFO, "~~~ Mutex lock failed.\n");
     exit(-1);
   }
@@ -116,7 +116,7 @@ void arriveBridge(int direction, int name) {
   num_cars_waiting[direction]--;
 
   rc = Release(mutex);
-  if (rc) {
+  if (rc == ERROR) {
     TracePrintf(TRACE_LEVEL_DETAIL_INFO, "~~~ Mutex release failed.\n");
     exit(-1);
   }
@@ -130,7 +130,7 @@ void onBridge(int direction, int name) {
 
   // Obtain the lock that protects the bridge state.
   rc = Acquire(mutex);
-  if (rc) {
+  if (rc == ERROR) {
     TracePrintf(TRACE_LEVEL_DETAIL_INFO, "~~~ Mutex lock failed.\n");
     exit(-1);
   }
@@ -139,7 +139,7 @@ void onBridge(int direction, int name) {
   TracePrintf(TRACE_LEVEL_DETAIL_INFO, "~~~ \tThere are %d cars waiting to gO to hanover and %d cars waiting to gO to norwich.\n", num_cars_waiting[TO_HANOVER], num_cars_waiting[TO_NORWICH]);
 
   rc = Release(mutex);
-  if (rc) {
+  if (rc == ERROR) {
     TracePrintf(TRACE_LEVEL_DETAIL_INFO, "~~~ Mutex release failed.\n");
     exit(-1);
   }
@@ -154,7 +154,7 @@ void exitBridge(int direction, int name) {
 
   // Obtain the lock that protects the bridge state.
   rc = Acquire(mutex);
-  if (rc) {
+  if (rc == ERROR) {
     TracePrintf(TRACE_LEVEL_DETAIL_INFO, "~~~ Mutex lock failed.\n");
     exit(-1);
   }
@@ -166,7 +166,7 @@ void exitBridge(int direction, int name) {
 	 name, direction, num_cars_on_bridge);
 
   rc = Release(mutex);
-  if (rc) {
+  if (rc == ERROR) {
     TracePrintf(TRACE_LEVEL_DETAIL_INFO, "~~~ Mutex release failed.\n");
     exit(-1);
   }
