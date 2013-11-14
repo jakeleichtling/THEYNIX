@@ -68,7 +68,11 @@ void testCase0() {
     TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Forking car %d.\n", i);
     rc = Fork();
     if (rc == 0) {
-      Exec("LedyardBridge", argvec);
+      rc = Exec("LedyardBridge", argvec);
+      if (rc) {
+        TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Car %d exec failed.\n", i);
+        exit(-1);
+      }
     }
   }
 
@@ -92,7 +96,11 @@ void testCase0() {
     TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Forking car %d.\n", i);
     rc = Fork();
     if (rc == 0) {
-      Exec("LedyardBridge", argvec);
+    rc = Exec("LedyardBridge", argvec);
+      if (rc) {
+        TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Car %d exec failed.\n", i);
+        exit(-1);
+      }
     }
   }
 
@@ -144,7 +152,11 @@ void testCase1() {
     char *argvec[] = { "LedyardBridge", direction, name, sleep_duration };
     rc = Fork();
     if (rc == 0) {
-      Exec("LedyardBridge", argvec);
+      rc = Exec("LedyardBridge", argvec);
+      if (rc) {
+        TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Car %d exec failed.\n", i);
+        exit(-1);
+      }
     }
   }
 
