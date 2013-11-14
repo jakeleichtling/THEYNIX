@@ -35,7 +35,7 @@ USER_SRCS = init.c idle.c die_stupidly.c orphan.c io_test.c pipe_test.c lock_tes
 #List the objects to be formed form the user  source files here.  Should be the same as the prvious list, replacing ".c" with ".o"
 USER_OBJS = init.o idle.o die_stupidly.o orphan.o io_test.o pipe_test.o lock_test.o LedyardTestDriver.o LedyardBridge.o
 #List all of the header files necessary for your user programs
-USER_INCS = Log.h
+USER_INCS = Log.h LedyardBridge.h
 
 #write to output program yalnix
 YALNIX_OUTPUT = yalnix
