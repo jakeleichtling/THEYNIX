@@ -1,8 +1,11 @@
+#include <hardware.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <yalnix.h>
 
 #include "LedyardBridge.h"
+
+#include "Log.h"
 
 /* Function Prototypes */
 
