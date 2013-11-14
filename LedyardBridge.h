@@ -20,7 +20,14 @@ typedef struct DirectionNameSleep DirectionNameSleep;
 
 /* Function Prototypes */
 
-//void LedyardBridgeInit();
-void exitBridge(int direction, int name);
+void LedyardBridgeInit();
+
+/* Global Variables */
+
+// Awakens cars waiting to get on the bridge.
+int cvar[2];
+
+// Protects the bridge state.
+int mutex;
 
 #endif

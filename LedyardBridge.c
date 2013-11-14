@@ -11,12 +11,6 @@
 
 /* Global Variables */
 
-// Awakens cars waiting to get on the bridge.
-int cvar[2];
-
-// Protects the bridge state.
-int mutex;
-
 int num_cars_on_bridge = 0;
 int num_cars_waiting[] = { 0, 0 };
 int bridge_direction;

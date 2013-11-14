@@ -7,6 +7,12 @@
 
 #include "Log.h"
 
+// Awakens cars waiting to get on the bridge.
+extern int cvar[2];
+
+// Protects the bridge state.
+extern int mutex;
+
 /* Function Prototypes */
 
 void testCase0();
@@ -15,8 +21,10 @@ void testCase1();
 /* Function Implementations */
 
 int main(int argc, char **argv) {
-  // LedyardBridgeInit();
-  exitBridge(5,5);
+  CvarInit(&(cvar[0]));
+  CvarInit(&(cvar[1]));
+
+  LockInit(&mutex);
 
   testCase0();
   testCase1();
