@@ -1,3 +1,6 @@
+#ifndef _LEDYARD_BRIDGE_H
+#define _LEDYARD_BRIDGE_H
+
 /* Macros */
 
 #define MAX_CARS 3
@@ -17,3 +20,5 @@ typedef struct {
 
 void ledyardBridgeInit();
 void *oneCar(void *direction_name_sleep);
+
+#endif
