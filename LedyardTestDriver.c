@@ -16,7 +16,7 @@ extern int mutex;
 /* Function Prototypes */
 
 void testCase0();
-void testCase1();
+// void testCase1();
 
 /* Function Implementations */
 
