@@ -31,7 +31,6 @@ void testCase0() {
   int num_cars_to_norwich = 5;
 
   DirectionNameSleep *direction_names[num_cars_to_hanover + num_cars_to_norwich];
-  int car_threads[num_cars_to_hanover + num_cars_to_norwich];
 
   int rc;
 
@@ -53,9 +52,7 @@ void testCase0() {
     char *argvec[] = { "LedyardBridge", direction, name, sleep_duration };
     rc = Fork();
     if (rc == 0) {
-      = Exec("LedyardBridge", argvec);
-    } else {
-      car_threads[i] = rc;
+      Exec("LedyardBridge", argvec);
     }
   }
 
@@ -75,9 +72,7 @@ void testCase0() {
     char *argvec[] = { "LedyardBridge", direction, name, sleep_duration };
     rc = Fork();
     if (rc == 0) {
-      = Exec("LedyardBridge", argvec);
-    } else {
-      car_threads[i] = rc;
+      Exec("LedyardBridge", argvec);
     }
   }
 
@@ -104,7 +99,6 @@ void testCase1() {
 
   int num_cars = 10;
   DirectionNameSleep *direction_names[num_cars];
-  int car_threads[num_cars];
 
   int min_sleep_duration = 0;
   int max_sleep_duration = 5;
@@ -130,8 +124,6 @@ void testCase1() {
     rc = Fork();
     if (rc == 0) {
       = Exec("LedyardBridge", argvec);
-    } else {
-      car_threads[i] = rc;
     }
   }
 
