@@ -32,7 +32,7 @@ void init() {
   LockInit(&mutex);
 }
 
-void main(int argc, char *argv) {
+int main(int argc, char *argv[]) {
   int direction = atoi(argv[1]);
   int name = atoi(argv[2]);
   int sleep_duration = atoi(argv[3]);
@@ -45,6 +45,8 @@ void main(int argc, char *argv) {
   oneCar(direction_name_sleep);
 
   free(direction_name_sleep);
+
+  return 0;
 }
 
 /*
