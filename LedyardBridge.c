@@ -61,10 +61,12 @@ void *oneCar(void *direction_name_sleep_void_pointer) {
 
   arriveBridge(direction, name); // Now the car is on the bridge.
 
+  TracePrintf(TRACE_LEVEL_DETAIL_INFO, "~~~ %d: Delaying for %d.\n", name, sleep_duration);
   Delay(sleep_duration);
 
   onBridge(direction, name);
 
+  TracePrintf(TRACE_LEVEL_DETAIL_INFO, "~~~ %d: Delaying for %d.\n", name, sleep_duration);
   Delay(sleep_duration);
 
   exitBridge(direction, name); // Now the car is off the bridge.
