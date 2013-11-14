@@ -124,7 +124,7 @@ void testCase1() {
     char *argvec[] = { "LedyardBridge", direction, name, sleep_duration };
     rc = Fork();
     if (rc == 0) {
-      = Exec("LedyardBridge", argvec);
+      Exec("LedyardBridge", argvec);
     }
   }
 
