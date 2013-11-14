@@ -78,6 +78,8 @@ void *oneCar(void *direction_name_sleep_void_pointer) {
  it gets on the bridge. Otherwise, it waits to be awoken by an exiting car.
  */
 void arriveBridge(int direction, int name) {
+  TracePrintf(TRACE_LEVEL_DETAIL_INFO, "~~~ %d: >>> arriveBridge()\n", name);
+
   TracePrintf(TRACE_LEVEL_DETAIL_INFO, "~~~ %d: I want to go on the bridge with direction: %d\n", name, direction);
   int rc;
 
@@ -118,12 +120,16 @@ void arriveBridge(int direction, int name) {
     exit(-1);
   }
   TracePrintf(TRACE_LEVEL_DETAIL_INFO, "~~~ %d: Lock released.\n", name);
+
+  TracePrintf(TRACE_LEVEL_DETAIL_INFO, "~~~ %d: <<< arriveBridge()\n\n", name);
 }
 
 /*
  Do stuff while you are on the bridge!
  */
 void onBridge(int direction, int name) {
+  TracePrintf(TRACE_LEVEL_DETAIL_INFO, "~~~ %d: >>> onBridge()\n", name);
+
   int rc;
 
   // Obtain the lock that protects the bridge state.
@@ -143,12 +149,16 @@ void onBridge(int direction, int name) {
     TracePrintf(TRACE_LEVEL_DETAIL_INFO, "~~~ Mutex release failed.\n");
     exit(-1);
   }
+
+  TracePrintf(TRACE_LEVEL_DETAIL_INFO, "~~~ %d: <<< onBridge()\n\n", name);
 }
 
 /*
  Get off the bridge!
  */
 void exitBridge(int direction, int name) {
+  TracePrintf(TRACE_LEVEL_DETAIL_INFO, "~~~ %d: >>> exitBridge()\n", name);
+
   TracePrintf(TRACE_LEVEL_DETAIL_INFO, "~~~ %d: I want to get off the bridge with direction: %d.\n", name, direction);
   int rc;
 
@@ -182,4 +192,6 @@ void exitBridge(int direction, int name) {
     int opposite_direction = direction == TO_NORWICH ? TO_HANOVER : TO_NORWICH;
       CvarBroadcast(cvar[opposite_direction]);
   }
+
+  TracePrintf(TRACE_LEVEL_DETAIL_INFO, "~~~ %d: <<< exitBridge()\n\n", name);
 }
