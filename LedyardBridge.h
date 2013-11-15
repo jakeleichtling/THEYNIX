@@ -18,6 +18,14 @@ struct DirectionNameSleep {
 
 typedef struct DirectionNameSleep DirectionNameSleep;
 
+struct Bridge {
+  int num_cars_on_bridge;
+  int num_cars_waiting[2];
+  int bridge_direction;
+};
+
+typedef struct Bridge Bridge;
+
 /* Function Prototypes */
 
 void LedyardBridgeInit();
@@ -29,5 +37,10 @@ int cvar[2];
 
 // Protects the bridge state.
 int mutex;
+
+// All procs read bridge from here when
+// lock is acquired and write to it when
+// lock is released
+int pipe_id;
 
 #endif

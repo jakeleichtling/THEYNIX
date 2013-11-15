@@ -12,8 +12,8 @@ struct Pipe {
 
     int num_chars_available;
     int buffer_capacity;
-    char *buffer;
-    char *buffer_ptr; // where we are in the buffer
+    void *buffer;
+    void *buffer_ptr; // where we are in the buffer
 
     // List of procs waiting to read from the buffer.
     // USE LEN OF BYTES TO READ FOR ID
@@ -27,10 +27,10 @@ Pipe *PipeNewPipe();
 // Reads len chars into user_buf
 // User must ensure there are more chars available
 // then needed when making this call
-int PipeCopyIntoUserBuffer(Pipe *p, char *user_buf, int len);
+int PipeCopyIntoUserBuffer(Pipe *p, void *user_buf, int len);
 
 // Read len chars from user_buf into pipes buffer
-int PipeCopyIntoPipeBuffer(Pipe *p, char *user_buf, int len);
+int PipeCopyIntoPipeBuffer(Pipe *p, void *user_buf, int len);
 
 int PipeSpotsRemaining(Pipe *p);
 

@@ -483,7 +483,7 @@ int KernelPipeRead(int pipe_id, void *buf, int len, UserContext *user_context) {
         ListAppend(p->waiting_to_read, current_proc, len);
         SwitchToNextProc(user_context);
     }
-    return PipeCopyIntoUserBuffer(p, (char *) buf, len);
+    return PipeCopyIntoUserBuffer(p, buf, len);
 }
 
 int KernelPipeWrite(int pipe_id, void *buf, int len, UserContext *user_context) {
@@ -506,16 +506,16 @@ int KernelPipeWrite(int pipe_id, void *buf, int len, UserContext *user_context) 
 
     if (len > PipeSpotsRemaining(p)) { // need to increase size of buffer
         int new_buffer_size = p->num_chars_available + len;
-        char *new_buffer = calloc(new_buffer_size, sizeof(char));
-        strncpy(new_buffer, p->buffer_ptr, p->num_chars_available);
-        p->buffer_ptr = new_buffer + p->num_chars_available;
+        void *new_buffer = calloc(new_buffer_size, sizeof(char));
+        memcpy(new_buffer, p->buffer_ptr, p->num_chars_available);
+        p->buffer_ptr = new_buffer;
         free(p->buffer);
         p->buffer = new_buffer;
         p->buffer_capacity = new_buffer_size;
     }
     assert(len <= PipeSpotsRemaining(p));
 
-    PipeCopyIntoPipeBuffer(p, (char *) buf, len);
+    PipeCopyIntoPipeBuffer(p, buf, len);
 
     // If another proc is waiting and enough characters available, move him to ready
     PCB *next_proc = (PCB *) ListFindFirstLessThanIdAndRemove(p->waiting_to_read, p->num_chars_available);

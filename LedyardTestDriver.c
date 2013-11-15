@@ -13,6 +13,8 @@ extern int cvar[2];
 // Protects the bridge state.
 extern int mutex;
 
+int pipe_id;
+
 /* Function Prototypes */
 
 void testCase0();
@@ -23,6 +25,10 @@ void testCase1();
 int main(int argc, char **argv) {
   CvarInit(&(cvar[0]));
   CvarInit(&(cvar[1]));
+
+  PipeInit(&pipe_id);
+  Bridge *b = calloc(1, sizeof(Bridge));
+  PipeWrite(pipe_id, (void *)b, sizeof(Bridge));
 
   LockInit(&mutex);
 
@@ -44,6 +50,18 @@ void testCase0() {
   int num_cars_to_hanover = 5;
   int num_cars_to_norwich = 5;
 
+  char *pipe_id_str = calloc(16, sizeof(char));
+  sprintf(pipe_id_str, "%d\0", pipe_id);
+
+  char *lock_id_str = calloc(16, sizeof(char));
+  sprintf(lock_id_str, "%d\0", mutex);
+
+  char *cvar_0_id_str = calloc(16, sizeof(char));
+  sprintf(cvar_0_id_str, "%d\0", cvar[0]);
+
+  char *cvar_1_id_str = calloc(16, sizeof(char));
+  sprintf(cvar_1_id_str, "%d\0", cvar[1]);
+
   DirectionNameSleep *direction_names[num_cars_to_hanover + num_cars_to_norwich];
 
   int rc;
@@ -64,7 +82,8 @@ void testCase0() {
     sprintf(sleep_duration, "%d\0", direction_names[i]->sleep_duration);
     TracePrintf(TRACE_LEVEL_DETAIL_INFO, "~~~ Sleep duration set for %s --> %s\n", name, sleep_duration);
 
-    char *argvec[] = { "LedyardBridge", direction, name, sleep_duration };
+    char *argvec[] = { "LedyardBridge", direction, name, sleep_duration, pipe_id_str,
+        lock_id_str, cvar_0_id_str, cvar_1_id_str,  NULL };
     TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Forking car %d.\n", i);
     rc = Fork();
     if (rc == 0) {
@@ -74,6 +93,10 @@ void testCase0() {
         exit(-1);
       }
     }
+
+    free(direction);
+    free(name);
+    free(sleep_duration);
   }
 
   for (; i < num_cars_to_hanover + num_cars_to_norwich; i++) {
@@ -82,7 +105,6 @@ void testCase0() {
     direction_names[i]->name = i;
     direction_names[i]->sleep_duration = 1;
 
-    // char *direction = calloc(16, sizeof(char));
     char direction[16];
     char *name = calloc(16, sizeof(char));
     char *sleep_duration = calloc(16, sizeof(char));
@@ -92,13 +114,8 @@ void testCase0() {
     sprintf(sleep_duration, "%d\0", direction_names[i]->sleep_duration);
     TracePrintf(TRACE_LEVEL_DETAIL_INFO, "~~~ Sleep duration set for %s --> %s\n", name, sleep_duration);
 
-    // char *argvec[] = { "LedyardBridge", direction, name, sleep_duration };
-    char *argvec[5];
-    argvec[0] = "LedyardBridge";
-    argvec[1] = direction;
-    argvec[2] = name;
-    argvec[3] = sleep_duration;
-    argvec[4] = NULL;
+    char *argvec[] = { "LedyardBridge", direction, name, sleep_duration, pipe_id_str,
+        lock_id_str, cvar_0_id_str, cvar_1_id_str,  NULL };
     TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Forking car %d.\n", i);
     rc = Fork();
     if (rc == 0) {
@@ -108,6 +125,9 @@ void testCase0() {
         exit(-1);
       }
     }
+    free(direction);
+    free(name);
+    free(sleep_duration);
   }
 
   // Wait for all the threads and free their DirectionNames
@@ -121,6 +141,11 @@ void testCase0() {
 
     free(direction_names[i]);
   }
+
+  free(lock_id_str);
+  free(pipe_id_str);
+  free(cvar_0_id_str);
+  free(cvar_1_id_str);
 
   TracePrintf(TRACE_LEVEL_DETAIL_INFO, "---------------------------------------------------------------------------------------\n");
 }

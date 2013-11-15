@@ -5,6 +5,7 @@
 #include <string.h>
 
 #include "Kernel.h"
+#include "Log.h"
 
 extern unsigned int next_synch_resource_id;
 
@@ -15,20 +16,21 @@ Pipe *PipeNewPipe() {
     return p;
 }
 
-int PipeCopyIntoUserBuffer(Pipe *p, char *user_buf, int len) {
+int PipeCopyIntoUserBuffer(Pipe *p, void *user_buf, int len) {
     assert(len <= p->num_chars_available);
-    strncpy(user_buf, p->buffer_ptr, len);
+    memcpy(user_buf, p->buffer_ptr, len);
     p->buffer_ptr += len;
     p->num_chars_available -= len;
     if (0 == p->num_chars_available) { // no chars remaining
         p->buffer_ptr = p->buffer;
     }
+
     return len;
 }
 
-int PipeCopyIntoPipeBuffer(Pipe *p, char *user_buf, int len) {
+int PipeCopyIntoPipeBuffer(Pipe *p, void *user_buf, int len) {
     assert(len <= PipeSpotsRemaining(p));
-    strncpy(p->buffer_ptr + p->num_chars_available, user_buf, len);
+    memcpy(p->buffer_ptr + p->num_chars_available, user_buf, len);
     p->num_chars_available += len;
     return len;
 }
