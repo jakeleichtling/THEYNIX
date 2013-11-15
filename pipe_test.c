@@ -44,5 +44,8 @@ int main(int argc, char *argv[]) {
     int status;
     Wait(&status);
 
+    Reclaim(parent_to_child_pipe);
+    Reclaim(child_to_parent_pipe);
+
     return 0;
 }

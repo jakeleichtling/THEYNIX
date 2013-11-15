@@ -54,5 +54,7 @@ int main(int argc, char *argv[]) {
         }
     }
 
+    Reclaim(lock_id);
+
     return 0;
 }

@@ -69,5 +69,8 @@ int main(int argc, char *argv[]) {
         }
     }
 
+    Reclaim(lock_id);
+    Reclaim(child_cvar_id);
+    Reclaim(parent_cvar_id);
     return 0;
 }
