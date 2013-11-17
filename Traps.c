@@ -6,6 +6,7 @@
 #include <string.h>
 #include <yalnix.h>
 #include <hardware.h>
+#include <stdio.h>
 
 #include "Kernel.h"
 #include "Log.h"
@@ -47,7 +48,7 @@ void TrapKernel(UserContext *user_context) {
                  user_context->regs[2], user_context);
             break;
         case YALNIX_TTY_WRITE:
-            rc = KernelTtyWrite(user_context->regs[0], (void *) user_context->regs[1],
+            rc = KernelTtyWriteInternal(user_context->regs[0], (void *) user_context->regs[1],
                  user_context->regs[2], user_context);
             break;
         case YALNIX_PIPE_INIT:
@@ -128,36 +129,41 @@ void TrapIllegal(UserContext *user_context) {
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< TrapIllegal(%p)\n", user_context);
 }
 
-inline bool ValidStackGrowth(const unsigned int page) {
-    bool below_current_stack = (page < current_proc->lowest_user_stack_page);
-    bool above_heap = (page > current_proc->user_brk_page);
-    return below_current_stack && above_heap;
-}
-
 void TrapMemory(UserContext *user_context) {
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> TrapMemory(%p)\n", user_context);
 
-    if (YALNIX_MAPERR == user_context->code) { // "address not mapped"
-        if (user_context->addr == NULL) {
-            TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM,
-                "User program tried to dereference null (%p)\n", user_context->addr);
-            KernelExit(KILLED_NULL, user_context);
-        }
-        if (((unsigned int) user_context->addr) < VMEM_1_BASE) {
-            TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM,
-                "User program tried to address kernel space @ %p\n", user_context->addr);
-            KernelExit(KILLED_ILL_KERNEL_MEM_ACC, user_context);
-        }
-        unsigned int addr_page = ADDR_TO_PAGE(user_context->addr) - ADDR_TO_PAGE(VMEM_1_BASE);
-        if (ValidStackGrowth(addr_page)) {
-            TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Growing User stack\n");
+    unsigned int addr_int = (unsigned int) user_context->addr;
 
+    if (addr_int > VMEM_1_LIMIT || addr_int < VMEM_1_BASE) {
+        char *err_str = calloc(TERMINAL_MAX_LINE, sizeof(char)); 
+        sprintf(err_str, "Out of range memory access at %x by proc %d\n",
+            user_context->addr, current_proc->pid);
+        KernelTtyWriteInternal(0, err_str, strnlen(err_str, TERMINAL_MAX_LINE), user_context);
+        free(err_str);
+        KernelExit(THEYNIX_EXIT_FAILURE, user_context);
+    }
+    int addr_page = ADDR_TO_PAGE(user_context->addr - VMEM_1_BASE);
+    if (current_proc->region_1_page_table[addr_page].valid != 1) { // "address not mapped"
+
+        bool below_current_stack = (addr_page < current_proc->lowest_user_stack_page);
+        bool above_heap = (addr_page > current_proc->user_brk_page);
+        if (below_current_stack && above_heap) { // valid stack growth
+            TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Growing User stack\n");
+            
             unsigned int page_to_alloc = current_proc->lowest_user_stack_page - 1;
             while (page_to_alloc >= addr_page) {
                 int new_frame = GetUnusedFrame(unused_frames);
                 if (new_frame == THEYNIX_EXIT_FAILURE) {
                     TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "GetUnusedFrame() failed.\n");
-                    KernelExit(KILLED_OUT_OF_FRAMES, user_context);
+
+                    char *err_str = calloc(TERMINAL_MAX_LINE, sizeof(char)); 
+                    sprintf(err_str, "Proc %d tried to grow stack, but out of free frames\n",
+                        current_proc->pid);
+                    KernelTtyWriteInternal(0, err_str, strnlen(err_str, TERMINAL_MAX_LINE),
+                         user_context);
+                    free(err_str);
+
+                    KernelExit(THEYNIX_EXIT_FAILURE, user_context);
                 }
                 assert(!current_proc->region_1_page_table[page_to_alloc].valid);
 
@@ -169,26 +175,33 @@ void TrapMemory(UserContext *user_context) {
             }
 
             current_proc->lowest_user_stack_page = addr_page;
-        } else {
-            if (addr_page <= current_proc->user_brk_page) {
-                TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM,
-                    "Out of mem on stack growth at %p\n", user_context->addr);
-            } else {
-                TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM,
-                    "Out of range memory access at %p.\n", user_context->addr);
-            }
-            KernelExit(KILLED_INVALID_MEM, user_context);
+        } else if (!above_heap) { // OOM!
+            TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM,
+                "Out of mem on stack growth at %p\n", user_context->addr);
+            char *err_str = calloc(TERMINAL_MAX_LINE, sizeof(char)); 
+            sprintf(err_str, "Proc %d tried to grow stack, but out of free frames\n",
+                current_proc->pid);
+            KernelTtyWriteInternal(0, err_str, strnlen(err_str, TERMINAL_MAX_LINE), user_context);
+            free(err_str);
+            KernelExit(THEYNIX_EXIT_FAILURE, user_context);
+        } else { // not below the user stack? should not happen!
+            TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "Somehow unmapped addr is above the bottom of the stack\n");
+            char *err_str = calloc(TERMINAL_MAX_LINE, sizeof(char)); 
+            sprintf(err_str, "Proc %d found an unmapped page in its stack. Sorry.\n",
+                current_proc->pid);
+            KernelTtyWriteInternal(0, err_str, strnlen(err_str, TERMINAL_MAX_LINE), user_context);
+            free(err_str);
+            KernelExit(THEYNIX_EXIT_FAILURE, user_context);
         }
-    } else if (YALNIX_ACCERR == user_context->code) { // "invalid permissions"
-        TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM,
-            "Invalid memory permission at %p.\n", user_context->addr);
-        KernelExit(KILLED_INVALID_MEM, user_context);
-    } else {
-        TracePrintf(TRACE_LEVEL_TERMINAL_PROBLEM,
-            "Unknown TRAP_MEMORY user_context->code %d\n", user_context->code);
+    } else { // Page was mapped and in range, so must be invalid permissions
+        TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "Proc %d accessed mem with invalid permissions\n", current_proc->pid);
+        char *err_str = calloc(TERMINAL_MAX_LINE, sizeof(char)); 
+        sprintf(err_str, "Proc %d accessed %x with invalid permissions\n",
+            current_proc->pid, user_context->addr);
+        KernelTtyWriteInternal(0, err_str, strnlen(err_str, TERMINAL_MAX_LINE), user_context);
+        free(err_str);
         exit(-1);
     }
-
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< TrapMemory()\n\n");
 }
 

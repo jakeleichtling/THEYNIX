@@ -189,7 +189,6 @@ int KernelExec(char *filename, char **argvec, UserContext *user_context_ptr) {
     return THEYNIX_EXIT_SUCCESS;
 }
 
-
 void KernelExit(int status, UserContext *user_context) {
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> KernelExit(%p)\n", user_context);
     // If initial process, halt system
@@ -397,19 +396,9 @@ int KernelTtyRead(int tty_id, void *buf, int len, UserContext *user_context) {
     return copied;
 }
 
-int KernelTtyWrite(int tty_id, void *buf, int len, UserContext *user_context) {
-    if (tty_id < 0 || tty_id >= NUM_TERMINALS) {
-        TracePrintf(TRACE_LEVEL_TERMINAL_PROBLEM, "Program tried to write to invalid term\n");
-        return THEYNIX_EXIT_FAILURE;
-    }
-    if (len < 0) {
-        TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "negative print length\n");
-        return THEYNIX_EXIT_FAILURE;
-    }
-    if (!ValidateUserArg((unsigned int) buf, len, PROT_READ)) {
-        TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "Invalid write string\n");
-        return THEYNIX_EXIT_FAILURE;
-    }
+int KernelTtyWriteInternal(int tty_id, void *buf, int len, UserContext *user_context) {
+    assert(tty_id >= 0 && tty_id <= NUM_TERMINALS);
+    assert(len >= 0);
 
     // Get the TTY state
     Tty term = ttys[tty_id];
@@ -442,6 +431,22 @@ int KernelTtyWrite(int tty_id, void *buf, int len, UserContext *user_context) {
 
     // When control returns here, return success
     return THEYNIX_EXIT_SUCCESS;
+}
+int KernelTtyWrite(int tty_id, void *buf, int len, UserContext *user_context) {
+    if (tty_id < 0 || tty_id >= NUM_TERMINALS) {
+        TracePrintf(TRACE_LEVEL_TERMINAL_PROBLEM, "Program tried to write to invalid term\n");
+        return THEYNIX_EXIT_FAILURE;
+    }
+    if (len < 0) {
+        TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "negative print length\n");
+        return THEYNIX_EXIT_FAILURE;
+    }
+    if (!ValidateUserArg((unsigned int) buf, len, PROT_READ)) {
+        TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "Invalid write string\n");
+        return THEYNIX_EXIT_FAILURE;
+    }
+
+    return KernelTtyWriteInternal(tty_id, buf, len, user_context);
 }
 
 int KernelPipeInit(int *pipe_idp) {

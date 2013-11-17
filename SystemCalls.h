@@ -23,6 +23,8 @@ int KernelDelay(int clock_ticks, UserContext *user_context);
 
 int KernelTtyRead(int tty_id, void *buf, int len, UserContext *user_context);
 
+int KernelTtyWriteInternal(int tty_id, void *buf, int len, UserContext *user_context);
+
 int KernelTtyWrite(int tty_id, void *buf, int len, UserContext *user_context);
 
 int KernelPipeInit(int *pipe_idp);
