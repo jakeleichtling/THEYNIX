@@ -237,12 +237,12 @@ void TrapTtyRecieve(UserContext *user_context) {
         char *input = calloc(TERMINAL_MAX_LINE, sizeof(char));
         int input_length = TtyReceive(tty_id, input, TERMINAL_MAX_LINE);
         if (input_length <= waiting_proc->tty_receive_len) {
-            strncpy(waiting_proc->tty_receive_buffer, input, input_length);
+            memcpy(waiting_proc->tty_receive_buffer, input, input_length);
         } else {
-            strncpy(waiting_proc->tty_receive_buffer, input, waiting_proc->tty_receive_len);
+            memcpy(waiting_proc->tty_receive_buffer, input, waiting_proc->tty_receive_len);
             int remaining_length = input_length - waiting_proc->tty_receive_len;
             char *remaining = calloc(remaining_length, sizeof(char));
-            strncpy(remaining, input + waiting_proc->tty_receive_len, remaining_length);
+            memcpy(remaining, input + waiting_proc->tty_receive_len, remaining_length);
             LineBuffer *lb = calloc(1, sizeof(LineBuffer));
             lb->buffer = input;
             lb->length = remaining_length;

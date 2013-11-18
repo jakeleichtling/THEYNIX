@@ -366,19 +366,17 @@ int KernelTtyRead(int tty_id, void *buf, int len, UserContext *user_context) {
     Tty term = ttys[tty_id];
 
     // If the TTY has any line buffers, then consume as much as is there up to len
-    int consumed = 0;
     LineBuffer *lb = (LineBuffer *) ListDequeue(term.line_buffers);
     if (lb) { // at least one line waiting to be consumed
-        strncpy(buf, lb->buffer, len);
+        memcpy(buf, lb->buffer, len);
         if (lb->length > len) {
             int leftovers_length = lb->length - len;
             char *leftovers = calloc(leftovers_length, sizeof(char));
-            strncpy(leftovers, lb->buffer + consumed, leftovers_length);
+            memcpy(leftovers, lb->buffer, leftovers_length);
             free(lb->buffer);
             lb->buffer = leftovers;
             lb->length = leftovers_length;
             ListPush(term.line_buffers, lb, 0);
-
             return len;
         } else {
             int copied = lb->length;
@@ -396,7 +394,7 @@ int KernelTtyRead(int tty_id, void *buf, int len, UserContext *user_context) {
 
     // When control returns here, the process copies tty_recieve_buf to buf, frees tty_receive_buf,
     // and returns tty_receive_len.
-    strncpy(buf, current_proc->tty_receive_buffer, len);
+    memcpy(buf, current_proc->tty_receive_buffer, len);
     int copied;
     if (current_proc->tty_receive_len > len) {
         copied = len;
@@ -421,7 +419,7 @@ int KernelTtyWriteInternal(int tty_id, void *buf, int len, UserContext *user_con
     // Copy first len chars of buf into a kernel heap string poitned to by tty_transmit_buffer
     // Set tty_transmit_pointer to tty_transmit_buffer
     current_proc->tty_transmit_buffer = calloc(len, sizeof(char));
-    strncpy(current_proc->tty_transmit_buffer, buf, len);
+    memcpy(current_proc->tty_transmit_buffer, buf, len);
     current_proc->tty_transmit_pointer = current_proc->tty_transmit_buffer;
 
     bool queue_prev_empty = ListEmpty(term.waiting_to_transmit);
