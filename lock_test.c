@@ -52,9 +52,10 @@ int main(int argc, char *argv[]) {
         for (i = 0; i < n; i++) {
             Wait(&status);
         }
+
+        Reclaim(lock_id);
     }
 
-    Reclaim(lock_id);
 
     return 0;
 }
