@@ -189,6 +189,8 @@ int KernelExec(char *filename, char **argvec, UserContext *user_context_ptr) {
     return THEYNIX_EXIT_SUCCESS;
 }
 
+// Documentation notes:
+// If the process currently owns any locks, we will release them
 void KernelExit(int status, UserContext *user_context) {
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> KernelExit(%p)\n", user_context);
     // If initial process, halt system
@@ -196,6 +198,13 @@ void KernelExit(int status, UserContext *user_context) {
         TracePrintf(TRACE_LEVEL_TERMINAL_PROBLEM, "Init Proc exited w/ status %d. Halting!\n", status);
         Halt();
     }
+
+    // Release any locks
+    while(!ListEmpty(current_proc->owned_lock_ids)) {
+        int lock_id = (int) ListDequeue(current_proc->owned_lock_ids);
+        KernelRelease(lock_id);
+    }
+    ListDestroy(current_proc->owned_lock_ids);
 
     // Empty out child lists
     while (!ListEmpty(current_proc->live_children)) {
@@ -211,9 +220,12 @@ void KernelExit(int status, UserContext *user_context) {
     }
     ListDestroy(current_proc->zombie_children);
 
-
     // Save exit status
     current_proc->exit_status = status;
+
+    // clean up any the rest of the buffers
+    free(current_proc->tty_receive_buffer);
+    free(current_proc->tty_transmit_buffer);
 
     // Free all frames
     FreeRegion1PageTable(current_proc, unused_frames);
@@ -533,6 +545,10 @@ int KernelPipeWrite(int pipe_id, void *buf, int len, UserContext *user_context) 
 }
 
 int KernelLockInit(int *lock_idp) {
+    if (!ValidateUserArg((unsigned int) lock_idp, sizeof(int), PROT_READ | PROT_WRITE)){
+        return THEYNIX_EXIT_FAILURE;
+    }
+
     // Make a new lock.
     Lock *lock = LockNewLock();
 
@@ -565,18 +581,19 @@ int KernelAcquire(int lock_id, UserContext *user_context) {
     if (!lock->acquired) {
         lock->acquired = true;
         lock->owner_id = current_proc->pid;
-
+        ListEnqueue(current_proc->owned_lock_ids, (void *) lock->id, lock->id);
         return THEYNIX_EXIT_SUCCESS;
     }
 
     // Otherwise, add ourselves to waiting queue for the lock
     // and context switch.
-    ListEnqueue(lock->waiting_procs, current_proc, current_proc->pid);
+    ListEnqueue(lock->waiting_procs, (void *) current_proc, current_proc->pid);
     SwitchToNextProc(user_context);
 
     // Once we return, we have the lock and are out of the waiting procs list!
     assert(lock->owner_id == current_proc->pid);
     assert(lock->acquired);
+    assert(ListFindById(current_proc->owned_lock_ids, lock->id));
     return THEYNIX_EXIT_SUCCESS;
 }
 
@@ -596,16 +613,19 @@ int KernelRelease(int lock_id) {
         return ERROR;
     }
 
+    // should definitely be in there
+    assert(ListRemoveById(current_proc->owned_lock_ids, lock->id));
+
     // If there are no processes waiting on the lock, mark it as available and return.
     if (ListEmpty(lock->waiting_procs)) {
         lock->acquired = false;
-
         return THEYNIX_EXIT_SUCCESS;
     }
 
     // Pop a process from the waiting queue, give the lock to it, and put it on the ready queue.
     PCB *unblocked_proc = (PCB *) ListDequeue(lock->waiting_procs);
     lock->owner_id = unblocked_proc->pid;
+    ListEnqueue(unblocked_proc->owned_lock_ids, (void *) lock->id, lock->id);
     ListEnqueue(ready_queue, unblocked_proc, unblocked_proc->pid);
 
     return THEYNIX_EXIT_SUCCESS;

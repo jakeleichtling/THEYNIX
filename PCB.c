@@ -27,6 +27,7 @@ PCB *NewBlankPCB(UserContext model_user_context) {
     // Initialize lists.
     new_pcb->live_children = ListNewList();
     new_pcb->zombie_children = ListNewList();
+    new_pcb->owned_lock_ids = ListNewList();
 
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< NewBlankPCB()\n\n");
     return new_pcb;

@@ -125,7 +125,11 @@ void TrapClock(UserContext *user_context) {
 
 void TrapIllegal(UserContext *user_context) {
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> TrapIllegal(%p)\n", user_context);
-    KernelExit(KILLED_TRAP_ILLEGAL, user_context);
+    char *err_str = calloc(TERMINAL_MAX_LINE, sizeof(char));
+    sprintf(err_str, "TRAP_ILLEGAL exception for proc %d\n", current_proc->pid);
+    KernelTtyWriteInternal(0, err_str, strnlen(err_str, TERMINAL_MAX_LINE), user_context);
+    free(err_str);
+    KernelExit(THEYNIX_EXIT_FAILURE, user_context);
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< TrapIllegal(%p)\n", user_context);
 }
 
@@ -208,7 +212,11 @@ void TrapMemory(UserContext *user_context) {
 void TrapMath(UserContext *user_context) {
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> TrapMath(%p)\n", user_context);
     TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "Killing proc on trap math \n");
-    KernelExit(KILLED_TRAP_MATH, user_context);
+    char *err_str = calloc(TERMINAL_MAX_LINE, sizeof(char));
+    sprintf(err_str, "TRAP_MATH exception for proc %d\n", current_proc->pid);
+    KernelTtyWriteInternal(0, err_str, strnlen(err_str, TERMINAL_MAX_LINE), user_context);
+    free(err_str);
+    KernelExit(THEYNIX_EXIT_FAILURE, user_context);
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< TrapMath(%p)\n", user_context);
 }
 

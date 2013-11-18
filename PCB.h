@@ -33,6 +33,7 @@ struct PCB {
     PCB *live_parent;
     List *live_children;
     List *zombie_children;
+    List *owned_lock_ids;
 
     bool waiting_on_children;
 
