@@ -130,7 +130,7 @@ void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {
     rc = LoadProgram(init_program_name, cmd_args, init_proc);
     if (rc != SUCCESS) {
         TracePrintf(TRACE_LEVEL_TERMINAL_PROBLEM, "KernelStart: FAILED TO LOAD INIT!!\n");
-        exit(THEYNIX_EXIT_FAILURE);
+        exit(ERROR);
     }
 
     // Make init the current proc.
