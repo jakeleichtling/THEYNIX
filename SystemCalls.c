@@ -133,14 +133,6 @@ int KernelExec(char *filename, char **argvec, UserContext *user_context_ptr) {
     char **heap_argvec = NULL;
     int num_args = 0;
 
-    // Validate argvec char * array.
-    char **argvec_ptr = argvec;
-    while (argvec_ptr)
-    if (!ValidateUserString(argvec)) {
-        TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "Invalid char array for exec args\n");
-        return ERROR;
-    }
-
     if (argvec) {
         // Validate argvec char * array.
         char **argvec_ptr = argvec;
