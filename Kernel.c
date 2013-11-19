@@ -115,7 +115,7 @@ void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {
     int rc = LoadProgram("idle", NULL, idle_proc);
     if (rc != SUCCESS) {
         TracePrintf(TRACE_LEVEL_TERMINAL_PROBLEM, "KernelStart: FAILED TO LOAD IDLE!!\n");
-        exit(THEYNIX_EXIT_FAILURE);
+        exit(-1);
     }
 
     // Load the init program.
