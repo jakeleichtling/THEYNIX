@@ -169,7 +169,7 @@ int SetKernelBrk(void *addr) {
                 if (rc == THEYNIX_EXIT_FAILURE) {
                     TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM,
                             "MapNewRegion0Page(%u) failed.\n", new_page);
-                    return THEYNIX_EXIT_FAILURE;
+                    return ERROR;
                 }
             }
         } else if (new_kernel_brk_page < kernel_brk_page) {
