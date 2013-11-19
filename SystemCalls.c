@@ -145,6 +145,8 @@ int KernelExec(char *filename, char **argvec, UserContext *user_context_ptr) {
             if (!(*argvec_ptr)) { // We've reached the end of argvec.
                 break;
             }
+
+            argvec_ptr++;
         }
 
         int i;
