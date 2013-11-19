@@ -166,7 +166,7 @@ int SetKernelBrk(void *addr) {
                     new_page < new_kernel_brk_page && new_page < kernel_stack_base_frame;
                     new_page++) {
                 int rc = MapNewRegion0Page(new_page, unused_frames);
-                if (rc == THEYNIX_EXIT_FAILURE) {
+                if (rc == ERROR) {
                     TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM,
                             "MapNewRegion0Page(%u) failed.\n", new_page);
                     return ERROR;
@@ -393,7 +393,7 @@ void InitBookkeepingStructs() {
 void SaveKernelContext() {
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> SaveKernelContext()\n");
     int rc = KernelContextSwitch(&SaveCurrentKernelContext, current_proc, NULL);
-    if (THEYNIX_EXIT_SUCCESS == rc) {
+    if (SUCCESS == rc) {
         TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Succesfully saved kernel context!\n");
     } else {
         TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "Failed to save kernel context!\n");
