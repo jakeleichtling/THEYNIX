@@ -32,7 +32,7 @@ bool ValidatePage(unsigned int page, unsigned long permissions) {
 }
 
 bool ValidateUserArg(unsigned int arg, int num_bytes, unsigned long permissions) {
-    if (arg > VMEM_1_LIMIT) {
+    if (arg >= VMEM_1_LIMIT) {
         return false;
     }
     if (arg < VMEM_1_BASE) {
@@ -52,21 +52,21 @@ bool ValidateUserArg(unsigned int arg, int num_bytes, unsigned long permissions)
 
 // validate string arg for read access
 bool ValidateUserString(char *str) {
-    if (((unsigned int) str) > VMEM_1_LIMIT) {
+    if (((unsigned int) str) >= VMEM_1_LIMIT) {
         return false;
     }
     if (((unsigned int) str) < VMEM_1_BASE) {
         return false;
     }
 
-    int start_page = ADDR_TO_PAGE(str - VMEM_1_BASE);
+    int start_page = ADDR_TO_PAGE(((unsigned int) str) - VMEM_1_BASE);
     if (!ValidatePage(start_page, PROT_READ)) {
         return false;
     }
-    int current_page = start_page;
+    int current_page;
     while (*str != '\0') {
        str++;
-       current_page = ADDR_TO_PAGE(str - VMEM_1_BASE);
+       current_page = ADDR_TO_PAGE(((unsigned int) str) - VMEM_1_BASE);
        if (!ValidatePage(current_page, PROT_READ)) {
            return false;
        }
@@ -120,7 +120,7 @@ int KernelExec(char *filename, char **argvec, UserContext *user_context_ptr) {
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> KernelExec()\n");
     if (!ValidateUserString(filename)) {
         TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "Invalid filename str for exec\n");
-        return THEYNIX_EXIT_FAILURE;
+        return ERROR;
     }
 
     // Copy the filename string and arguments to the Kernel heap.
@@ -132,21 +132,22 @@ int KernelExec(char *filename, char **argvec, UserContext *user_context_ptr) {
     TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Mark 2\n");
     char **heap_argvec = NULL;
     int num_args = 0;
+
+    // Validate argvec char * array.
+    if (!ValidateUserString(argvec)) {
+        TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "Invalid char array for exec args\n");
+        return ERROR;
+    }
+
     if (argvec) {
         int i;
         for (i = 0; argvec[i]; i++, num_args++);
-
-        // Validate char* array
-        if (!ValidateUserArg((unsigned int) argvec, num_args, PROT_READ)) {
-            TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "Invalid char array for exec args\n");
-            return THEYNIX_EXIT_FAILURE;
-        }
 
         // Validate each string
         for (i = 0; i < num_args; i++) {
             if (!ValidateUserString(argvec[i])) {
                 TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "Invalid string for exec arg %d\n", i);
-                return THEYNIX_EXIT_FAILURE;
+                return ERROR;
             }
         }
 
@@ -255,10 +256,11 @@ void KernelExit(int status, UserContext *user_context) {
 
 int KernelWait(int *status_ptr, UserContext *user_context) {
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> KernelWait(%p)\n", user_context);
-    if (!ValidateUserArg((unsigned int) status_ptr, sizeof(int *), PROT_READ | PROT_WRITE)) {
-        TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "Invalid stats ptr in wait\n");
-        return THEYNIX_EXIT_FAILURE;
+    if (!ValidateUserArg((unsigned int) status_ptr, sizeof(int), PROT_WRITE)) {
+        TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "Invalid status ptr in wait\n");
+        return ERROR;
     }
+
     // If zombie children list is not empty, collect exit status of one, remove PCB from list, and free
     if (!ListEmpty(current_proc->zombie_children)) {
         PCB *child = (PCB *) ListDequeue(current_proc->zombie_children);
@@ -271,7 +273,7 @@ int KernelWait(int *status_ptr, UserContext *user_context) {
 
     // If no live children, return error
     if (ListEmpty(current_proc->live_children)) {
-        return THEYNIX_EXIT_FAILURE;
+        return ERROR;
     }
     current_proc->waiting_on_children = true;
     SwitchToNextProc(user_context);
@@ -303,7 +305,7 @@ int KernelBrk(void *addr) {
         TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM,
                 "Address passed to KernelBrk() (%p) does not leave a blank page between heap and user stack page (%d).\n",
                 new_user_brk_page, current_proc->lowest_user_stack_page);
-        return THEYNIX_EXIT_FAILURE;
+        return ERROR;
     }
 
     if (new_user_brk_page > current_proc->user_brk_page) {
@@ -312,7 +314,7 @@ int KernelBrk(void *addr) {
         if (rc == THEYNIX_EXIT_FAILURE) {
             TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM,
                     "MapNewRegion1Pages() failed.\n");
-            return THEYNIX_EXIT_FAILURE;
+            return ERROR;
         }
     } else if (new_user_brk_page < current_proc->user_brk_page) {
         UnmapRegion1Pages(current_proc, unused_frames, new_user_brk_page,
@@ -328,7 +330,7 @@ int KernelDelay(int clock_ticks, UserContext *user_context) {
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> KernelDelay(ticks=%d)\n", clock_ticks);
     // If clock_ticks < 0, return error
     if (clock_ticks < 0) {
-        return THEYNIX_EXIT_FAILURE;
+        return ERROR;
     }
 
     // If clock_ticks == 0, return success
@@ -352,15 +354,15 @@ int KernelDelay(int clock_ticks, UserContext *user_context) {
 int KernelTtyRead(int tty_id, void *buf, int len, UserContext *user_context) {
     if (tty_id < 0 || tty_id >= NUM_TERMINALS) {
         TracePrintf(TRACE_LEVEL_TERMINAL_PROBLEM, "Program tried to read from invalid term\n");
-        return THEYNIX_EXIT_FAILURE;
+        return ERROR;
     }
     if (len < 0) {
         TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "negative print length\n");
-        return THEYNIX_EXIT_FAILURE;
+        return ERROR;
     }
-    if (!ValidateUserArg((unsigned int) buf, len, PROT_READ | PROT_WRITE)) {
-        TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "Invalid read string\n");
-        return THEYNIX_EXIT_FAILURE;
+    if (!ValidateUserArg((unsigned int) buf, len, PROT_WRITE)) {
+        TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "Buffer passed to KernelTtyRead() is not writable by the user program.\n");
+        return ERROR;
     }
     // Get the TTY state
     Tty term = ttys[tty_id];
@@ -442,26 +444,27 @@ int KernelTtyWriteInternal(int tty_id, void *buf, int len, UserContext *user_con
     // When control returns here, return success
     return THEYNIX_EXIT_SUCCESS;
 }
+
 int KernelTtyWrite(int tty_id, void *buf, int len, UserContext *user_context) {
     if (tty_id < 0 || tty_id >= NUM_TERMINALS) {
         TracePrintf(TRACE_LEVEL_TERMINAL_PROBLEM, "Program tried to write to invalid term\n");
-        return THEYNIX_EXIT_FAILURE;
+        return ERROR;
     }
     if (len < 0) {
         TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "negative print length\n");
-        return THEYNIX_EXIT_FAILURE;
+        return ERROR;
     }
     if (!ValidateUserArg((unsigned int) buf, len, PROT_READ)) {
-        TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "Invalid write string\n");
-        return THEYNIX_EXIT_FAILURE;
+        TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "The buffer passed to KernelTtyWrite() is not readable by the user program.\n");
+        return ERROR;
     }
 
     return KernelTtyWriteInternal(tty_id, buf, len, user_context);
 }
 
 int KernelPipeInit(int *pipe_idp) {
-    if (!ValidateUserArg((unsigned int) pipe_idp, sizeof(int), PROT_READ | PROT_WRITE)){
-        return THEYNIX_EXIT_FAILURE;
+    if (!ValidateUserArg((unsigned int) pipe_idp, sizeof(int), PROT_WRITE)){
+        return ERROR;
     }
 
     // Make a new rod
@@ -479,18 +482,19 @@ int KernelPipeInit(int *pipe_idp) {
 
 int KernelPipeRead(int pipe_id, void *buf, int len, UserContext *user_context) {
     if (len <= 0) {
-        return THEYNIX_EXIT_FAILURE;
+        return ERROR;
     }
 
-    if (!ValidateUserArg((unsigned int) buf, sizeof(char) * len, PROT_WRITE)) {
-        return THEYNIX_EXIT_FAILURE;
+    if (!ValidateUserArg((unsigned int) buf, len, PROT_WRITE)) {
+        TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "The buffer passed to KernelPipeRead() is not writable by the user program.\n");
+        return ERROR;
     }
 
     // Get the pipe
     Pipe *p = (Pipe *) ListFindById(pipes, pipe_id);
     if (!p) {
         TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "No pipe exists for id %d\n", pipe_id);
-        return THEYNIX_EXIT_FAILURE;
+        return ERROR;
     }
 
     // Block until there are enough chars available
@@ -503,18 +507,19 @@ int KernelPipeRead(int pipe_id, void *buf, int len, UserContext *user_context) {
 
 int KernelPipeWrite(int pipe_id, void *buf, int len, UserContext *user_context) {
     if (len <= 0) {
-        return THEYNIX_EXIT_FAILURE;
+        return ERROR;
     }
 
     if (!ValidateUserArg((unsigned int) buf, sizeof(char) * len, PROT_READ)) {
-        return THEYNIX_EXIT_FAILURE;
+        TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "The buffer passed to KernelPipeRead() is not writable by the user program.\n");
+        return ERROR;
     }
 
     // Get the pipe
     Pipe *p = (Pipe *) ListFindById(pipes, pipe_id);
     if (!p) {
         TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "No pipe exists for id %d\n", pipe_id);
-        return THEYNIX_EXIT_FAILURE;
+        return ERROR;
     }
 
     // Write into pipe's buffer, expanding buffer capacity if necessary
@@ -544,7 +549,7 @@ int KernelPipeWrite(int pipe_id, void *buf, int len, UserContext *user_context) 
 
 int KernelLockInit(int *lock_idp) {
     if (!ValidateUserArg((unsigned int) lock_idp, sizeof(int), PROT_READ | PROT_WRITE)){
-        return THEYNIX_EXIT_FAILURE;
+        return ERROR;
     }
 
     // Make a new lock.
@@ -631,7 +636,7 @@ int KernelRelease(int lock_id) {
 
 int KernelCvarInit(int *cvar_idp) {
     if (!ValidateUserArg((unsigned int) cvar_idp, sizeof(int), PROT_READ | PROT_WRITE)){
-        return THEYNIX_EXIT_FAILURE;
+        return ERROR;
     }
     // Make a new cvar.
     CVar *cvar = CVarNewCVar();
@@ -724,11 +729,11 @@ int KernelReclaim(int id) {
     if (l) { // resource was lock
         if (l->acquired) {
             TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "Lock acquired, can't free\n");
-            return THEYNIX_EXIT_FAILURE;
+            return ERROR;
         }
         if (!ListEmpty(l->waiting_procs)) {
             TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "Procs waiting on lock, can't free\n");
-            return THEYNIX_EXIT_FAILURE;
+            return ERROR;
         }
         return THEYNIX_EXIT_SUCCESS;
     }
@@ -737,7 +742,7 @@ int KernelReclaim(int id) {
     if (c) { // resource was cvar
         if (!ListEmpty(c->waiting_procs)) {
             TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "Procs waiting on cvar, can't free\n");
-            return THEYNIX_EXIT_FAILURE;
+            return ERROR;
         }
         return THEYNIX_EXIT_SUCCESS;
     }
@@ -745,13 +750,13 @@ int KernelReclaim(int id) {
     Pipe *p = ListRemoveById(pipes, id);
     if (p) { //resource was pipe
         if (!ListEmpty(p->waiting_to_read)) {
-            TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, 
+            TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM,
                 "Procs waiting to read on pipe, can't free\n");
-            return THEYNIX_EXIT_FAILURE;
+            return ERROR;
         }
         return THEYNIX_EXIT_SUCCESS;
     }
 
     TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "%d is not a valid resource id\n", id);
-    return THEYNIX_EXIT_FAILURE;
+    return ERROR;
 }
