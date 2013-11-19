@@ -50,7 +50,7 @@ int GetUnusedFrame(UnusedFrames unused_frames) {
     }
 
     TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "No unused frame.\n");
-    return THEYNIX_EXIT_FAILURE;
+    return ERROR;
 }
 
 /*
