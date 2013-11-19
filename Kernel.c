@@ -169,17 +169,18 @@ int SetKernelBrk(void *addr) {
                 if (rc == ERROR) {
                     TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM,
                             "MapNewRegion0Page(%u) failed.\n", new_page);
-                    return ERROR;
+                    return -1;
                 }
             }
         } else if (new_kernel_brk_page < kernel_brk_page) {
             unsigned int page_to_free;
             for (page_to_free = kernel_brk_page - 1;
                     page_to_free >= new_kernel_brk_page;
-                    page_to_free--)
+                    page_to_free--) {
                 if (page_to_free < kernel_stack_base_frame) {
                     UnmapUsedRegion0Page(page_to_free, unused_frames);
                 }
+            }
         }
     }
 
