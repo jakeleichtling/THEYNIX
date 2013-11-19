@@ -54,7 +54,7 @@ PCB *NewBlankPCBWithPageTables(UserContext model_user_context, UnusedFrames unus
     unsigned int i;
     for (i = 0; i < NUM_KERNEL_PAGES; i++) {
         int newly_allocated_frame = GetUnusedFrame(unused_frames);
-        if (newly_allocated_frame == THEYNIX_EXIT_FAILURE) {
+        if (newly_allocated_frame < 0) {
             TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "GetUnusedFrame() failed.\n");
 
             // Release the frames we allocated.
