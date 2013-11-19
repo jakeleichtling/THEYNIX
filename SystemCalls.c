@@ -84,7 +84,7 @@ int KernelFork(UserContext *user_context) {
     PCB *child_pcb = NewBlankPCBWithPageTables(current_proc->user_context, unused_frames);
 
     if (!child_pcb) {
-        TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "Error creating ")
+        TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "Error creating fork child PCB.\n");
         return ERROR;
     }
 
