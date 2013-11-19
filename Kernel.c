@@ -252,7 +252,7 @@ void CopyKernelStackPageTableAndData(PCB *source, PCB *dest) {
 
   Sets the TLB to point back to the source region 1 page table and flush.
 */
-void CopyRegion1PageTableAndData(PCB *source, PCB *dest) { // make sure dest has a region 1 page table calloced
+int CopyRegion1PageTableAndData(PCB *source, PCB *dest) { // make sure dest has a region 1 page table calloced
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> CopyRegion1PageTableAndData()\n");
 
     int i; // Must not be unsigned!

@@ -64,7 +64,7 @@ void SaveKernelContext();
 // (e.g., ready queue, clock blocked queue)
 void SwitchToNextProc(UserContext *user_context);
 
-void CopyRegion1PageTableAndData(PCB *source, PCB *dest);
+int CopyRegion1PageTableAndData(PCB *source, PCB *dest);
 
 void SwitchToProc(PCB *next_proc, UserContext *user_context);
 
