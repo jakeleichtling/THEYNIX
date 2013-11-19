@@ -182,7 +182,7 @@ void exitBridge(int direction, int name) {
 
 void bridgeLockAcquire(int mutex) {
     int rc = Acquire(mutex);
-    if (rc != THEYNIX_EXIT_SUCCESS) {
+    if (rc != SUCCESS) {
         TracePrintf(TRACE_LEVEL_TERMINAL_PROBLEM, "FAILED TO ACQUIRE LOCK\n");
         Exit(-1);
     }
@@ -192,7 +192,7 @@ void bridgeLockAcquire(int mutex) {
 void bridgeLockRelease(int mutex) {
     writeBridgeToPipe();
     int rc = Release(mutex);
-    if (rc != THEYNIX_EXIT_SUCCESS) {
+    if (rc != SUCCESS) {
         TracePrintf(TRACE_LEVEL_TERMINAL_PROBLEM, "FAILED TO RELEASE LOCK\n");
         Exit(-1);
     }
@@ -201,7 +201,7 @@ void bridgeLockRelease(int mutex) {
 void bridgeCvarWait(int mutex, int lock) {
     writeBridgeToPipe();
     int rc = CvarWait(mutex, lock);
-    if (rc != THEYNIX_EXIT_SUCCESS) {
+    if (rc != SUCCESS) {
         TracePrintf(TRACE_LEVEL_TERMINAL_PROBLEM, "CVAR WAIT FAILED\n");
         Exit(-1);
     }
