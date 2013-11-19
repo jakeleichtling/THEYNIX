@@ -37,10 +37,14 @@ int MapNewRegion1Pages(PCB *pcb, UnusedFrames unused_frames, unsigned int start_
         assert(!(pcb->region_1_page_table[page_num].valid));
 
         pcb->region_1_page_table[page_num].pfn = GetUnusedFrame(unused_frames);
-        if (pcb->region_1_page_table[page_num].pfn == THEYNIX_EXIT_FAILURE) {
+        if (pcb->region_1_page_table[page_num].pfn == ERROR) {
             TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM,
                     "Not enough unused physical frames to complete request.\n");
-            return THEYNIX_EXIT_FAILURE;
+
+            // Unmap pages that were mapped.
+            UnmapRegion1Pages(pcb, unused_frames, start_page_num, page_num - start_page_num);
+
+            return ERROR;
         }
 
         pcb->region_1_page_table[page_num].prot = prot;
@@ -48,7 +52,7 @@ int MapNewRegion1Pages(PCB *pcb, UnusedFrames unused_frames, unsigned int start_
     }
 
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< MapNewRegion1Pages()\n\n");
-    return THEYNIX_EXIT_SUCCESS;
+    return SUCCESS;
 }
 
 /*

@@ -14,16 +14,6 @@
 #define TRACE_LEVEL_NON_TERMINAL_PROBLEM 2
 #define TRACE_LEVEL_TERMINAL_PROBLEM 1
 
-/*
-  Generic success and failure codes.
-*/
-#define THEYNIX_EXIT_SUCCESS 0
-#define THEYNIX_EXIT_FAILURE -1
-
-//#define ERROR THEYNIX_EXIT_FAILURE TODO: conflicts with yalnix.h!!!
-#define SUCCESS THEYNIX_EXIT_SUCCESS
-
-
 // Kill Signals
 #define KILLED_OUT_OF_FRAMES -10
 #define KILLED_INVALID_MEM -11

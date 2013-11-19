@@ -12,6 +12,10 @@ extern unsigned int next_synch_resource_id;
 Pipe *PipeNewPipe() {
     Pipe *p = calloc(1, sizeof(Pipe));
     p->id = next_synch_resource_id++;
+
+    p->num_chars_available = 0;
+    p->buffer_capacity = 0;
+
     p->waiting_to_read = ListNewList();
     return p;
 }

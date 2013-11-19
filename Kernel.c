@@ -26,8 +26,6 @@ void Idle();
 */
 void InitBookkeepingStructs();
 
-KernelContext *CopyKernelContextAndStack(KernelContext *kernel_context, void *__current_pcb,
-        void *__next_pcb);
 KernelContext *SaveCurrentKernelContext(KernelContext *kernel_context, void *current_pcb, void *next_pcb);
 
 KernelContext *SaveKernelContextAndSwitch(KernelContext *kernel_context, void *current_pcb, void *next_pcb);
@@ -267,6 +265,20 @@ void CopyRegion1PageTableAndData(PCB *source, PCB *dest) { // make sure dest has
             dest->region_1_page_table[i].valid = 1;
             dest->region_1_page_table[i].prot = PROT_WRITE;
             dest->region_1_page_table[i].pfn = GetUnusedFrame(unused_frames);
+
+            if (dest->region_1_page_table[i].pfn < 0) {
+                // Not enough physical frames, so released the ones we used and return error.
+                int j;
+                for (j = 0; j < i; j++) {
+                    if (dest->region_1_page_table[i].valid) {
+                        dest->region_1_page_table[i].valid = false;
+                        ReleaseUsedFrame(unused_frames, dest->region_1_page_table[i].pfn);
+                    }
+                }
+
+                TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "Not enough unused frames to complete request.\n");
+                return ERROR;
+            }
         }
     }
 
@@ -420,7 +432,7 @@ void SwitchToProc(PCB *next_proc, UserContext *user_context) {
     PCB *old_proc = current_proc;
     current_proc = next_proc;
     int rc = KernelContextSwitch(&SaveKernelContextAndSwitch, old_proc, next_proc);
-    if (THEYNIX_EXIT_SUCCESS == rc) {
+    if (SUCCESS == rc) {
         TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Succesfully switched kernel context!\n");
     } else {
         TracePrintf(TRACE_LEVEL_TERMINAL_PROBLEM, "Failed to switch kernel context!\n");
@@ -433,19 +445,6 @@ void SwitchToProc(PCB *next_proc, UserContext *user_context) {
 
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< SwitchToProc()\n");
 }
-
-KernelContext *CopyKernelContextAndStack(KernelContext *kernel_context, void *__current_pcb,
-        void *__next_pcb) {
-    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> CopyKernelContextAndStack()\n");
-    PCB *current_pcb = (PCB *) __current_pcb;
-    PCB *next_pcb = (PCB *) __next_pcb;
-    next_pcb->kernel_context = current_pcb->kernel_context;
-    CopyKernelStackPageTableAndData(current_pcb, next_pcb);
-    next_pcb->kernel_context_initialized = true;
-    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< CopyKernelContextAndStack()\n");
-    return kernel_context;
-}
-
 
 KernelContext *SaveCurrentKernelContext(KernelContext *kernel_context, void *current_pcb,
         void *next_pcb) {

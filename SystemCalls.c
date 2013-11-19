@@ -82,12 +82,21 @@ int KernelFork(UserContext *user_context) {
 
     // Make a new child PCB with the same user context as the parent.
     PCB *child_pcb = NewBlankPCBWithPageTables(current_proc->user_context, unused_frames);
+
+    if (!child_pcb) {
+        TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "Error creating ")
+        return ERROR;
+    }
+
     child_pcb->waiting_on_children = false;
     child_pcb->lowest_user_stack_page = current_proc->lowest_user_stack_page;
     child_pcb->user_brk_page = current_proc->user_brk_page;
 
     // Copy over region 1.
-    CopyRegion1PageTableAndData(current_proc, child_pcb);
+    if (CopyRegion1PageTableAndData(current_proc, child_pcb) == ERROR) {
+        TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "Could not copy region 1 page table and data.\n");
+        return ERROR;
+    }
 
     // Add the child to the parent's child list
     ListAppend(current_proc->live_children, child_pcb, child_pcb->pid);
@@ -196,7 +205,7 @@ int KernelExec(char *filename, char **argvec, UserContext *user_context_ptr) {
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< KernelExec()\n\n");
 
     // Return
-    return THEYNIX_EXIT_SUCCESS;
+    return SUCCESS;
 }
 
 // Documentation notes:
@@ -277,7 +286,7 @@ int KernelWait(int *status_ptr, UserContext *user_context) {
         // Since zombie, the page tables and children lists should have
         // already been freed, so only free PCB
         free(child);
-        return THEYNIX_EXIT_SUCCESS;
+        return SUCCESS;
     }
 
     // If no live children, return error
@@ -297,7 +306,7 @@ int KernelWait(int *status_ptr, UserContext *user_context) {
 
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< KernelWait()\n");
     // Return the exit status
-    return THEYNIX_EXIT_SUCCESS;
+    return SUCCESS;
 }
 
 int KernelGetPid(void) {
@@ -320,7 +329,7 @@ int KernelBrk(void *addr) {
     if (new_user_brk_page > current_proc->user_brk_page) {
         int rc = MapNewRegion1Pages(current_proc, unused_frames, current_proc->user_brk_page,
                 new_user_brk_page - current_proc->user_brk_page, PROT_READ | PROT_WRITE);
-        if (rc == THEYNIX_EXIT_FAILURE) {
+        if (rc == ERROR) {
             TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM,
                     "MapNewRegion1Pages() failed.\n");
             return ERROR;
@@ -344,7 +353,7 @@ int KernelDelay(int clock_ticks, UserContext *user_context) {
 
     // If clock_ticks == 0, return success
     if (0 == clock_ticks) {
-        return THEYNIX_EXIT_SUCCESS;
+        return SUCCESS;
     }
 
     // Set clock ticks remaining to clock_ticks
@@ -357,7 +366,7 @@ int KernelDelay(int clock_ticks, UserContext *user_context) {
 
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< KernelDelay()\n");
     // Return success
-    return THEYNIX_EXIT_SUCCESS;
+    return SUCCESS;
 }
 
 int KernelTtyRead(int tty_id, void *buf, int len, UserContext *user_context) {
@@ -451,7 +460,7 @@ int KernelTtyWriteInternal(int tty_id, void *buf, int len, UserContext *user_con
     SwitchToNextProc(user_context);
 
     // When control returns here, return success
-    return THEYNIX_EXIT_SUCCESS;
+    return SUCCESS;
 }
 
 int KernelTtyWrite(int tty_id, void *buf, int len, UserContext *user_context) {
@@ -486,7 +495,7 @@ int KernelPipeInit(int *pipe_idp) {
     *pipe_idp = p->id;
 
     // Return success
-    return THEYNIX_EXIT_SUCCESS;
+    return SUCCESS;
 }
 
 int KernelPipeRead(int pipe_id, void *buf, int len, UserContext *user_context) {
@@ -563,7 +572,8 @@ int KernelPipeWrite(int pipe_id, void *buf, int len, UserContext *user_context) 
 }
 
 int KernelLockInit(int *lock_idp) {
-    if (!ValidateUserArg((unsigned int) lock_idp, sizeof(int), PROT_READ | PROT_WRITE)){
+    if (!ValidateUserArg((unsigned int) lock_idp, sizeof(int), PROT_WRITE)){
+        TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "The int pointer passed to KernelLockInit() is not writable by the user process.\n");
         return ERROR;
     }
 
@@ -577,7 +587,7 @@ int KernelLockInit(int *lock_idp) {
     *lock_idp = lock->id;
 
     // Return success
-    return THEYNIX_EXIT_SUCCESS;
+    return SUCCESS;
 }
 
 int KernelAcquire(int lock_id, UserContext *user_context) {
@@ -592,7 +602,7 @@ int KernelAcquire(int lock_id, UserContext *user_context) {
 
     // If I already have the lock, do nothing and return.
     if (lock->acquired && lock->owner_id == current_proc->pid) {
-        return THEYNIX_EXIT_SUCCESS;
+        return SUCCESS;
     }
 
     // If the lock is available, take it and return.
@@ -600,7 +610,7 @@ int KernelAcquire(int lock_id, UserContext *user_context) {
         lock->acquired = true;
         lock->owner_id = current_proc->pid;
         ListEnqueue(current_proc->owned_lock_ids, (void *) lock->id, lock->id);
-        return THEYNIX_EXIT_SUCCESS;
+        return SUCCESS;
     }
 
     // Otherwise, add ourselves to waiting queue for the lock
@@ -612,7 +622,7 @@ int KernelAcquire(int lock_id, UserContext *user_context) {
     assert(lock->owner_id == current_proc->pid);
     assert(lock->acquired);
     assert(ListFindById(current_proc->owned_lock_ids, lock->id));
-    return THEYNIX_EXIT_SUCCESS;
+    return SUCCESS;
 }
 
 int KernelRelease(int lock_id) {
@@ -632,12 +642,13 @@ int KernelRelease(int lock_id) {
     }
 
     // should definitely be in there
-    assert(ListRemoveById(current_proc->owned_lock_ids, lock->id));
+    void *released_lock = ListRemoveById(current_proc->owned_lock_ids, lock->id);
+    assert(released_lock);
 
     // If there are no processes waiting on the lock, mark it as available and return.
     if (ListEmpty(lock->waiting_procs)) {
         lock->acquired = false;
-        return THEYNIX_EXIT_SUCCESS;
+        return SUCCESS;
     }
 
     // Pop a process from the waiting queue, give the lock to it, and put it on the ready queue.
@@ -646,11 +657,11 @@ int KernelRelease(int lock_id) {
     ListEnqueue(unblocked_proc->owned_lock_ids, (void *) lock->id, lock->id);
     ListEnqueue(ready_queue, unblocked_proc, unblocked_proc->pid);
 
-    return THEYNIX_EXIT_SUCCESS;
+    return SUCCESS;
 }
 
 int KernelCvarInit(int *cvar_idp) {
-    if (!ValidateUserArg((unsigned int) cvar_idp, sizeof(int), PROT_READ | PROT_WRITE)){
+    if (!ValidateUserArg((unsigned int) cvar_idp, sizeof(int), PROT_READ | PROT_WRITE)) {
         return ERROR;
     }
     // Make a new cvar.
@@ -663,7 +674,7 @@ int KernelCvarInit(int *cvar_idp) {
     *cvar_idp = cvar-> id;
 
     // Return success.
-    return THEYNIX_EXIT_SUCCESS;
+    return SUCCESS;
 }
 
 int KernelCvarSignal(int cvar_id) {
@@ -678,14 +689,14 @@ int KernelCvarSignal(int cvar_id) {
 
     // If no processes are waiting on the cvar, then return.
     if (ListEmpty(cvar->waiting_procs)) {
-        return THEYNIX_EXIT_SUCCESS;
+        return SUCCESS;
     }
 
     // Remove a process from the waiting queue and put it on the ready queue.
     PCB *waiting_proc = ListDequeue(cvar->waiting_procs);
     ListEnqueue(ready_queue, waiting_proc, waiting_proc->pid);
 
-    return THEYNIX_EXIT_SUCCESS;
+    return SUCCESS;
 }
 
 int KernelCvarBroadcast(int cvar_id) {
@@ -704,7 +715,7 @@ int KernelCvarBroadcast(int cvar_id) {
         ListEnqueue(ready_queue, waiting_proc, waiting_proc->pid);
     }
 
-    return THEYNIX_EXIT_SUCCESS;
+    return SUCCESS;
 }
 
 int KernelCvarWait(int cvar_id, int lock_id, UserContext *user_context) {
@@ -735,7 +746,7 @@ int KernelCvarWait(int cvar_id, int lock_id, UserContext *user_context) {
         return ERROR;
     }
 
-    return THEYNIX_EXIT_SUCCESS;
+    return SUCCESS;
 }
 
 int KernelReclaim(int id) {
@@ -750,7 +761,7 @@ int KernelReclaim(int id) {
             TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "Procs waiting on lock, can't free\n");
             return ERROR;
         }
-        return THEYNIX_EXIT_SUCCESS;
+        return SUCCESS;
     }
 
     CVar *c = ListRemoveById(cvars, id);
@@ -759,7 +770,7 @@ int KernelReclaim(int id) {
             TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "Procs waiting on cvar, can't free\n");
             return ERROR;
         }
-        return THEYNIX_EXIT_SUCCESS;
+        return SUCCESS;
     }
 
     Pipe *p = ListRemoveById(pipes, id);
@@ -769,7 +780,7 @@ int KernelReclaim(int id) {
                 "Procs waiting to read on pipe, can't free\n");
             return ERROR;
         }
-        return THEYNIX_EXIT_SUCCESS;
+        return SUCCESS;
     }
 
     TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "%d is not a valid resource id\n", id);
