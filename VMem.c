@@ -107,9 +107,9 @@ int MapNewRegion0Page(unsigned int page_number, UnusedFrames unused_frames) {
     assert(page_number < VMEM_0_LIMIT / PAGESIZE);
 
     int new_frame = GetUnusedFrame(unused_frames);
-    if (new_frame == THEYNIX_EXIT_FAILURE) {
+    if (new_frame < 0) {
         TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "GetUnusedFrame() failed.\n");
-        return THEYNIX_EXIT_FAILURE;
+        return ERROR;
     }
 
     assert(!region_0_page_table[page_number].valid);
@@ -122,7 +122,7 @@ int MapNewRegion0Page(unsigned int page_number, UnusedFrames unused_frames) {
     WriteRegister(REG_TLB_FLUSH, page_number << PAGESHIFT);
 
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< MapNewFrame0()\n\n");
-    return THEYNIX_EXIT_SUCCESS;
+    return SUCCESS;
 }
 
 /*
