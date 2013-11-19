@@ -334,6 +334,8 @@ int CopyRegion1PageTableAndData(PCB *source, PCB *dest) { // make sure dest has 
     free(temp_region_1_page_table);
 
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< CopyRegion1PageTableAndData()\n\n");
+
+    return SUCCESS;
 }
 
 /*
