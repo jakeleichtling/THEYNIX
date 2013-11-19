@@ -134,12 +134,27 @@ int KernelExec(char *filename, char **argvec, UserContext *user_context_ptr) {
     int num_args = 0;
 
     // Validate argvec char * array.
+    char **argvec_ptr = argvec;
+    while (argvec_ptr)
     if (!ValidateUserString(argvec)) {
         TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "Invalid char array for exec args\n");
         return ERROR;
     }
 
     if (argvec) {
+        // Validate argvec char * array.
+        char **argvec_ptr = argvec;
+        while (true) {
+            if (!ValidateUserArg((unsigned int) argvec_ptr, sizeof(char *), PROT_READ)) {
+                TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "Invalid string array for exec args\n");
+                return ERROR;
+            }
+
+            if (!(*argvec_ptr)) { // We've reached the end of argvec.
+                break;
+            }
+        }
+
         int i;
         for (i = 0; argvec[i]; i++, num_args++);
 
@@ -481,8 +496,11 @@ int KernelPipeInit(int *pipe_idp) {
 }
 
 int KernelPipeRead(int pipe_id, void *buf, int len, UserContext *user_context) {
-    if (len <= 0) {
+    if (len < 0) {
         return ERROR;
+    }
+    if (len == 0) {
+        return SUCCESS;
     }
 
     if (!ValidateUserArg((unsigned int) buf, len, PROT_WRITE)) {
@@ -506,8 +524,11 @@ int KernelPipeRead(int pipe_id, void *buf, int len, UserContext *user_context) {
 }
 
 int KernelPipeWrite(int pipe_id, void *buf, int len, UserContext *user_context) {
-    if (len <= 0) {
+    if (len < 0) {
         return ERROR;
+    }
+    if (len == 0) {
+        return SUCCESS;
     }
 
     if (!ValidateUserArg((unsigned int) buf, sizeof(char) * len, PROT_READ)) {
