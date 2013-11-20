@@ -14,9 +14,11 @@ int main(int argc, char *argv[]) {
 
     if (rc < 0) {
         TtyPrintf(1, "Fork failed! Now I can return.");
-        return;
+        return 0;
     }
 
     Wait();
     TtyPrintf(1, "My child returned. Hurray!");
+
+    return 0;
 }
