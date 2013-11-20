@@ -70,7 +70,7 @@ LoadProgram(char *name, char *args[], PCB *proc)
   if (LoadInfo(fd, &li) != LI_NO_ERROR) {
     TracePrintf(0, "LoadProgram: '%s' not in Yalnix format\n", name);
     close(fd);
-    return (-1);
+    return (ERROR);
   }
 
   if (li.entry < VMEM_1_BASE) {
@@ -215,7 +215,7 @@ if (MapNewRegion1Pages(proc, unused_frames, text_pg1, li.t_npg, PROT_READ | PROT
   ==>> These pages should be marked valid, with a protection of
   ==>> (PROT_READ | PROT_WRITE).
   */
-if (MapNewRegion1Pages(proc, unused_frames, data_pg1, data_npg, PROT_READ | PROT_WRITE) == 0) {
+if (MapNewRegion1Pages(proc, unused_frames, data_pg1, data_npg, PROT_READ | PROT_WRITE) == ERROR) {
   TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "MapNewRegion1Pages() for data failed.\n");
   return ERROR;
 }
