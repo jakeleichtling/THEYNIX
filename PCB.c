@@ -59,8 +59,8 @@ PCB *NewBlankPCBWithPageTables(UserContext model_user_context, UnusedFrames unus
             // Release the frames we allocated.
             int j;
             for (j = 0; j < i; j++) {
-                pcb->kernel_stack_page_table[i].valid = false;
-                ReleaseUsedFrame(unused_frames, pcb->kernel_stack_page_table[i].pfn);
+                pcb->kernel_stack_page_table[j].valid = false;
+                ReleaseUsedFrame(unused_frames, pcb->kernel_stack_page_table[j].pfn);
             }
 
             return NULL;
