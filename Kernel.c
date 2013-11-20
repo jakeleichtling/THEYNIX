@@ -341,10 +341,10 @@ int CopyRegion1PageTableAndData(PCB *source, PCB *dest) { // make sure dest has 
 /*
   Copies the data in the source page number to the frame mapped by the dest page number.
 */
-void CopyRegion0PageData(int source_page_number, int dest_page_number) {
+void CopyRegion0PageData(unsigned int source_page_number, unsigned int dest_page_number) {
     char *source_byte_addr;
     char *dest_byte_addr;
-    int i;
+    unsigned int i;
     for (i = 0; i < PAGESIZE; i++) {
         source_byte_addr = (char *)((source_page_number << PAGESHIFT) + i);
         dest_byte_addr = (char *)((dest_page_number << PAGESHIFT) + i);
@@ -356,10 +356,10 @@ void CopyRegion0PageData(int source_page_number, int dest_page_number) {
 /*
   Copies the data in the source page number to the frame mapped by the dest page number.
 */
-void CopyRegion1PageData(int source_page_number, int dest_page_number) {
+void CopyRegion1PageData(unsigned int source_page_number, unsigned int dest_page_number) {
     char *source_byte_addr;
     char *dest_byte_addr;
-    int i;
+    unsigned int i;
     for (i = 0; i < PAGESIZE; i++) {
         source_byte_addr = (char *)((source_page_number << PAGESHIFT) + i + VMEM_1_BASE);
         dest_byte_addr = (char *)((dest_page_number << PAGESHIFT) + i + VMEM_1_BASE);
