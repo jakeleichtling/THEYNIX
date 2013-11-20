@@ -59,6 +59,8 @@ int main(int argc, char *argv[]) {
         TracePrintf(TRACE_LEVEL_DETAIL_INFO, "I'm parent w/ PID %d and I'm waiting on my cvar!\n",
             GetPid());
         CvarWait(parent_cvar_id, lock_id);
+        TracePrintf(TRACE_LEVEL_DETAIL_INFO, "I'm parent w/ PID %d and I've finished waiting!!\n",
+            GetPid());
     }
     Release(lock_id);
     
