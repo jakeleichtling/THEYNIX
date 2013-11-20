@@ -133,12 +133,10 @@ int KernelExec(char *filename, char **argvec, UserContext *user_context_ptr) {
     }
 
     // Copy the filename string and arguments to the Kernel heap.
-    TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Mark 1\n");
     int filename_len = strlen(filename);
     char *heap_filename = calloc(filename_len + 1, sizeof(char));
     strncpy(heap_filename, filename, filename_len);
 
-    TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Mark 2\n");
     char **heap_argvec = NULL;
     int num_args = 0;
 
@@ -182,15 +180,16 @@ int KernelExec(char *filename, char **argvec, UserContext *user_context_ptr) {
         }
     }
 
-    TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Mark 3\n");
     // Create the new region 1 page table, loading the executable text from the given file.
     // LoadProgram() also frees the entire region 1 before recreating it for the new program.
-    LoadProgram(heap_filename, heap_argvec, current_proc);
+    if (LoadProgram(heap_filename, heap_argvec, current_proc) == ERROR) {
+      TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "LoadProgram() failed.\n");
+      return ERROR;
+    }
 
     // Now use this new user context!
     *user_context_ptr = current_proc->user_context;
 
-    TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Mark 4\n");
     // Free the filename string and arguments in the Kernel heap.
     free(heap_filename);
     if (heap_argvec) { // why is load program consuming this???
