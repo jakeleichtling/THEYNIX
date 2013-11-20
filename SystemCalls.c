@@ -487,6 +487,10 @@ int KernelPipeInit(int *pipe_idp) {
 
     // Make a new rod
     Pipe *p = PipeNewPipe();
+    if (!p) {
+        TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "Failed to create new pipe\n");
+        return ERROR;
+    }
 
     // Put it in the rod list
     ListEnqueue(pipes, p, p->id);
@@ -579,6 +583,9 @@ int KernelLockInit(int *lock_idp) {
 
     // Make a new lock.
     Lock *lock = LockNewLock();
+    if (!lock) {
+        return ERROR;
+    }
 
     // Save the lock to the list of locks.
     ListEnqueue(locks, lock, lock->id);
@@ -666,6 +673,9 @@ int KernelCvarInit(int *cvar_idp) {
     }
     // Make a new cvar.
     CVar *cvar = CVarNewCVar();
+    if (!cvar) {
+        return ERROR;
+    }
 
     // Save the cvar to the list of cvars.
     ListEnqueue(cvars, cvar, cvar->id);
