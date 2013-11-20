@@ -13,6 +13,7 @@ int main(int argc, char *argv[]) {
     int rc = Fork();
     if (rc == 0) { // Child process
         // Exec recursively
+        TtyPrintf(1, "Now execing!\n");
         rc = Exec("theynix_tests/fork_oom_test", NULL);
         if (rc < 0) {
             TtyPrintf(1, "Exec failed :(\n");
