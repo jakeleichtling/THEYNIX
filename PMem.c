@@ -31,13 +31,15 @@ UnusedFrames NewUnusedFrames(unsigned int pmem_size) {
 }
 
 /*
-  Returns the physical frame number of an unused frame and marks it as used,
-  or -1 if there are no frames available.
+  If there is an unused frame available, sets the pfn of the given struct pte * to an unused frame and marks it as read. Then returns SUCCESS.
+
+  Otherwise, returns ERROR.
 */
-int GetUnusedFrame(UnusedFrames unused_frames) {
+int GetUnusedFrame(UnusedFrames unused_frames, struct pte *pte_ptr) {
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> GetUnusedFrame()\n");
 
     assert(unused_frames);
+    assert(pte_ptr);
 
     unsigned int i;
     for (i = 0; i < num_pages; i++) {
@@ -45,7 +47,10 @@ int GetUnusedFrame(UnusedFrames unused_frames) {
             unused_frames[i] = false;
             num_unused_frames--;
             TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< GetUnusedFrame() --> %d [num_unused_frames = %d]\n\n", i, num_unused_frames);
-            return i;
+
+            pte_ptr->pfn = i;
+
+            return SUCCESS;
         }
     }
 

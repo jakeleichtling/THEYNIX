@@ -53,8 +53,7 @@ PCB *NewBlankPCBWithPageTables(UserContext model_user_context, UnusedFrames unus
     // the proper protections.
     unsigned int i;
     for (i = 0; i < NUM_KERNEL_PAGES; i++) {
-        int newly_allocated_frame = GetUnusedFrame(unused_frames);
-        if (newly_allocated_frame < 0) {
+        if (GetUnusedFrame(unused_frames, &(pcb->kernel_stack_page_table[i])) == ERROR) {
             TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "GetUnusedFrame() failed.\n");
 
             // Release the frames we allocated.
@@ -67,7 +66,6 @@ PCB *NewBlankPCBWithPageTables(UserContext model_user_context, UnusedFrames unus
             return NULL;
         }
 
-        pcb->kernel_stack_page_table[i].pfn = newly_allocated_frame;
         pcb->kernel_stack_page_table[i].prot = PROT_READ | PROT_WRITE;
         pcb->kernel_stack_page_table[i].valid = 1;
     }

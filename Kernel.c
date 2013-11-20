@@ -265,9 +265,8 @@ int CopyRegion1PageTableAndData(PCB *source, PCB *dest) { // make sure dest has 
         if (source->region_1_page_table[i].valid) {
             dest->region_1_page_table[i].valid = 1;
             dest->region_1_page_table[i].prot = PROT_WRITE;
-            dest->region_1_page_table[i].pfn = GetUnusedFrame(unused_frames);
 
-            if (dest->region_1_page_table[i].pfn < 0) {
+            if (GetUnusedFrame(unused_frames, &(dest->region_1_page_table[i])) == ERROR) {
                 // Not enough physical frames, so released the ones we used and return error.
                 int j;
                 for (j = 0; j < i; j++) {

@@ -36,8 +36,7 @@ int MapNewRegion1Pages(PCB *pcb, UnusedFrames unused_frames, unsigned int start_
         assert(page_num < NUM_PAGES_REG_1);
         assert(!(pcb->region_1_page_table[page_num].valid));
 
-        pcb->region_1_page_table[page_num].pfn = GetUnusedFrame(unused_frames);
-        if (pcb->region_1_page_table[page_num].pfn == ERROR) {
+        if (GetUnusedFrame(unused_frames, &pcb->region_1_page_table[page_num]) == ERROR) {
             TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM,
                     "Not enough unused physical frames to complete request.\n");
 
@@ -106,16 +105,14 @@ int MapNewRegion0Page(unsigned int page_number, UnusedFrames unused_frames) {
 
     assert(page_number < VMEM_0_LIMIT / PAGESIZE);
 
-    int new_frame = GetUnusedFrame(unused_frames);
-    if (new_frame < 0) {
+    assert(!region_0_page_table[page_number].valid);
+
+    if (GetUnusedFrame(unused_frames, &region_0_page_table[page_number]) == ERROR) {
         TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "GetUnusedFrame() failed.\n");
         return ERROR;
     }
 
-    assert(!region_0_page_table[page_number].valid);
-
     region_0_page_table[page_number].valid = 1;
-    region_0_page_table[page_number].pfn = new_frame;
     region_0_page_table[page_number].prot = PROT_READ | PROT_WRITE;
 
     // Flush!

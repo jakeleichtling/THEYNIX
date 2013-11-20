@@ -29,13 +29,11 @@ KERNEL_OBJS = Kernel.o PCB.o SystemCalls.o Traps.o VMem.o List.o PMem.o Tty.o Lo
 KERNEL_INCS = CVar.h Lock.h PMem.h Traps.h Kernel.h Log.h Pipe.h Tty.h List.h PCB.h SystemCalls.h VMem.h
 
 #List all user programs here.
-USER_APPS = init idle die_stupidly orphan theynix_tests/io_test theynix_tests/pipe_test theynix_tests/lock_test LedyardTestDriver LedyardBridge theynix_tests/cvar_test theynix_tests/stack_growth_test cs58_tests/bigstack cs58_tests/forktest cs58_tests/torture cs58_tests/zero
+USER_APPS = init idle die_stupidly orphan theynix_tests/io_test theynix_tests/pipe_test theynix_tests/lock_test LedyardTestDriver LedyardBridge theynix_tests/cvar_test theynix_tests/stack_growth_test cs58_tests/bigstack cs58_tests/forktest cs58_tests/torture cs58_tests/zero theynix_tests/fork_oom_test
 #List all user program source files here.  SHould be the same as the previous list, with ".c" added to each file
-USER_SRCS = init.c idle.c die_stupidly.c orphan.c theynix_tests/io_test.c theynix_tests/pipe_test.c theynix_tests/lock_test.c LedyardTestDriver.c LedyardBridge.c theynix_tests/cvar_test.c theynix_tests/stack_growth_test.c cs58_tests/bigstack.c cs58_tests/forktest.c cs58_tests/torture.c cs58_tests/zero.c
-
-
+USER_SRCS = init.c idle.c die_stupidly.c orphan.c theynix_tests/io_test.c theynix_tests/pipe_test.c theynix_tests/lock_test.c LedyardTestDriver.c LedyardBridge.c theynix_tests/cvar_test.c theynix_tests/stack_growth_test.c cs58_tests/bigstack.c cs58_tests/forktest.c cs58_tests/torture.c cs58_tests/zero.c theynix_tests/fork_oom_test.c
 #List the objects to be formed form the user  source files here.  Should be the same as the prvious list, replacing ".c" with ".o"
-USER_OBJS = init.o idle.o die_stupidly.o orphan.o theynix_tests/io_test.o theynix_tests/pipe_test.o theynix_tests/lock_test.o LedyardTestDriver.o LedyardBridge.o theynix_tests/cvar_test.o theynix_tests/stack_growth_test.o cs58_tests/bigstack.o cs58_tests/forktest.o cs58_tests/torture.o cs58_tests/zero.o
+USER_OBJS = init.o idle.o die_stupidly.o orphan.o theynix_tests/io_test.o theynix_tests/pipe_test.o theynix_tests/lock_test.o LedyardTestDriver.o LedyardBridge.o theynix_tests/cvar_test.o theynix_tests/stack_growth_test.o cs58_tests/bigstack.o cs58_tests/forktest.o cs58_tests/torture.o cs58_tests/zero.o theynix_tests/fork_oom_test.o
 
 #List all of the header files necessary for your user programs
 USER_INCS = Log.h LedyardBridge.h

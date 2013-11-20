@@ -2,6 +2,7 @@
 #define _PMEM_H
 
 #include <stdbool.h>
+#include <hardware.h>
 
 /*
   Code for keeping track of physical memory.
@@ -17,10 +18,11 @@ typedef bool *UnusedFrames;
 UnusedFrames NewUnusedFrames(unsigned int pmem_size);
 
 /*
-  Returns the physical frame number of an unused frame and marks it as used,
-  or -1 if there are no frames available.
+  If there is an unused frame available, sets the pfn of the given struct pte * to an unused frame and marks it as read. Then returns SUCCESS.
+
+  Otherwise, returns ERROR.
 */
-int GetUnusedFrame(UnusedFrames unused_frames);
+int GetUnusedFrame(UnusedFrames unused_frames, struct pte *pte_ptr);
 
 /*
   Marks the given unused frame as used.
