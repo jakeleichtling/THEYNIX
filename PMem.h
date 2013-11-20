@@ -2,6 +2,7 @@
 #define _PMEM_H
 
 #include <stdbool.h>
+#include <hardware.h>
 
 /*
   Code for keeping track of physical memory.

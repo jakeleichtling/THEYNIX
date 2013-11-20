@@ -38,6 +38,9 @@ UnusedFrames NewUnusedFrames(unsigned int pmem_size) {
 int GetUnusedFrame(UnusedFrames unused_frames, struct pte *pte_ptr) {
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> GetUnusedFrame()\n");
 
+    assert(unused_frames);
+    assert(pte_ptr);
+
     unsigned int i;
     for (i = 0; i < num_pages; i++) {
         if (unused_frames[i]) {
