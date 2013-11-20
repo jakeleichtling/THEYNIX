@@ -6,6 +6,8 @@
 #include <yalnix.h>
 
 int main(int argc, char *argv[]) {
+    TtyPrintf(1, "A whole new main!\n");
+
     char buffer[12345];
 
     int rc = Fork();
