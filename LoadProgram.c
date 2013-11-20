@@ -316,7 +316,7 @@ LoadProgram(char *name, char *args[], PCB *proc)
   *cpp++ = NULL;			/* the last argv is a NULL pointer */
   *cpp++ = NULL;			/* a NULL pointer for an empty envp */
   proc->lowest_user_stack_page = ADDR_TO_PAGE(proc->user_context.sp) - ADDR_TO_PAGE(VMEM_1_BASE);
-  proc->user_brk_page = data_pg1 + data_npg + 1;
+  proc->user_brk_page = data_pg1 + data_npg;
 
   return SUCCESS;
 }
