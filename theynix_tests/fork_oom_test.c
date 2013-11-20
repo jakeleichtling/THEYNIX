@@ -48,6 +48,8 @@ int main(int argc, char *argv[]) {
 
         if (rc < 0) {
             TtyPrintf(1, "Fork failed! How will I start anew?");
+        } else {
+            Wait(&status);
         }
     }
 
