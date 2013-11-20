@@ -2,6 +2,7 @@
   Recursively forks and execs until there is no more memory. Then unwinds.
 */
 
+#include <stdlib.h>
 #include <yalnix.h>
 
 int main(int argc, char *argv[]) {
