@@ -265,9 +265,8 @@ int CopyRegion1PageTableAndData(PCB *source, PCB *dest) { // make sure dest has 
         if (source->region_1_page_table[i].valid) {
             dest->region_1_page_table[i].valid = 1;
             dest->region_1_page_table[i].prot = PROT_WRITE;
-            dest->region_1_page_table[i].pfn = GetUnusedFrame(unused_frames);
 
-            if (dest->region_1_page_table[i].pfn < 0) {
+            if (GetUnusedFrame(unused_frames, &(dest->region_1_page_table[i])) == ERROR) {
                 // Not enough physical frames, so released the ones we used and return error.
                 int j;
                 for (j = 0; j < i; j++) {
@@ -342,10 +341,10 @@ int CopyRegion1PageTableAndData(PCB *source, PCB *dest) { // make sure dest has 
 /*
   Copies the data in the source page number to the frame mapped by the dest page number.
 */
-void CopyRegion0PageData(unsigned int source_page_number, unsigned int dest_page_number) {
+void CopyRegion0PageData(int source_page_number, int dest_page_number) {
     char *source_byte_addr;
     char *dest_byte_addr;
-    unsigned int i;
+    int i;
     for (i = 0; i < PAGESIZE; i++) {
         source_byte_addr = (char *)((source_page_number << PAGESHIFT) + i);
         dest_byte_addr = (char *)((dest_page_number << PAGESHIFT) + i);
@@ -357,10 +356,10 @@ void CopyRegion0PageData(unsigned int source_page_number, unsigned int dest_page
 /*
   Copies the data in the source page number to the frame mapped by the dest page number.
 */
-void CopyRegion1PageData(unsigned int source_page_number, unsigned int dest_page_number) {
+void CopyRegion1PageData(int source_page_number, int dest_page_number) {
     char *source_byte_addr;
     char *dest_byte_addr;
-    unsigned int i;
+    int i;
     for (i = 0; i < PAGESIZE; i++) {
         source_byte_addr = (char *)((source_page_number << PAGESHIFT) + i + VMEM_1_BASE);
         dest_byte_addr = (char *)((dest_page_number << PAGESHIFT) + i + VMEM_1_BASE);
