@@ -17,7 +17,8 @@ int main(int argc, char *argv[]) {
         return 0;
     }
 
-    Wait();
+    int status;
+    Wait(&status);
     TtyPrintf(1, "My child returned. Hurray!");
 
     return 0;
