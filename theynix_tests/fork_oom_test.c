@@ -10,7 +10,9 @@ int main(int argc, char *argv[]) {
 
     char buffer[12345];
 
+    TtyPrintf(1, "About to Fork().\n");
     int rc = Fork();
+    TtyPrintf(1, "Fork returned: %d.\n", rc);
     if (rc == 0) { // Child process
         // Exec recursively
         TtyPrintf(1, "Now execing!\n");
