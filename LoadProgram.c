@@ -204,7 +204,10 @@ LoadProgram(char *name, char *args[], PCB *proc)
   ==>> These pages should be marked valid, with a protection of
   ==>> (PROT_READ | PROT_WRITE).
   */
-  MapNewRegion1Pages(proc, unused_frames, text_pg1, li.t_npg, PROT_READ | PROT_WRITE);
+if (MapNewRegion1Pages(proc, unused_frames, text_pg1, li.t_npg, PROT_READ | PROT_WRITE) == ERROR) {
+  TracePrintf("MapNewRegion1Pages() for text failed.\n");
+  return ERROR;
+}
 
   /*
   ==>> Allocate "data_npg" physical pages and map them starting at
@@ -212,7 +215,10 @@ LoadProgram(char *name, char *args[], PCB *proc)
   ==>> These pages should be marked valid, with a protection of
   ==>> (PROT_READ | PROT_WRITE).
   */
-  MapNewRegion1Pages(proc, unused_frames, data_pg1, data_npg, PROT_READ | PROT_WRITE);
+if (MapNewRegion1Pages(proc, unused_frames, data_pg1, data_npg, PROT_READ | PROT_WRITE) == 0) {
+  TracePrintf("MapNewRegion1Pages() for data failed.\n");
+  return ERROR;
+}
 
   /*
    * Allocate memory for the user stack too.
@@ -225,8 +231,11 @@ LoadProgram(char *name, char *args[], PCB *proc)
   */
   unsigned int bottom_stack_page = ADDR_TO_PAGE(VMEM_1_LIMIT) - stack_npg;
   bottom_stack_page -= VMEM_1_BASE >> PAGESHIFT;
-  MapNewRegion1Pages(proc, unused_frames, bottom_stack_page, stack_npg,
-      PROT_READ | PROT_WRITE);
+if (MapNewRegion1Pages(proc, unused_frames, bottom_stack_page, stack_npg,
+      PROT_READ | PROT_WRITE) == ERROR) {
+    TracePrintf("MapNewRegion1Pages() for stack failed.\n");
+    return ERROR;
+}
 
   /*
    * All pages for the new address space are now in the page table.
