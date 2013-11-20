@@ -9,7 +9,7 @@ int main(int argc, char *argv[]) {
     int rc = Fork();
     if (rc == 0) { // Child process
         // Exec recursively
-        rc = Exec("fork_oom_test", NULL);
+        rc = Exec("theynix_tests/fork_oom_test", NULL);
         if (rc < 0) {
             TtyPrintf(1, "Exec failed :(\n");
         }
