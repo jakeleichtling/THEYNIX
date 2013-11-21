@@ -29,7 +29,7 @@ int main(int argc, char **argv) {
         // Test waiting on a zombie.
         if (pid == n - 1) {
             TracePrintf(TRACE_LEVEL_TESTING_OUTPUT, "Delaying: %d.\n", pid);
-            Delay(2);
+            Delay(5);
             TracePrintf(TRACE_LEVEL_TESTING_OUTPUT, "Done delaying. %d.\n", pid);
         }
 
