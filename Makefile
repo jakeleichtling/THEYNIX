@@ -93,7 +93,7 @@ CPPFLAGS= -m32 -fno-builtin -I. -I$(INCDIR) -g -DLINUX -Wall
 all: $(ALL)
 
 clean:
-	rm -f *.o *~ TTYLOG* TRACE $(YALNIX_OUTPUT) $(USER_APPS)  core.* TestDriver
+	rm -f *.o *~ TTYLOG* TRACE $(YALNIX_OUTPUT) $(USER_APPS)  core.*
 
 new:
 	make clean
@@ -114,9 +114,6 @@ kill:
 
 no-core:
 	rm -f core.*
-
-test:
-	gcc -g -Wall -o TestDriver List.c List.h TestDriver.c
 
 $(KERNEL_ALL): $(KERNEL_OBJS) $(KERNEL_LIBS) $(KERNEL_INCS)
 	$(LINK_KERNEL) -o $@ $(KERNEL_OBJS) $(KERNEL_LDFLAGS)

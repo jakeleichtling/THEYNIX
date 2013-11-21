@@ -1,8 +1,9 @@
 Hello, and welcome to THEYNIX! This is a brief guide to our implementation of
 the Yalnix operating system.
 
-
-FILES:
+------------------------------
+                       FILES
+------------------------------
 CVar.c
     Implementation of helper methods for condition variable initiation and reclamation.
 
@@ -49,25 +50,27 @@ PCB.c
     and, optionally, the kernel stack frames allocated.
 
 PCB.h
-
+    PCB struct and function prototypes.
 
 PMem.c
-
+    Function implementation for managing physical memory, i.e. initializing the data structure
+    for keeping track of frames and allocating/freeing these frames.
 
 PMem.h
-
+    Typedef and function prototypes for physical memory management.
 
 Pipe.c
-
+    Implementations of helper functions for initializing, destroying, writing to, and reading from
+    pipes.
 
 Pipe.h
-
+    Struct and function prototypes for pipes.
 
 README
-
+    Did you mean "README"?
 
 SystemCalls.c
-
+    Implementation for all of the system call functions.
 
 SystemCalls.h
 
@@ -117,5 +120,6 @@ orphan.c
 theynix_tests/
 
 
-
-TESTING:
+------------------------------
+                    TESTING
+------------------------------
