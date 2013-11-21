@@ -43,5 +43,5 @@ int main(int argc, char **argv) {
         Exit(SUCCESS);
     }
 
-    Exit(SUCCESS);
+    return SUCCESS;
 }
