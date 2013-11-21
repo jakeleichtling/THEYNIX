@@ -88,7 +88,7 @@ void TrapKernel(UserContext *user_context) {
             break;
         default:
             TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "TrapKernel: Code %d undefined\n");
-            KernelExit(KILLED_KERNEL_TRAP_NOT_DEFINED, user_context);
+            KernelExit(ERROR, user_context);
             rc = ERROR;
             break;
     }
@@ -296,7 +296,7 @@ void TrapTtyTransmit(UserContext *user_context) {
 
 void TrapNotDefined(UserContext *user_context) {
     TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "Unknown TRAP call. Killing proc\n");
-    KernelExit(KILLED_KERNEL_TRAP_NOT_DEFINED, user_context);
+    KernelExit(ERROR, user_context);
 
 }
 
