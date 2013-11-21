@@ -18,7 +18,7 @@ int main(int argc, char **argv) {
         TracePrintf(TRACE_LEVEL_TESTING_OUTPUT, "Fork failed. My PID is %d.\n", GetPid());
     }
     if (rc > 0) { // Init process
-        Delay(100);
+        Delay(10);
         Exit(SUCCESS);
     }
 
