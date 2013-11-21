@@ -16,6 +16,10 @@ int main(int argc, char *argv[]) {
     int rc = Brk(buffer);
     TracePrintf(TRACE_LEVEL_TESTING_OUTPUT, "\t--> returned %d\n", rc);
 
+    // Trying to malloc more than the amount of physical memory available.
+    TracePrintf(TRACE_LEVEL_TESTING_OUTPUT, "Brking close to the stack.\n");
+    int rc = Brk(buffer - 2048);
+    TracePrintf(TRACE_LEVEL_TESTING_OUTPUT, "\t--> returned %d\n", rc);
 
     TracePrintf(TRACE_LEVEL_TESTING_OUTPUT, "All done!\n");
     return SUCCESS;
