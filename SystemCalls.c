@@ -219,7 +219,7 @@ void KernelExit(int status, UserContext *user_context) {
 
     // Release any locks
     while(!ListEmpty(current_proc->owned_lock_ids)) {
-        int lock_id = (int) ListDequeue(current_proc->owned_lock_ids);
+        int lock_id = (int) ListPeak(current_proc->owned_lock_ids);
         KernelRelease(lock_id);
     }
     ListDestroy(current_proc->owned_lock_ids);
