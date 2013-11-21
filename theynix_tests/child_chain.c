@@ -26,9 +26,11 @@ int main(int argc, char **argv) {
             Exec("theynix_tests/child_chain", NULL);
         }
 
-        // Even procs test waiting on zombie proc.
-        if (pid % 2 == 0) {
+        // Test waiting on a zombie.
+        if (pid == n - 1) {
+            TracePrintf(TRACE_LEVEL_TESTING_OUTPUT, "Delaying: %d.\n", pid);
             Delay(2);
+            TracePrintf(TRACE_LEVEL_TESTING_OUTPUT, "Done delaying. %d.\n", pid);
         }
 
         Wait(&status);
