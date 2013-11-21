@@ -1,0 +1,125 @@
+Hello, and welcome to THEYNIX! This is a brief guide to our implementation of
+the Yalnix operating system.
+
+------------------------------
+                       FILES
+------------------------------
+CVar.c
+    Implementation of helper methods for condition variable initiation and reclamation.
+
+CVar.h
+    Struct and function prototypes for condition variables.
+
+Kernel.c
+    Kernel startup function implementations (i.e. SetKernelData() and KernelStart()). Also
+    contains code for kernel heap management (SetKernelBrk()) and context switching. Some helper
+    function implementations found here are used both at kernel startup, in creating the init
+    and idle processes, and forking.
+
+Kernel.h
+    Global variables for the kernel and prototypes for helper methods used throughout kernel.
+
+List.c
+    Linked list implementation of a list API used throughout the operating system for
+    purposes such as process queues and synchronization data structure book keeping.
+
+List.h
+    Structs and function prototypes for the list API.
+
+LoadProgram.c
+    Adapted from template.c. Implementation of a function for initializing a process's user
+    address space with the program text and arguments.
+
+LoadProgram.h
+    Function prototype for LoadProgram().
+
+Lock.c
+    Implemenation of helper methods for lock initiation and reclamation.
+
+Lock.h
+    Struct and function prototypes for locks.
+
+Log.h
+    Compiler definitions for kill signals, return values (i.e. SUCCESS), and logging levels.
+
+Makefile
+    Compilation scripts for the operating system.
+
+PCB.c
+    Function implementations for creating new PCBs with their internal data structures initialized
+    and, optionally, the kernel stack frames allocated.
+
+PCB.h
+    PCB struct and function prototypes.
+
+PMem.c
+    Function implementation for managing physical memory, i.e. initializing the data structure
+    for keeping track of frames and allocating/freeing these frames.
+
+PMem.h
+    Typedef and function prototypes for physical memory management.
+
+Pipe.c
+    Implementations of helper functions for initializing, destroying, writing to, and reading from
+    pipes.
+
+Pipe.h
+    Struct and function prototypes for pipes.
+
+README
+    Did you mean "README"?
+
+SystemCalls.c
+    Implementation for all of the system call functions.
+
+SystemCalls.h
+
+
+TestDriver.c
+
+
+Traps.c
+
+
+Traps.h
+
+
+Tty.c
+
+
+Tty.h
+
+
+VMem.c
+
+
+VMem.h
+
+
+cs58_tests/
+
+
+debugging_notes.txt
+
+
+die_stupidly.c
+
+
+idle.c
+
+
+include/
+
+
+init.c
+
+
+orphan.c
+
+
+theynix_tests/
+
+
+------------------------------
+                    TESTING
+------------------------------

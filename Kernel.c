@@ -57,18 +57,18 @@ void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {
     // to the REG_VECTOR_BASE register
     TrapTableInit();
 
-    // Create the init proc
+    // Create the idle proc
     UserContext model_user_context = *uctxt;
     idle_proc = NewBlankPCB(model_user_context);
 
-    // Perform the malloc for the init proc's kernel stack page table before making page tables.
+    // Perform the malloc for the idle proc's kernel stack page table before making page tables.
     idle_proc->kernel_stack_page_table =
             (struct pte *) calloc(KERNEL_STACK_MAXSIZE / PAGESIZE, sizeof(struct pte));
 
     // Build the initial page table for region 0 such that page = frame for all valid pages.
     region_0_page_table = (struct pte *) calloc(VMEM_0_SIZE / PAGESIZE, sizeof(struct pte));
 
-    // Create the init proc's page table for region 1.
+    // Create the idle proc's page table for region 1.
     CreateRegion1PageTable(idle_proc);
 
     // Create the PTEs for the kernel text and data with the proper protections.
@@ -85,7 +85,7 @@ void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {
         }
     }
 
-    // Create the PTEs for the init proc's kernel stack with page = frame and the proper protections.
+    // Create the PTEs for the idle proc's kernel stack with page = frame and the proper protections.
     unsigned int kernel_stack_base_page = ADDR_TO_PAGE(KERNEL_STACK_BASE);
     for (i = 0; i < NUM_KERNEL_PAGES; i++) {
         idle_proc->kernel_stack_page_table[i].valid = 1;
@@ -123,7 +123,7 @@ void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {
     if (cmd_args[0]) {
         init_program_name = cmd_args[0];
     }
-    // Load the idle program, but first make sure we are pointing to its region 1 page table.
+    // Load the init program, but first make sure we are pointing to its region 1 page table.
     PCB *init_proc = NewBlankPCBWithPageTables(model_user_context, unused_frames);
     WriteRegister(REG_PTBR1, (unsigned int) init_proc->region_1_page_table);
     WriteRegister(REG_TLB_FLUSH, TLB_FLUSH_1);
@@ -270,9 +270,9 @@ int CopyRegion1PageTableAndData(PCB *source, PCB *dest) { // make sure dest has 
                 // Not enough physical frames, so released the ones we used and return error.
                 int j;
                 for (j = 0; j < i; j++) {
-                    if (dest->region_1_page_table[i].valid) {
-                        dest->region_1_page_table[i].valid = false;
-                        ReleaseUsedFrame(unused_frames, dest->region_1_page_table[i].pfn);
+                    if (dest->region_1_page_table[j].valid) {
+                        dest->region_1_page_table[j].valid = false;
+                        ReleaseUsedFrame(unused_frames, dest->region_1_page_table[j].pfn);
                     }
                 }
 
