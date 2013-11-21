@@ -23,7 +23,7 @@ int main(int argc, char **argv) {
 
     int status;
     Wait(&status);
-    TracePrintf(TRACE_LEVEL_TESTING_OUTPUT, "Child %d printed with status %d.\n", rc, status);
+    TracePrintf(TRACE_LEVEL_TESTING_OUTPUT, "Child %d exited with status %d.\n", rc, status);
 
     return SUCCESS;
 }
