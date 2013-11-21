@@ -290,6 +290,7 @@ int KernelWait(int *status_ptr, UserContext *user_context) {
 
     // If no live children, return error
     if (ListEmpty(current_proc->live_children)) {
+        TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "No live or zombie children to wait for!\n");
         return ERROR;
     }
     current_proc->waiting_on_children = true;
