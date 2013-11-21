@@ -13,7 +13,7 @@
 int main(int argc, char **argv) {
     int rc = Fork();
     if (rc < 0) {
-        TracePrintf(TRACE_LEVEL_TESTING_OUTPUT, "Fork failed. My PID is %d.\n", pid);
+        TracePrintf(TRACE_LEVEL_TESTING_OUTPUT, "Fork failed. My PID is %d.\n", GetPid());
         Exit(-1);
     }
     if (rc == 0) {
