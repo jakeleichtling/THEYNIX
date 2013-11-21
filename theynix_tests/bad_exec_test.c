@@ -23,7 +23,7 @@ int main(int argc, char **argv) {
 
     // Illegal argvec address
     TracePrintf(TRACE_LEVEL_TESTING_OUTPUT, "Exec-ing with an illegal argvec address...\n");
-    rc = Exec("theynix_tests/bad_exec_test.c", (char **) 1);
+    rc = Exec("theynix_tests/bad_exec_test.c", (char **) 0);
     TracePrintf(TRACE_LEVEL_TESTING_OUTPUT, "\t--> returned %d\n", rc);
 
     // Illegal address in argvec
