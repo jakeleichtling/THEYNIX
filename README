@@ -73,53 +73,54 @@ SystemCalls.c
     Implementation for all of the system call functions.
 
 SystemCalls.h
-
-
-TestDriver.c
-
+    Prototypes for all of the system call functions.
 
 Traps.c
-
+    Function implementations for the different trap vector calls. Additionally, implementation of
+    TrapTableInit() to initialize the trap table vector with pointers to these functions.
 
 Traps.h
-
+    Function prototype for TrapTableInit().
 
 Tty.c
-
+    Implementation for TTY init function.
 
 Tty.h
-
+    Structs and function prototype for TTYs.
 
 VMem.c
-
+    Implementations of helper functions for managing virtual memory, such as
+    creating page tables, mapping new pages to allocated frames, unmapping pages and freeing
+    the corresponding frames, and changing page protections.
 
 VMem.h
-
+    Function prototypes for managing virtual memory.
 
 cs58_tests/
-
-
-debugging_notes.txt
-
-
-die_stupidly.c
-
+    Programs written by Team THEYNIX for testing our OS.
 
 idle.c
-
+    The idle program consisting of a Pause() loop. In Kernel.c, the compiled idle program is loaded
+    into an idle process that is run when the ready queue is empty.
 
 include/
-
-
-init.c
-
-
-orphan.c
-
+    Header files provided in the Yalnix framework.
 
 theynix_tests/
+    Programs written by the CS58 staff to test our OS.
 
 
 ------------------------------
                     TESTING
 ------------------------------
+
+Our implementation of the Yalnix operating system is tested thoroughly for functionality and
+durability under stress by the programs implemented in the cs58_tests and theynix_tests
+directories. In theynix_tests there is a README file describing the different functionalities
+that we have tested and which programs test each case.
+
+
+Best,
+Team THEYNIX
+Jake Leichtling '14
+Derek Salama '14
