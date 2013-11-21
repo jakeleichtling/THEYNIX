@@ -17,7 +17,7 @@ void main(int argc, char **argv) {
 
     // Illegal filename address
     TracePrintf(TRACE_LEVEL_TESTING_OUTPUT, "Exec-ing with an illegal filename address...\n");
-    int rc = Exec(char *(0), NULL);
+    rc = Exec(char *(0), NULL);
     TracePrintf(TRACE_LEVEL_TESTING_OUTPUT, "\t--> returned %d\n", rc);
 
     // Illegal argvec address
