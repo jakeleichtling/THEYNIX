@@ -7,6 +7,8 @@
 #include <stdlib.h>
 #include <yalnix.h>
 
+#include "Log.h"
+
 void main(int argc, char **argv) {
     // Bad filename
     TracePrintf(TRACE_LEVEL_TESTING_OUTPUT, "Exec-ing with a bad filename...\n");
