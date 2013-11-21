@@ -22,7 +22,13 @@ int main(int argc, char **argv) {
         Exit(SUCCESS);
     }
 
-    int lock = LockInit();
+    int lock;
+    rc = LockInit(&lock);
+    if (rc < 0) {
+        TracePrintf(TRACE_LEVEL_TESTING_OUTPUT, "LockInit failed. Exiting immediately. My PID is %d.\n", GetPid());
+        Exit(ERROR);
+    }
+
     rc = Fork();
     if (rc < 0) {
         TracePrintf(TRACE_LEVEL_TESTING_OUTPUT, "Fork failed. My PID is %d.\n", GetPid());
