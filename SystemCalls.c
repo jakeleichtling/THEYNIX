@@ -371,7 +371,7 @@ int KernelDelay(int clock_ticks, UserContext *user_context) {
 
 int KernelTtyRead(int tty_id, void *buf, int len, UserContext *user_context) {
     if (tty_id < 0 || tty_id >= NUM_TERMINALS) {
-        TracePrintf(TRACE_LEVEL_TERMINAL_PROBLEM, "Program tried to read from invalid term\n");
+        TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "Program tried to read from invalid term\n");
         return ERROR;
     }
     if (len < 0) {
@@ -465,7 +465,7 @@ int KernelTtyWriteInternal(int tty_id, void *buf, int len, UserContext *user_con
 
 int KernelTtyWrite(int tty_id, void *buf, int len, UserContext *user_context) {
     if (tty_id < 0 || tty_id >= NUM_TERMINALS) {
-        TracePrintf(TRACE_LEVEL_TERMINAL_PROBLEM, "Program tried to write to invalid term\n");
+        TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "Program tried to write to invalid term\n");
         return ERROR;
     }
     if (len < 0) {

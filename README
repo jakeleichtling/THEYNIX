@@ -119,6 +119,10 @@ durability under stress by the programs implemented in the cs58_tests and theyni
 directories. In theynix_tests there is a README file describing the different functionalities
 that we have tested and which programs test each case.
 
+When running our tests, one should specify the tracing levels -lk 3 -lu 5. When running the OS
+not for testing purposes, one should specify the kernel tracing level -lk 2 so that only problems
+resulting in OS termination are printed.
+
 
 Best,
 Team THEYNIX
