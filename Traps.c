@@ -48,7 +48,7 @@ void TrapKernel(UserContext *user_context) {
                  user_context->regs[2], user_context);
             break;
         case YALNIX_TTY_WRITE:
-            rc = KernelTtyWriteInternal(user_context->regs[0], (void *) user_context->regs[1],
+            rc = KernelTtyWrite(user_context->regs[0], (void *) user_context->regs[1],
                  user_context->regs[2], user_context);
             break;
         case YALNIX_PIPE_INIT:
