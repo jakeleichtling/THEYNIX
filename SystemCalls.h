@@ -4,13 +4,18 @@
 #include <hardware.h>
 
 /*
-  Prototypes for the Yalnix system calls.
-*/
+ * SystemCalls.h
+ *
+ * Methods to handle all syscalls.
+ * They behave (hopefully) as to spec unless noted otherwise.
+ */
 
 int KernelFork(UserContext *user_context);
 
 int KernelExec(char *filename, char **argvec, UserContext *user_context_ptr);
 
+// We have added the specification that a process releases any system resources
+// on exit (e.g. held locks)
 void KernelExit(int status, UserContext *user_context);
 
 int KernelWait(int *status_ptr, UserContext *user_context);
@@ -23,6 +28,7 @@ int KernelDelay(int clock_ticks, UserContext *user_context);
 
 int KernelTtyRead(int tty_id, void *buf, int len, UserContext *user_context);
 
+// "Internal" method does not validate the args! Can only be used by the Kernel!
 int KernelTtyWriteInternal(int tty_id, void *buf, int len, UserContext *user_context);
 
 int KernelTtyWrite(int tty_id, void *buf, int len, UserContext *user_context);

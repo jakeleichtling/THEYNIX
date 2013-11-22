@@ -8,7 +8,7 @@
 #include "Log.h"
 
 /*
- * Pipe.h
+ * Pipe.c
  * Datastructure and helper methods for pipes.
  */
 

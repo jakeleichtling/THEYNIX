@@ -1,11 +1,13 @@
 #ifndef _PMEM_H
 #define _PMEM_H
 
-/*
-  Code for keeping track of physical memory.
-*/
-
 #include <hardware.h>
+
+/*
+ * PMem.h
+ * Datastructures and helper methods for managing physical memory.
+ */
+
 
 /*
   Initializes the data structure for keeping track of physical memory:
@@ -13,8 +15,8 @@
   There is a linked list that contains all free frames. Each frame, at offset 0, contains an int
   that is the number of the next free frame. Each free frame, at offset 1, contains an int pointing
   to the previous free frame. There is a global variable, free_frames_head, that
-  contains the number of the first free frame in the linked list, and a global variable, free_frames_tail,
-  that contains the last free frame in the linked list.
+  contains the number of the first free frame in the linked list, and a global variable, 
+  free_frames_tail, that contains the last free frame in the linked list.
 */
 void InitializePhysicalMemoryManagement();
 
