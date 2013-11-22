@@ -297,7 +297,6 @@ void TrapTtyTransmit(UserContext *user_context) {
 void TrapNotDefined(UserContext *user_context) {
     TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "Unknown TRAP call. Killing proc\n");
     KernelExit(ERROR, user_context);
-
 }
 
 void TrapTableInit() {
