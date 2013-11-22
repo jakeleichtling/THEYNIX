@@ -9,7 +9,7 @@ int main(int argc, char *argv[]) {
     TtyPrintf(1, "A whole new main!\n");
 
     char buffer[12345];
-    buffer;
+    (void *) buffer;
 
     TtyPrintf(1, "About to Fork().\n");
     int rc = Fork();
