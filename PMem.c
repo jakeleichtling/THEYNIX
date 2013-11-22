@@ -10,7 +10,11 @@
   that contains the last free frame in the linked list.
 */
 
+#include "PMem.h"
+
 #include <hardware.h>
+
+#include "PCB.h"
 
 int free_frames_head; // -1 if list is empty.
 int free_frames_tail; // -1 if list is empty.
