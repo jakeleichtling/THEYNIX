@@ -3,11 +3,15 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <hardware.h>
+#include <stdio.h>
+#include <yalnix.h>
+#include <string.h>
 
 #include "LoadProgram.h"
 #include "Log.h"
 #include "Traps.h"
 #include "VMem.h"
+#include "SystemCalls.h"
 
 /* Function Prototypes */
 
@@ -396,17 +400,6 @@ void InitBookkeepingStructs() {
     }
 }
 
-void SaveKernelContext() {
-    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> SaveKernelContext()\n");
-    int rc = KernelContextSwitch(&SaveCurrentKernelContext, current_proc, NULL);
-    if (SUCCESS == rc) {
-        TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Succesfully saved kernel context!\n");
-    } else {
-        TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "Failed to save kernel context!\n");
-    }
-    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< SaveKernelContext()\n");
-}
-
 void SwitchToNextProc(UserContext *user_context) {
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> SwitchToNextProc()\n");
     PCB *next_proc = ListDequeue(ready_queue);
@@ -441,9 +434,12 @@ void SwitchToProc(PCB *next_proc, UserContext *user_context) {
     if (SUCCESS == rc) {
         TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Succesfully switched kernel context!\n");
     } else {
-        TracePrintf(TRACE_LEVEL_TERMINAL_PROBLEM, "Failed to switch kernel context!\n");
-        // TODO: more gracefully handle the failure case
-        exit(-1);
+        TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "Failed to save kernel context!\n");
+        char *err_str = calloc(TERMINAL_MAX_LINE, sizeof(char));
+        sprintf(err_str, "KernelContextSwitch failed!!! HALTING!!!\n", current_proc->pid);
+        KernelTtyWriteInternal(0, err_str, strnlen(err_str, TERMINAL_MAX_LINE), user_context);
+        free(err_str);
+        Halt();
     }
 
     // Restore user state of new current process
