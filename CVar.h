@@ -2,8 +2,12 @@
 #define _CVAR_H_
 
 /*
-  Code for condition variables.
-*/
+ * CVar.h
+ * Condition Variables
+ *
+ * This file contains code for initializing and freeing
+ * cvars.
+ */
 
 #include "PCB.h"
 

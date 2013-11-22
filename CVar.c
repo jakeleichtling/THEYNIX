@@ -4,6 +4,14 @@
 
 #include "Kernel.h"
 
+/*
+ * CVar.c
+ * Condition Variables
+ *
+ * This file contains code for initializing and freeing
+ * cvars.
+ */
+
 extern unsigned int next_synch_resource_id;
 
 /*

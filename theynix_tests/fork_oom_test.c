@@ -9,7 +9,7 @@ int main(int argc, char *argv[]) {
     TtyPrintf(1, "A whole new main!\n");
 
     char buffer[12345];
-    (void *) buffer;
+    (void) buffer[0]; // suppress compiler warning
 
     TtyPrintf(1, "About to Fork().\n");
     int rc = Fork();
