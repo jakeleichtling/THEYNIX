@@ -7,6 +7,11 @@
 #include "List.h"
 #include "PMem.h"
 
+/*
+ * PCB.h
+ * Data structure for process control blocks
+ */
+
 #define NUM_KERNEL_PAGES KERNEL_STACK_MAXSIZE / PAGESIZE
 
 #define OWNED_LOCK_HASH_SIZE 10
@@ -22,22 +27,29 @@ typedef struct PCB PCB;
 struct PCB {
     unsigned int pid;
 
-    // Seems hacky, but when loading a program
+    // when loading a program
     // for the first time, need to set up kernel
     // context as copy of currently running
     bool kernel_context_initialized;
 
-     UserContext user_context;
-     KernelContext kernel_context;
+    UserContext user_context;
+    KernelContext kernel_context;
 
     struct pte *kernel_stack_page_table;
     struct pte *region_1_page_table;
 
+    // Null if parent died
     PCB *live_parent;
+
     List *live_children;
+
+    // children waiting to be collected
     List *zombie_children;
+
+    // Locks this proc has acquired
     List *owned_lock_ids;
 
+    // Called wait, but no children had died
     bool waiting_on_children;
 
     int lowest_user_stack_page;
@@ -45,15 +57,26 @@ struct PCB {
 
     int exit_status;
 
+    // After Delay, this field tracks
+    // how many clock ticks are left for the process
     int clock_ticks_until_ready;
 
+    // The number of bytes this proc is waiting to recieve
+    // from the terminal
     int tty_receive_len;
+    // Where the terminal input will be copied until the user
+    // can retrieve it
     char *tty_receive_buffer;
 
+    // The number of bytes this proc wants to transmit
     int tty_transmit_len;
+    // Buffer in kernel space that holds the stuff we are waiting to transmit
     char *tty_transmit_buffer;
+    // Pointer into the buffer to track how much has been written out thus far.
+    // The first unwritten byte is at this pointer
     char *tty_transmit_pointer;
 
+    // Number of bytes we are waiting to read from the pipe
     int pipe_read_len;
 };
 
