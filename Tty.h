@@ -4,14 +4,13 @@
 #include "List.h"
 
 /*
-  Code for the Yalnix TTYs.
-*/
+ * Tty.h
+ * Datastructure and helper methods for managing terminals.
+ */
 
-/* Type Defs */
 typedef struct Tty Tty;
 typedef struct LineBuffer LineBuffer;
 
-/* Structs */
 
 #define WAITING_TO_TRANSMIT_HASH_SIZE 20
 
