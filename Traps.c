@@ -228,24 +228,36 @@ void TrapTtyRecieve(UserContext *user_context) {
         lb->length = TtyReceive(tty_id, lb->buffer, TERMINAL_MAX_LINE);
         ListEnqueue(term.line_buffers, lb, 0);
     } else { // at least one proc waiting
-        PCB *waiting_proc = (PCB *) ListDequeue(term.waiting_to_receive);
-        assert(waiting_proc->tty_receive_buffer);
-
-        ListAppend(ready_queue, waiting_proc, waiting_proc->pid);
         char *input = calloc(TERMINAL_MAX_LINE, sizeof(char));
+        char *input_ptr = input;
         int input_length = TtyReceive(tty_id, input, TERMINAL_MAX_LINE);
-        if (input_length <= waiting_proc->tty_receive_len) {
-            memcpy(waiting_proc->tty_receive_buffer, input, input_length);
-        } else {
-            memcpy(waiting_proc->tty_receive_buffer, input, waiting_proc->tty_receive_len);
-            int remaining_length = input_length - waiting_proc->tty_receive_len;
-            char *remaining = calloc(remaining_length, sizeof(char));
-            memcpy(remaining, input + waiting_proc->tty_receive_len, remaining_length);
+        int input_remaining = input_length;
+
+        while (!ListEmpty(term.waiting_to_receive) && input_remaining > 0) {
+            PCB *waiting_proc = (PCB *) ListDequeue(term.waiting_to_receive);
+            assert(waiting_proc->tty_receive_buffer);
+            ListAppend(ready_queue, waiting_proc, waiting_proc->pid);
+
+            if (input_remaining <= waiting_proc->tty_receive_len) {
+                memcpy(waiting_proc->tty_receive_buffer, input_ptr, input_remaining);
+                waiting_proc->tty_receive_len = input_remaining;
+                input_remaining = 0;
+            } else {
+                memcpy(waiting_proc->tty_receive_buffer, input_ptr, waiting_proc->tty_receive_len);
+                input_remaining -= waiting_proc->tty_receive_len;
+                input_ptr += waiting_proc->tty_receive_len;
+            }
+        }
+
+        if (input_remaining > 0) {
+            char *remaining_buff = calloc(input_remaining, sizeof(char));
+            memcpy(remaining_buff, input_ptr, input_remaining);
             LineBuffer *lb = calloc(1, sizeof(LineBuffer));
-            lb->buffer = input;
-            lb->length = remaining_length;
+            lb->buffer = remaining_buff;
+            lb->length = input_remaining;
             ListEnqueue(term.line_buffers, lb, 0);
         }
+
         free(input);
     }
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< TrapTtyRecieve(%p)\n", user_context);
