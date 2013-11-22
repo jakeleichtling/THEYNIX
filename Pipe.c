@@ -16,7 +16,7 @@ Pipe *PipeNewPipe() {
     p->num_chars_available = 0;
     p->buffer_capacity = 0;
 
-    p->waiting_to_read = ListNewList();
+    p->waiting_to_read = ListNewList(0);
     return p;
 }
 

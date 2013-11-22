@@ -13,6 +13,8 @@ typedef struct LineBuffer LineBuffer;
 
 /* Structs */
 
+#define WAITING_TO_TRANSMIT_HASH_SIZE 20
+
 /*
   A structure to keep track of the TTY state, as well as processes that are blocked on it.
 */

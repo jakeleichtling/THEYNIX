@@ -15,7 +15,7 @@ Lock *LockNewLock() {
     lock->id = next_synch_resource_id++;
     lock->acquired = false;
 
-    lock->waiting_procs = ListNewList();
+    lock->waiting_procs = ListNewList(0);
 
     return lock;
 }
