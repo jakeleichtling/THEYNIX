@@ -37,7 +37,7 @@ PCB *NewBlankPCB(UserContext model_user_context) {
   Same as above but allocates page tables and frames for kernel stack. Returns NULL if there are
   not enough physical frames to complete this request.
 */
-PCB *NewBlankPCBWithPageTables(UserContext model_user_context, UnusedFrames unused_frames) {
+PCB *NewBlankPCBWithPageTables(UserContext model_user_context) {
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> NewBlankPCBWithPageTables()\n");
 
     PCB *pcb = NewBlankPCB(model_user_context);
@@ -53,14 +53,14 @@ PCB *NewBlankPCBWithPageTables(UserContext model_user_context, UnusedFrames unus
     // the proper protections.
     unsigned int i;
     for (i = 0; i < NUM_KERNEL_PAGES; i++) {
-        if (GetUnusedFrame(unused_frames, &(pcb->kernel_stack_page_table[i])) == ERROR) {
+        if (GetUnusedFrame(&(pcb->kernel_stack_page_table[i])) == ERROR) {
             TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "GetUnusedFrame() failed.\n");
 
             // Release the frames we allocated.
             int j;
             for (j = 0; j < i; j++) {
                 pcb->kernel_stack_page_table[j].valid = false;
-                ReleaseUsedFrame(unused_frames, pcb->kernel_stack_page_table[j].pfn);
+                ReleaseUsedFrame(pcb->kernel_stack_page_table[j].pfn);
             }
 
             return NULL;

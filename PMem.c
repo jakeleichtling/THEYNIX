@@ -1,89 +1,158 @@
-#include "PMem.h"
-
-#include <stdlib.h>
-#include <assert.h>
-
-#include "include/hardware.h"
-#include "Log.h"
-
-unsigned int num_pages;
-unsigned int num_unused_frames;
 /*
-  Returns a pointer to a new UnusedFrames object with all of the frames initially unused.
+  Function implementations and static variables for keeping track of physical memory.
 */
-UnusedFrames NewUnusedFrames(unsigned int pmem_size) {
-    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> NewUnusedFrames(pmem_size=%u)\n",
-            pmem_size);
 
-    assert(pmem_size > 0);
+/*
+  There is a linked list that contains all free frames. Each frame, at offset 0, contains an int
+  that is the number of the next free frame. Each free frame, at offset 1, contains an int pointing
+  to the previous free frame. There is a global variable, free_frames_head, that
+  contains the number of the first free frame in the linked list, and a global variable, free_frames_tail,
+  that contains the last free frame in the linked list.
+*/
 
-    num_pages = pmem_size / PAGESIZE;
-    num_unused_frames = num_pages;
-    UnusedFrames unused_frames = (UnusedFrames) calloc(num_pages, sizeof(bool));
-    assert(unused_frames);
-    unsigned int i;
-    for (i = 0; i < num_pages; i++) {
-        unused_frames[i] = true;
-    }
+#include <hardware.h>
 
-    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< NewUnusedFrames() [num_unused_frames = %d] \n\n", num_unused_frames);
-    return unused_frames;
+int free_frames_head; // -1 if list is empty.
+int free_frames_tail; // -1 if list is empty.
+
+// From Kernel.h
+extern PCB *current_proc;
+extern int kernel_brk_page;
+
+/*
+  Initialize the data structures for keeping track of physical memory.
+*/
+void InitializePhysicalMemoryManagement(unsigned int pmem_size) {
+  int max_frame = ((pmem_size + PMEM_BASE) >> PAGESHIFT) - 1;
+
+  // Set head and tail to first frame above kernel heap, which is the kernel brk.
+  free_frames_head = free_frames_tail = kernel_brk_page;
+
+  // Starting with free_frames_head and up to, but not including, the bottom of the kernel stack,
+  // add frames to the free frames list.
+  int i;
+  for (i = free_frames_head + 1; i < ADDR_TO_PAGE(KERNEL_STACK_BASE); i++) {
+    AddToLinkedList(i);
+  }
+
+  // Starting with the first frame above the kernel stack and up to, including, the max_frame,
+  // add frames to the free frames list.
+  for (i = ADDR_TO_PAGE(KERNEL_STACK_LIMIT) + 1; i <= max_frame; i++) {
+    AddToLinkedList(i);
+  }
 }
 
 /*
-  If there is an unused frame available, sets the pfn of the given struct pte * to an unused frame and marks it as read. Then returns SUCCESS.
+  If there is an unused frame available, sets the pfn of the given struct pte * to an unused frame
+  and marks it as used. Then returns SUCCESS.
 
   Otherwise, returns ERROR.
 */
-int GetUnusedFrame(UnusedFrames unused_frames, struct pte *pte_ptr) {
-    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> GetUnusedFrame()\n");
-
-    assert(unused_frames);
-    assert(pte_ptr);
-
-    unsigned int i;
-    for (i = 0; i < num_pages; i++) {
-        if (unused_frames[i]) {
-            unused_frames[i] = false;
-            num_unused_frames--;
-            TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< GetUnusedFrame() --> %d [num_unused_frames = %d]\n\n", i, num_unused_frames);
-
-            pte_ptr->pfn = i;
-
-            return SUCCESS;
-        }
-    }
-
-    TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "No unused frame.\n");
+int GetUnusedFrame(struct pte *pte_ptr) {
+  // Return error if the list is empty.
+  if (free_frames_head < 0) {
     return ERROR;
-}
+  }
 
-/*
-  Marks the given unused frame as used.
-*/
-void MarkFrameAsUsed(UnusedFrames unused_frames, unsigned int frame) {
-    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> MarkFrameAsUsed(frame=%u)\n", frame);
+  // Get the first frame in the list and store it in pte_ptr->pfn.
+  pte_ptr->pfn = free_frames_head;
 
-    assert(unused_frames);
-    assert(unused_frames[frame]);
+  // If free_frames_head was the tail, set both head and tail to -1 to indicate that we are out
+  // of free frames.
+  if (free_frames_head == free_frames_tail) {
+    free_frames_head = free_frames_tail = -1;
+    return SUCCESS;
+  }
 
-    unused_frames[frame] = false;
-    num_unused_frames--;
+  // Otherwise, set free_frames_head to the next frame in the list.
+  int next_frame_number = GetNextFreeFrameNumber(free_frames_head);
+  free_frames_head = next_frame_number;
 
-    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< MarkFrameAsUsed() [num_unused_frames = %d]\n\n", num_unused_frames);
+  return SUCCESS;
 }
 
 /*
   Marks the given used frame as unused.
 */
-void ReleaseUsedFrame(UnusedFrames unused_frames, unsigned int frame) {
-    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> ReleaseUsedFrame(frame=%u)\n", frame);
+void ReleaseUsedFrame(int frame_number) {
+  AddToLinkedList(frame_number);
+}
 
-    assert(unused_frames);
-    assert(!unused_frames[frame]);
+/*
+  Given the frame number of a free frame A and free frame numbers B and C, sets A to point to B
+  as the next free frame and C as the previous free frame in the linked list.
 
-    unused_frames[frame] = true;
-    num_unused_frames++;
+  If A was the tail, the tail is now B. If A was head, the head is now C.
 
-    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< ReleaseUsedFrame() [num_unused_frames = %d]\n\n", num_unused_frames);
+  If either B or C is set to -1, then next or pev is not set, respectively.
+*/
+void SetNextAndPrevFreeFrameNumbers(int frame_A, int next_frame_B, int prev_frame_C) {
+  bool a_was_tail = (frame_A == free_frame_tail);
+  bool a_was_head = (frame_A == free_frames_head);
+
+  // Map frame A into the first page of region 1.
+  int actual_pfn = current_proc->region_1_page_table[0].pfn;
+  current_proc->region_1_page_table[0].pfn = frame_A;
+  WriteRegister(REG_TLB_FLISH, VMEM_1_BASE);
+
+  // Write next_frame_B into A[0].
+  int *frame_ptrs = (int *) VMEM_1_BASE;
+  if (next_frame_B >= 0) {
+    frame_ptrs[0] = next_frame_B;
+
+    if (a_was_tail) {
+      free_frames_tail = next_frame_B;
+    }
+  }
+
+  // Write prev_frame_C into A[1].
+  if (prev_frame_C >= 0) {
+    frame_ptrs[1] = prev_frame_C;
+
+    if (a_was_head) {
+      free_frames_head = prev_frame_C;
+    }
+  }
+
+  // Remap the first page of region 1.
+  current_proc->region_1_page_table[0].pfn = actual_pfn;
+  WriteRegister(REG_TLB_FLISH, VMEM_1_BASE);
+}
+
+/*
+  Appends the given frame to the linked list, making it the new tail.
+*/
+void AddToLinkedList(int frame_number) {
+  int prev_tail = free_frames_tail;
+
+  SetNextAndPrevFreeFrameNumbers(free_frames_tail, frame_number, -1);
+  SetNextAndPrevFreeFrameNumbers(frame_number, -1, prev_tail);
+}
+
+/*
+  Given the frame number of a free frame, returns the free frame number of the next frame
+  in the free frames linked list.
+
+  Returns -1 if there is no next frame.
+*/
+int GetNextFreeFrameNumber(int frame_number) {
+  if (frame_number == free_frames_tail) {
+    return -1;
+  }
+
+  // Map the frame into the first page of region 1.
+  int actual_pfn = current_proc->region_1_page_table[0].pfn;
+  current_proc->region_1_page_table[0].pfn = frame_A;
+  WriteRegister(REG_TLB_FLISH, VMEM_1_BASE);
+
+  // Obtain the next free frame number at frame[0];
+  int *frame_ptrs = (int *) VMEM_1_BASE;
+  int next_frame_number = frame_ptrs[0];
+
+  // Remap the first page of region 1.
+  current_proc->region_1_page_table[0].pfn = actual_pfn;
+  WriteRegister(REG_TLB_FLISH, VMEM_1_BASE);
+
+  // Return the next free frame number.
+  return next_frame_number;
 }

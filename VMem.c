@@ -7,7 +7,6 @@
 
 extern PCB *current_proc;
 extern struct pte *region_0_page_table;
-extern UnusedFrames unused_frames;
 
 /*
   Mallocs and initializes a region 1 page table with all invalid entries.
@@ -27,7 +26,7 @@ void CreateRegion1PageTable(PCB *pcb) {
   valid, with the given protections, after the call. Returns THEYNIX_EXIT_FAILURE if there
   is not enough physical memory available to complete this call.
 */
-int MapNewRegion1Pages(PCB *pcb, UnusedFrames unused_frames, unsigned int start_page_num,
+int MapNewRegion1Pages(PCB *pcb, unsigned int start_page_num,
         unsigned int num_pages, unsigned int prot) {
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> MapNewRegion1Pages()\n");
 
@@ -36,12 +35,12 @@ int MapNewRegion1Pages(PCB *pcb, UnusedFrames unused_frames, unsigned int start_
         assert(page_num < NUM_PAGES_REG_1);
         assert(!(pcb->region_1_page_table[page_num].valid));
 
-        if (GetUnusedFrame(unused_frames, &pcb->region_1_page_table[page_num]) == ERROR) {
+        if (GetUnusedFrame(&pcb->region_1_page_table[page_num]) == ERROR) {
             TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM,
                     "Not enough unused physical frames to complete request.\n");
 
             // Unmap pages that were mapped.
-            UnmapRegion1Pages(pcb, unused_frames, start_page_num, page_num - start_page_num);
+            UnmapRegion1Pages(pcb, start_page_num, page_num - start_page_num);
 
             return ERROR;
         }
@@ -59,7 +58,7 @@ int MapNewRegion1Pages(PCB *pcb, UnusedFrames unused_frames, unsigned int start_
   frames. All of the page table entries covered must be valid prior to this call, and all will be
   invalid after the call.
 */
-void UnmapRegion1Pages(PCB *pcb, UnusedFrames unused_frames, unsigned int start_page_num,
+void UnmapRegion1Pages(PCB *pcb, unsigned int start_page_num,
         unsigned int num_pages) {
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> UnmapNewRegion1Pages()\n");
 
@@ -69,7 +68,7 @@ void UnmapRegion1Pages(PCB *pcb, UnusedFrames unused_frames, unsigned int start_
         assert(pcb->region_1_page_table[page_num].valid);
 
         unsigned int pfn = pcb->region_1_page_table[page_num].pfn;
-        ReleaseUsedFrame(unused_frames, pfn);
+        ReleaseUsedFrame(pfn);
 
         pcb->region_1_page_table[page_num].valid = 0;
     }
@@ -100,14 +99,14 @@ void ChangeProtRegion1Pages(PCB *pcb, unsigned int start_page_num, unsigned int 
   Retrieves an unused frame, marks it as used, and maps the given region 0 page number
   to the frame. Returns -1 on failure.
 */
-int MapNewRegion0Page(unsigned int page_number, UnusedFrames unused_frames) {
+int MapNewRegion0Page(unsigned int page_number) {
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> MapNewFrame0(%u)\n", page_number);
 
     assert(page_number < VMEM_0_LIMIT / PAGESIZE);
 
     assert(!region_0_page_table[page_number].valid);
 
-    if (GetUnusedFrame(unused_frames, &region_0_page_table[page_number]) == ERROR) {
+    if (GetUnusedFrame(&region_0_page_table[page_number]) == ERROR) {
         TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "GetUnusedFrame() failed.\n");
         return ERROR;
     }
@@ -125,14 +124,14 @@ int MapNewRegion0Page(unsigned int page_number, UnusedFrames unused_frames) {
 /*
   Unmaps a valid region 0 page, freeing the frame the page was mapped to.
 */
-void UnmapUsedRegion0Page(unsigned int page_number, UnusedFrames unused_frames) {
+void UnmapUsedRegion0Page(unsigned int page_number) {
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> UnmapUsedFrame0(%u)\n", page_number);
 
     assert(page_number < VMEM_0_LIMIT / PAGESIZE);
     assert(region_0_page_table[page_number].valid);
 
     unsigned int used_frame = region_0_page_table[page_number].pfn;
-    ReleaseUsedFrame(unused_frames, used_frame);
+    ReleaseUsedFrame(used_frame);
 
     region_0_page_table[page_number].valid = 0;
     WriteRegister(REG_TLB_FLUSH, (unsigned int) &region_0_page_table[page_number]);
@@ -147,26 +146,26 @@ void UnmapUsedRegion0Page(unsigned int page_number, UnusedFrames unused_frames) 
   Frees all of the physical frames used by the valid region 1 page table entries,
   and marks all region 1 page table entries as invalid.
 */
-void FreeRegion1PageTable(PCB *pcb, UnusedFrames unused_frames) {
+void FreeRegion1PageTable(PCB *pcb) {
     unsigned int i;
     for (i = 0; i < NUM_PAGES_REG_1; i++) {
         if (pcb->region_1_page_table[i].valid) {
             pcb->region_1_page_table[i].valid = 0;
 
             unsigned int frame_number = pcb->region_1_page_table[i].pfn;
-            ReleaseUsedFrame(unused_frames, frame_number);
+            ReleaseUsedFrame(frame_number);
         }
     }
 }
 
-void FreeRegion0StackPages(PCB *pcb, UnusedFrames unused_frames) {
+void FreeRegion0StackPages(PCB *pcb) {
     int i;
     for (i = 0; i < NUM_KERNEL_PAGES; i++) {
         if (pcb->kernel_stack_page_table[i].valid) {
             pcb->kernel_stack_page_table[i].valid = 0;
 
             unsigned int frame_number = pcb->kernel_stack_page_table[i].pfn;
-            ReleaseUsedFrame(unused_frames, frame_number);
+            ReleaseUsedFrame(frame_number);
         }
     }
 }
