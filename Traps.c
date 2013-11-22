@@ -156,7 +156,7 @@ void TrapMemory(UserContext *user_context) {
 
             unsigned int page_to_alloc = current_proc->lowest_user_stack_page - 1;
             while (page_to_alloc >= addr_page) {
-                if (GetUnusedFrame(unused_frames, &(current_proc->region_1_page_table[page_to_alloc])) == ERROR) {
+                if (GetUnusedFrame(&(current_proc->region_1_page_table[page_to_alloc])) == ERROR) {
                     TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "GetUnusedFrame() failed.\n");
 
                     char *err_str = calloc(TERMINAL_MAX_LINE, sizeof(char));
