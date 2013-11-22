@@ -35,6 +35,6 @@ void MarkFrameAsUsed(int frame);
 /*
   Marks the given used frame as unused.
 */
-void ReleaseUsedFrame(UnusedFrames unused_frames, int frame);
+void ReleaseUsedFrame(int frame);
 
 #endif
