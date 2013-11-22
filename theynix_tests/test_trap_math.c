@@ -18,7 +18,6 @@ int main(int argc, char **argv) {
     if (rc == 0) {
         TracePrintf(TRACE_LEVEL_TESTING_OUTPUT, "%d: about to divide by 0!\n", GetPid());
         int x = 5 / 0;
-        (void *) x; // Make the compiler happy!
         TracePrintf(TRACE_LEVEL_TESTING_OUTPUT, "THIS LINE SHOULD NEVER BE PRINTED.\n", GetPid());
     }
 
