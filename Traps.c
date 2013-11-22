@@ -270,12 +270,15 @@ void TrapTtyTransmit(UserContext *user_context) {
             TtyTransmit(tty_id, waiting_proc->tty_transmit_pointer,
                 TERMINAL_MAX_LINE);
         }
-    } else { // transmission complete
-        // since done, take off transmitting list
-        ListRemoveById(term.waiting_to_transmit, waiting_proc->pid);
-        ListAppend(ready_queue, waiting_proc, waiting_proc->pid);
-        free(waiting_proc->tty_transmit_buffer);
+
+        return;
     }
+
+    // transmission complete
+    // since done, take off transmitting list
+    ListRemoveById(term.waiting_to_transmit, waiting_proc->pid);
+    ListAppend(ready_queue, waiting_proc, waiting_proc->pid);
+    free(waiting_proc->tty_transmit_buffer);
 
     if (ListEmpty(term.waiting_to_transmit)) {
         return; // no other procs waiting on this term
