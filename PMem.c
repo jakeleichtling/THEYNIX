@@ -34,7 +34,7 @@ void SetNextAndPrevFreeFrameNumbers(int frame_a, int next_frame_b, int prev_fram
   Initialize the data structures for keeping track of physical memory.
 */
 void InitializePhysicalMemoryManagement(unsigned int pmem_size) {
-  int max_frame = ((pmem_size + PMEM_bASE) >> PAGESHIFT) - 1;
+  int max_frame = ((pmem_size + PMEM_BASE) >> PAGESHIFT) - 1;
 
   // Set head and tail to first frame above kernel heap, which is the kernel brk.
   free_frames_head = free_frames_tail = kernel_brk_page;
@@ -42,7 +42,7 @@ void InitializePhysicalMemoryManagement(unsigned int pmem_size) {
   // Starting with free_frames_head and up to, but not including, the bottom of the kernel stack,
   // add frames to the free frames list.
   int i;
-  for (i = free_frames_head + 1; i < ADDR_TO_PAGE(KERNEL_STACK_bASE); i++) {
+  for (i = free_frames_head + 1; i < ADDR_TO_PAGE(KERNEL_STACK_BASE); i++) {
     AddToLinkedList(i);
   }
 
@@ -104,10 +104,10 @@ void SetNextAndPrevFreeFrameNumbers(int frame_a, int next_frame_b, int prev_fram
   // Map frame A into the first page of region 1.
   int actual_pfn = current_proc->region_1_page_table[0].pfn;
   current_proc->region_1_page_table[0].pfn = frame_a;
-  WriteRegister(REG_TLB_FLUSH, VMEM_1_bASE);
+  WriteRegister(REG_TLB_FLUSH, VMEM_1_BASE);
 
   // Write next_frame_b into A[0].
-  int *frame_ptrs = (int *) VMEM_1_bASE;
+  int *frame_ptrs = (int *) VMEM_1_BASE;
   if (next_frame_b >= 0) {
     frame_ptrs[0] = next_frame_b;
 
@@ -127,7 +127,7 @@ void SetNextAndPrevFreeFrameNumbers(int frame_a, int next_frame_b, int prev_fram
 
   // Remap the first page of region 1.
   current_proc->region_1_page_table[0].pfn = actual_pfn;
-  WriteRegister(REG_TLB_FLISH, VMEM_1_bASE);
+  WriteRegister(REG_TLB_FLISH, VMEM_1_BASE);
 }
 
 /*
@@ -154,15 +154,15 @@ int GetNextFreeFrameNumber(int frame_number) {
   // Map the frame into the first page of region 1.
   int actual_pfn = current_proc->region_1_page_table[0].pfn;
   current_proc->region_1_page_table[0].pfn = frame_number;
-  WriteRegister(REG_TLB_FLISH, VMEM_1_bASE);
+  WriteRegister(REG_TLB_FLISH, VMEM_1_BASE);
 
   // Obtain the next free frame number at frame[0];
-  int *frame_ptrs = (int *) VMEM_1_bASE;
+  int *frame_ptrs = (int *) VMEM_1_BASE;
   int next_frame_number = frame_ptrs[0];
 
   // Remap the first page of region 1.
   current_proc->region_1_page_table[0].pfn = actual_pfn;
-  WriteRegister(REG_TLB_FLISH, VMEM_1_bASE);
+  WriteRegister(REG_TLB_FLISH, VMEM_1_BASE);
 
   // Return the next free frame number.
   return next_frame_number;
