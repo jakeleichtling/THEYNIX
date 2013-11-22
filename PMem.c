@@ -28,13 +28,13 @@ extern unsigned int kernel_brk_page;
 /*    Private Function Prototypes     */
 void AddToLinkedList(int frame_number);
 int GetNextFreeFrameNumber(int frame_number);
-void SetNextAndPrevFreeFrameNumbers(int frame_A, int next_frame_B, int prev_frame_C);
+void SetNextAndPrevFreeFrameNumbers(int frame_a, int next_frame_b, int prev_frame_c);
 
 /*
   Initialize the data structures for keeping track of physical memory.
 */
 void InitializePhysicalMemoryManagement(unsigned int pmem_size) {
-  int max_frame = ((pmem_size + PMEM_BASE) >> PAGESHIFT) - 1;
+  int max_frame = ((pmem_size + PMEM_bASE) >> PAGESHIFT) - 1;
 
   // Set head and tail to first frame above kernel heap, which is the kernel brk.
   free_frames_head = free_frames_tail = kernel_brk_page;
@@ -42,7 +42,7 @@ void InitializePhysicalMemoryManagement(unsigned int pmem_size) {
   // Starting with free_frames_head and up to, but not including, the bottom of the kernel stack,
   // add frames to the free frames list.
   int i;
-  for (i = free_frames_head + 1; i < ADDR_TO_PAGE(KERNEL_STACK_BASE); i++) {
+  for (i = free_frames_head + 1; i < ADDR_TO_PAGE(KERNEL_STACK_bASE); i++) {
     AddToLinkedList(i);
   }
 
@@ -97,37 +97,37 @@ void ReleaseUsedFrame(int frame_number) {
 
   If either B or C is set to -1, then next or pev is not set, respectively.
 */
-void SetNextAndPrevFreeFrameNumbers(int frame_A, int next_frame_B, int prev_frame_C) {
-  bool a_was_tail = (frame_A == free_frame_tail);
-  bool a_was_head = (frame_A == free_frames_head);
+void SetNextAndPrevFreeFrameNumbers(int frame_a, int next_frame_b, int prev_frame_c) {
+  bool a_was_tail = (frame_a == free_frames_tail);
+  bool a_was_head = (frame_a == free_frames_head);
 
   // Map frame A into the first page of region 1.
   int actual_pfn = current_proc->region_1_page_table[0].pfn;
-  current_proc->region_1_page_table[0].pfn = frame_A;
-  WriteRegister(REG_TLB_FLISH, VMEM_1_BASE);
+  current_proc->region_1_page_table[0].pfn = frame_a;
+  WriteRegister(REG_TLB_FLUSH, VMEM_1_bASE);
 
-  // Write next_frame_B into A[0].
-  int *frame_ptrs = (int *) VMEM_1_BASE;
-  if (next_frame_B >= 0) {
-    frame_ptrs[0] = next_frame_B;
+  // Write next_frame_b into A[0].
+  int *frame_ptrs = (int *) VMEM_1_bASE;
+  if (next_frame_b >= 0) {
+    frame_ptrs[0] = next_frame_b;
 
     if (a_was_tail) {
-      free_frames_tail = next_frame_B;
+      free_frames_tail = next_frame_b;
     }
   }
 
-  // Write prev_frame_C into A[1].
-  if (prev_frame_C >= 0) {
-    frame_ptrs[1] = prev_frame_C;
+  // Write prev_frame_c into A[1].
+  if (prev_frame_c >= 0) {
+    frame_ptrs[1] = prev_frame_c;
 
     if (a_was_head) {
-      free_frames_head = prev_frame_C;
+      free_frames_head = prev_frame_c;
     }
   }
 
   // Remap the first page of region 1.
   current_proc->region_1_page_table[0].pfn = actual_pfn;
-  WriteRegister(REG_TLB_FLISH, VMEM_1_BASE);
+  WriteRegister(REG_TLB_FLISH, VMEM_1_bASE);
 }
 
 /*
@@ -153,16 +153,16 @@ int GetNextFreeFrameNumber(int frame_number) {
 
   // Map the frame into the first page of region 1.
   int actual_pfn = current_proc->region_1_page_table[0].pfn;
-  current_proc->region_1_page_table[0].pfn = frame_A;
-  WriteRegister(REG_TLB_FLISH, VMEM_1_BASE);
+  current_proc->region_1_page_table[0].pfn = frame_number;
+  WriteRegister(REG_TLB_FLISH, VMEM_1_bASE);
 
   // Obtain the next free frame number at frame[0];
-  int *frame_ptrs = (int *) VMEM_1_BASE;
+  int *frame_ptrs = (int *) VMEM_1_bASE;
   int next_frame_number = frame_ptrs[0];
 
   // Remap the first page of region 1.
   current_proc->region_1_page_table[0].pfn = actual_pfn;
-  WriteRegister(REG_TLB_FLISH, VMEM_1_BASE);
+  WriteRegister(REG_TLB_FLISH, VMEM_1_bASE);
 
   // Return the next free frame number.
   return next_frame_number;
