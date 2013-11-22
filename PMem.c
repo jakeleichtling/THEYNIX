@@ -13,6 +13,7 @@
 #include "PMem.h"
 
 #include <hardware.h>
+#include <stdlib.h>
 
 #include "Kernel.h"
 #include "PCB.h"
