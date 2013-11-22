@@ -16,6 +16,7 @@
 #include <stdlib.h>
 
 #include "Kernel.h"
+#include "Log.h"
 #include "PCB.h"
 
 int free_frames_head; // -1 if list is empty.
@@ -27,6 +28,7 @@ extern unsigned int kernel_brk_page;
 
 /*    Private Function Prototypes     */
 void AddToLinkedList(int frame_number);
+int GetNextFreeFrameNumber(int frame_number);
 void SetNextAndPrevFreeFrameNumbers(int frame_A, int next_frame_B, int prev_frame_C);
 
 /*
