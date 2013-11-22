@@ -168,6 +168,7 @@ int GetNextFreeFrameNumber(int frame_number) {
 
   // Obtain the next free frame number at frame[0];
   int *frame_ptrs = (int *) VMEM_1_BASE;
+  int reg_1_p_t_addr = ReadRegister(REG_PTBR0);
   int next_frame_number = frame_ptrs[0];
 
   // Remap the first page of region 1.
