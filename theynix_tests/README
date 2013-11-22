@@ -1,55 +1,63 @@
 Welcome to the THEYNIX testing directory! This is a brief guide to the tests that we wrote as
-a gauntlet for our Yalnix implementation.
+a gauntlet for our Yalnix implementation. The output is designed to be most useful/distilled
+when run with user trace level 0 and kernel trace level 1.
 
 ---------------------------------------------------------------------
                        Functionalities that are tested explicitly
 ---------------------------------------------------------------------
+
 KernelFork
     -normal behavior → fork_oom_test.c
     -out of memory failure → fork_oom_test.c
+
 KernelExec
     -normal behavior → LedyardTestDriver.c
     -illegal filename addr → bad_exec_test.c
     -illegal argvec addr → bad_exec_test.c
     -illegal arg addrs → bad_exec_test.c
     -bad filename → bad_exec_test.c
+
 KernelExit
     -normal behavior → child_chain.c
     -while holding locks → exec_subtleties_test.c
     -with living children → exec_subtleties_test.c
     -with zombie children → exec_subtleties_test.c
+
 KernelWait
     -normal behavior → child_chain.c
     -illegal status arg → bad_wait_test.c
     -with already existing zombie child → child_chain.c
     -with live child, but no zombie → child_chain.c
     -with no children (error!) → bad_wait_test.c
+
 KernelBrk
     -normal behavior → torture.c
     -stack collision → brk_test.c
     -lowering brk → brk_test.c
+
 KernelDelay
     -normal behavior → delay_test.c
     -clock ticks < 0 → delay_test.c
     -clock ticks == 0 → delay_test.c
 
-// TODO
 KernelTtyRead
-    -normal behavior
-    -id < 0, id > 3
-    -len < 0
-    -len > MAX_LENGTH
-    -invalid buffer
+    -normal behavior → io_test.c
+    -id < 0, id > 3 → io_test.c
+    -len < 0 → io_test.c
+    -len > MAX_LENGTH → io_test.c
+    -invalid buffer → io_test.c
+
 KernelTtyWrite
-    -normal behavior
-    -id < 0, id > 3
-    -len < 0
-    -len > MAX_LENGTH
-    -invalid buffer
+    -normal behavior → io_test.c
+    -id < 0, id > 3 → io_test.c
+    -len < 0 → io_test.c
+    -len > MAX_LENGTH → io_test.c
+    -invalid buffer → io_test.c
 
 KernelPipeInit
     -normal behavior → pipe_test.c
     -invalid idp → pipe_test.c
+
 KernelPipeRead
     -normal behavior → pipe_test.c
     -len < 0 → pipe_test.c
@@ -58,6 +66,7 @@ KernelPipeRead
     -invalid pipe id → pipe_test.c
     -while no other procs waiting → pipe_test.c
     -while multiple procs are waiting → pipe_test.c
+
 KernelPipeWrite
     -normal behavior → pipe_test.c
     -len < 0 → pipe_test.c
@@ -66,36 +75,44 @@ KernelPipeWrite
     -invalid pipe id → pipe_test.c
     -while no one waiting → pipe_test.c
     -while proc waiting → pipe_test.c
+
 KernelLockInit
     -normal behavior → lock_test.c
     -valid idp → lock_test.c
+
 KernelRelease
     -normal behavior → lock_test.c
     -nonexistant id → lock_test.c
     -id I don’t own → lock_test.c
     -no one waiting → lock_test.c
     -proc waiting → lock_test.c
+
 KernelAcquire
     -normal behavior → lock_test.c
     -id that doesn’t exist → lock_test.c
     -already owned → lock_test.c
     -free lock → lock_test.c
+
 KernelCvarInit
     -normal behavior → cvar_test.c
     -invalid idp addr → cvar_test.c
+
 KernelCvarSignal
     -nonexistant id → cvar_test.c
     -no procs waiting → cvar_test.c
     -proc waiting → cvar_test.c
+
 KernelCvarBroadcast
     -nonexistent id → cvar_test.c
     -no procs waiting → cvar_test.c
     -procs waiting → cvar_test.c
+
 KernelCvarWait
     -normal behavior → cvar_test.c
     -nonexistent cvar → cvar_test.c
     -nonexistent lock → cvar_test.c
     -lock I don’t own → cvar_test.c
+
 KernelReclaim
     -lock → cvar_test.c
     -cvar → cvar_test.c

@@ -12,11 +12,11 @@ int main(int argc, char *argv[]) {
 
     int rc = PipeInit(NULL);
     TracePrintf(TRACE_LEVEL_TESTING_OUTPUT, "PipeInit with null arg: rc = %d\n", rc);
-    
+
     rc = PipeInit(&parent_to_child_pipe);
     TracePrintf(TRACE_LEVEL_TESTING_OUTPUT, "PipeInit with %x: rc = %d\n", &parent_to_child_pipe, rc);
     rc = PipeInit(&child_to_parent_pipe);
-    TracePrintf(TRACE_LEVEL_TESTING_OUTPUT, "PipeInit with %x arg: rc = %d\n", &child_to_parent_pipe, rc);
+    TracePrintf(TRACE_LEVEL_TESTING_OUTPUT, "PipeInit with %x: rc = %d\n", &child_to_parent_pipe, rc);
 
     char *parent_to_child_message = "Hello Child";
     char *child_to_parent_message = "Can I have some pizza?";
@@ -100,7 +100,7 @@ int main(int argc, char *argv[]) {
     // Try writing to reclaimed pipe!
     rc = PipeWrite(parent_to_child_pipe, parent_to_child_message, 10);
     TracePrintf(TRACE_LEVEL_TESTING_OUTPUT, "Writing to reclaimed pipe: rc = %d\n", rc);
-    
+
 
     return 0;
 }
