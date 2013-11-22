@@ -4,8 +4,9 @@
 #include "List.h"
 
 /*
-  Code for mutual exclusion locks.
-*/
+ * Lock.h
+ * Data structure for mutexes
+ */
 
 struct Lock {
     int id;
