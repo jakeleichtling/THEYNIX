@@ -4,7 +4,10 @@
 #include <assert.h>
 #include <stdio.h>
 
-// Internal hash table helper methods
+/* Internal hash table helper methods */
+
+// Add a newly created node to the hash table
+// Inserts in front of list if there is a collision
 void ListAddToHashTable(List *list, ListNode *ln) {
     assert(list->hash_table);
 
@@ -16,12 +19,17 @@ void ListAddToHashTable(List *list, ListNode *ln) {
     list->hash_table[hash_id] = ln;
 }
 
+// Find the LN with the given ID in the hash table, but
+// leave it in
+// Returns null if not found
 ListNode *ListFindFromHashTable(List *list, unsigned int id) {
     assert(list->hash_table);
 
     int hash_id = id % list->hash_table_size;
     ListNode *value = list->hash_table[hash_id];
 
+    // iterate through collision list until the proper
+    // one is found
     while (NULL != value && value->id != id) {
         value = value->hash_collission_next;
     }
@@ -29,22 +37,30 @@ ListNode *ListFindFromHashTable(List *list, unsigned int id) {
     return value;
 }
 
+// Find the LN with the given id, and then remove from the hash table
+// (but don't destroy the node!)
+// Returns null if not found
 ListNode *ListRemoveFromHashTable(List *list, unsigned int id) {
     assert(list->hash_table);
 
     int hash_id = id % list->hash_table_size;
     ListNode *value = list->hash_table[hash_id];
 
-    if (NULL == value) {
+    if (NULL == value) { // Nothing in this bucket
         return NULL;
     } else if (id == value->id) {
+        // First element in the bucket is what we were looking for,
+        // so point bucket to next in list and return
         list->hash_table[hash_id] = value->hash_collission_next;
         return value;
     }
 
+    // Wasn't the first element in collision list, so iterate until we can
+    // find it
     while(NULL != value->hash_collission_next) {
         ListNode *next = value->hash_collission_next;
-        if (next->id == id) {
+        if (next->id == id) { // found it
+            // remove from list by pointing current to next's next
             value->hash_collission_next = next->hash_collission_next;
             return next;
         }
@@ -54,6 +70,9 @@ ListNode *ListRemoveFromHashTable(List *list, unsigned int id) {
     return NULL;
 }
 
+/* Testing methods */
+
+// Use to test map ftn
 void Increment(void *data) {
     ++*((int *)data);
 }
@@ -95,6 +114,7 @@ bool ListTestListWithHash() {
 
     return true;
 }
+
 bool ListTestListNoHash() {
     List *list = ListNewList(0);
     assert(ListEmpty(list));
@@ -171,6 +191,10 @@ int main(int argc, char **argv) {
 }
 */
 
+// Initializes an empty list.
+// User must call ListDestroy() to free.
+// hash_table_size specifies the size of the hash table,
+// where 0 does not create one at all.
 List *ListNewList(int hash_table_size) {
     List *list = calloc(1, sizeof(List));
     list->sentinel = calloc(1, sizeof(ListNode));
@@ -182,6 +206,8 @@ List *ListNewList(int hash_table_size) {
     return list;
 }
 
+// Free internal structure of list.
+// The list must be empty first.
 void ListDestroy(List *list) {
     assert(ListEmpty(list));
     if (list->hash_table_size > 0) {
@@ -191,32 +217,39 @@ void ListDestroy(List *list) {
     free(list);
 }
 
+// Return true if the list has no nodes.
 bool ListEmpty(List *list) {
     assert(list);
     return (list->sentinel == list->head);
 }
 
+// Return true if the list has no nodes.
 void ListPush(List *list, void *data, unsigned int id) {
     assert(list);
 
-    ListNode *ln = malloc(sizeof(ListNode));
+    // Allocate new node and insert
+    ListNode *ln = calloc(1, sizeof(ListNode));
     list->head->prev = ln;
     ln->next = list->head;
     list->head = ln;
     ln->id = id;
+
+    // point to supplied data
     ln->data = data;
     ln->hash_collission_next = NULL;
 
+    // create add to hash table if we have one
     if (list->hash_table_size) {
         ListAddToHashTable(list, ln);
     }
 }
 
+// Remove and return the first element in the list.
+// Returns null if list is empty
 void *ListDequeue(List *list) {
     if (ListEmpty(list)) {
         return NULL;
     }
-
 
     ListNode *ln = list->head;
     void* data = ln->data;
@@ -231,6 +264,8 @@ void *ListDequeue(List *list) {
     return data;
 }
 
+// Internal helper function
+// Use this if finding by id but no hash table!
 ListNode *ListFindNodeById(List *list, unsigned int id) {
     if (ListEmpty(list)) {
         return NULL;
@@ -248,6 +283,8 @@ ListNode *ListFindNodeById(List *list, unsigned int id) {
     return NULL; // No match
 }
 
+// Return first element with id less than or equal to the given id
+// element is removed
 void *ListFindFirstLessThanIdAndRemove(List *list, unsigned int id) {
     if (ListEmpty(list)) {
         return NULL;
@@ -267,6 +304,8 @@ void *ListFindFirstLessThanIdAndRemove(List *list, unsigned int id) {
     return NULL; // No match
 }
 
+// Return first element with the given id.
+// returns null if not found
 void *ListFindById(List *list, unsigned int id) {
     ListNode *node;
     if (list->hash_table_size) { // using hash table
@@ -282,6 +321,9 @@ void *ListFindById(List *list, unsigned int id) {
     }
 }
 
+
+// Remove the first element with the given id
+// returns null if not found
 void *ListRemoveById(List *list, unsigned int id) {
 
     ListNode *node;
@@ -294,7 +336,7 @@ void *ListRemoveById(List *list, unsigned int id) {
     if (node) {
         if (node == list->head) {
             return ListDequeue(list);
-        } else {
+        } else { // do usual removal stuff
             node->prev->next = node->next;
             node->next->prev = node->prev;
             void *result_data = node->data;
@@ -306,10 +348,12 @@ void *ListRemoveById(List *list, unsigned int id) {
     }
 }
 
+// Same as Append
 void ListEnqueue(List *list, void *data, unsigned int id) {
     ListAppend(list, data, id);
 }
 
+// Append to end of list
 void ListAppend(List *list, void *data, unsigned int id) {
     assert(list);
     if (ListEmpty(list)) {
@@ -327,16 +371,21 @@ void ListAppend(List *list, void *data, unsigned int id) {
     ln->next = list->sentinel;
     ln->hash_collission_next = NULL;
 
+    // Add to hash if we have it
     if (list->hash_table_size) {
         ListAddToHashTable(list, ln);
     }
 }
 
+// Apply the given function to each item in the list. The function is passed
+// the (void*) data.
 void ListMap(List *list, void (*ftn) (void*)) {
     if (ListEmpty(list)) {
         return;
     }
     ListNode *i;
+
+    // For each node, pass the data to supplied function
     for (i = list->head; i && i != list->sentinel; i = i->next) {
         if (i->data) {
             (*ftn)(i->data);
@@ -344,6 +393,7 @@ void ListMap(List *list, void (*ftn) (void*)) {
     }
 }
 
+// Returns the head element but does not remove!
 void *ListPeak(List *list) {
     return list->head->data;
 }
