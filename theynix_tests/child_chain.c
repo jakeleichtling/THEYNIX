@@ -39,4 +39,7 @@ int main(int argc, char **argv) {
 
     TracePrintf(TRACE_LEVEL_TESTING_OUTPUT, "I am exiting: %d\n", pid);
     Exit(pid);
+
+    // This line never executes, but makes the compiler happy.
+    return SUCCESS;
 }

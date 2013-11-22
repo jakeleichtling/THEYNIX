@@ -22,7 +22,6 @@ int free_frames_head; // -1 if list is empty.
 int free_frames_tail; // -1 if list is empty.
 
 // From Kernel.h
-extern PCB *current_proc;
 extern unsigned int kernel_brk_page;
 
 /*    Private Function Prototypes     */
@@ -102,9 +101,14 @@ void SetNextAndPrevFreeFrameNumbers(int frame_a, int next_frame_b, int prev_fram
   bool a_was_head = (frame_a == free_frames_head);
 
   // Map frame A into the first page of region 1.
-  int actual_pfn = current_proc->region_1_page_table[0].pfn;
-  int was_valid = current_proc->region_1_page_table[0].valid;
-  current_proc->region_1_page_table[0].pfn = frame_a;
+
+  struct pte *region_1_page_table = (struct pte *) ReadRegister(REG_PTBR1);
+  int actual_pfn = region_1_page_table[0].pfn;
+  int was_valid = region_1_page_table[0].valid;
+  int prev_prots = region_1_page_table[0].prot;
+  region_1_page_table[0].pfn = frame_a;
+  region_1_page_table[0].valid = 1;
+  region_1_page_table[0].prot = PROT_READ | PROT_WRITE;
   WriteRegister(REG_TLB_FLUSH, VMEM_1_BASE);
 
   // Write next_frame_b into A[0].
@@ -127,8 +131,9 @@ void SetNextAndPrevFreeFrameNumbers(int frame_a, int next_frame_b, int prev_fram
   }
 
   // Remap the first page of region 1.
-  current_proc->region_1_page_table[0].pfn = actual_pfn;
-  current_proc->region_1_page_table[0].valid = was_valid;
+  region_1_page_table[0].pfn = actual_pfn;
+  region_1_page_table[0].valid = was_valid;
+  region_1_page_table[0].prot = prev_prots;
   WriteRegister(REG_TLB_FLUSH, VMEM_1_BASE);
 }
 
@@ -136,6 +141,10 @@ void SetNextAndPrevFreeFrameNumbers(int frame_a, int next_frame_b, int prev_fram
   Appends the given frame to the linked list, making it the new tail.
 */
 void AddToLinkedList(int frame_number) {
+  if (free_frames_head < 0) { // Linked list was empty.
+    free_frames_head = free_frames_tail = frame_number;
+  }
+
   int prev_tail = free_frames_tail;
 
   SetNextAndPrevFreeFrameNumbers(free_frames_tail, frame_number, -1);
@@ -154,9 +163,13 @@ int GetNextFreeFrameNumber(int frame_number) {
   }
 
   // Map the frame into the first page of region 1.
-  int actual_pfn = current_proc->region_1_page_table[0].pfn;
-  int was_valid = current_proc->region_1_page_table[0].valid;
-  current_proc->region_1_page_table[0].pfn = frame_number;
+  struct pte *region_1_page_table = (struct pte *) ReadRegister(REG_PTBR1);
+  int actual_pfn = region_1_page_table[0].pfn;
+  int was_valid = region_1_page_table[0].valid;
+  int prev_prots = region_1_page_table[0].prot;
+  region_1_page_table[0].pfn = frame_number;
+  region_1_page_table[0].valid = 1;
+  region_1_page_table[0].prot = PROT_READ | PROT_WRITE;
   WriteRegister(REG_TLB_FLUSH, VMEM_1_BASE);
 
   // Obtain the next free frame number at frame[0];
@@ -164,8 +177,9 @@ int GetNextFreeFrameNumber(int frame_number) {
   int next_frame_number = frame_ptrs[0];
 
   // Remap the first page of region 1.
-  current_proc->region_1_page_table[0].pfn = actual_pfn;
-  current_proc->region_1_page_table[0].valid = was_valid;
+  region_1_page_table[0].pfn = actual_pfn;
+  region_1_page_table[0].valid = was_valid;
+  region_1_page_table[0].prot = prev_prots;
   WriteRegister(REG_TLB_FLUSH, VMEM_1_BASE);
 
   // Return the next free frame number.
