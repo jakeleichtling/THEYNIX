@@ -32,7 +32,6 @@ int main(int argc, char *argv[]) {
     TracePrintf(TRACE_LEVEL_TESTING_OUTPUT, "Testing reading a line longer than TERMINAL_MAX_LINE.\n");
     char *big_buffer = calloc(TERMINAL_MAX_LINE * 2, sizeof(char));
     int num_read = TtyRead(0, big_buffer, TERMINAL_MAX_LINE * 2);
-    assert(num_read <= TERMINAL_MAX_LINE);
     TracePrintf(TRACE_LEVEL_TESTING_OUTPUT, "%d characters were read.\n", num_read);
 
     // Test writing with invalid (null) buffer.
