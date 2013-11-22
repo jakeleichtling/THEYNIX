@@ -1,14 +1,3 @@
-/*
-  Function implementations and static variables for keeping track of physical memory.
-*/
-
-/*
-  There is a linked list that contains all free frames. Each frame, at offset 0, contains an int
-  that is the number of the next free frame. Each free frame, at offset 1, contains an int pointing
-  to the previous free frame. There is a global variable, free_frames_head, that
-  contains the number of the first free frame in the linked list, and a global variable, free_frames_tail,
-  that contains the last free frame in the linked list.
-*/
 
 #include "PMem.h"
 
@@ -18,6 +7,18 @@
 #include "Log.h"
 #include "PCB.h"
 
+/*
+ * PMem.c
+ * Datastructures and helper methods for managing physical memory.
+ */
+
+/*
+  There is a linked list that contains all free frames. Each frame, at offset 0, contains an int
+  that is the number of the next free frame. Each free frame, at offset 1, contains an int pointing
+  to the previous free frame. There is a global variable, free_frames_head, that
+  contains the number of the first free frame in the linked list, and a global variable, 
+  free_frames_tail, that contains the last free frame in the linked list.
+*/
 int free_frames_head; // -1 if list is empty.
 int free_frames_tail; // -1 if list is empty.
 

@@ -14,14 +14,20 @@
 #include "VMem.h"
 #include "Pipe.h"
 
+/*
+ * SystemCalls.h
+ *
+ * Methods to handle all syscalls.
+ * They behave (hopefully) as the spec indicates.
+ */
+
 extern List *clock_block_procs;
 extern List *waiting_on_children_procs;
 extern List *ready_queue;
 
-/*
-  Implementations of Yalnix system calls.
-*/
+/* Input Validate helper methods */
 
+// For the given page, return true if it has the specified permissions
 bool ValidatePage(unsigned int page, unsigned long permissions) {
     bool valid = current_proc->region_1_page_table[page].valid == 1;
     bool has_permissions = (current_proc->region_1_page_table[page].prot & permissions)
@@ -30,6 +36,8 @@ bool ValidatePage(unsigned int page, unsigned long permissions) {
     return valid && has_permissions;
 }
 
+// Starting at address arg, check that every page from arg to arg+num_bytes 
+// has the specified page.
 bool ValidateUserArg(unsigned int arg, int num_bytes, unsigned long permissions) {
     if (arg >= VMEM_1_LIMIT) {
         return false;
@@ -38,7 +46,9 @@ bool ValidateUserArg(unsigned int arg, int num_bytes, unsigned long permissions)
         return false;
     }
 
+    // get relative page for region 1 from arg addr
     int start_page = ADDR_TO_PAGE(arg - VMEM_1_BASE);
+    // how far does this memory span?
     int finish_page = start_page + (num_bytes >> PAGESHIFT);
     int i;
     for (i = start_page; i <= finish_page; i++) {
@@ -50,6 +60,7 @@ bool ValidateUserArg(unsigned int arg, int num_bytes, unsigned long permissions)
 }
 
 // validate string arg for read access
+// checks every byte until nul char is found
 bool ValidateUserString(char *str) {
     if (((unsigned int) str) >= VMEM_1_LIMIT) {
         return false;
@@ -58,10 +69,12 @@ bool ValidateUserString(char *str) {
         return false;
     }
 
+    // Validate the first page, in case no memory is valid
     int start_page = ADDR_TO_PAGE(((unsigned int) str) - VMEM_1_BASE);
     if (!ValidatePage(start_page, PROT_READ)) {
         return false;
     }
+    // validate every address until null char is found
     int current_page;
     while (*str != '\0') {
        str++;
@@ -88,6 +101,8 @@ int KernelFork(UserContext *user_context) {
     }
 
     child_pcb->waiting_on_children = false;
+
+    // copy data about address space
     child_pcb->lowest_user_stack_page = current_proc->lowest_user_stack_page;
     child_pcb->user_brk_page = current_proc->user_brk_page;
 
@@ -114,10 +129,12 @@ int KernelFork(UserContext *user_context) {
 
     // Compare the current PID to the child's PID to return correct value.
     if (child_pid == current_proc->pid) {
-        TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< KernelFork() [child: pid = %d] \n\n", current_proc->pid);
+        TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< KernelFork() [child: pid = %d] \n\n", 
+            current_proc->pid);
         return 0;
     } else {
-        TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< KernelFork() [parent: pid = %d] \n\n", current_proc->pid);
+        TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< KernelFork() [parent: pid = %d] \n\n", 
+            current_proc->pid);
         return child_pid;
     }
 
@@ -166,6 +183,7 @@ int KernelExec(char *filename, char **argvec, UserContext *user_context_ptr) {
             }
         }
 
+        // copy arguments into kernel heap
         heap_argvec = calloc(num_args + 1, sizeof(char *));
         for (i = 0; i < num_args; i++) {
             char *arg = argvec[i];
@@ -191,7 +209,7 @@ int KernelExec(char *filename, char **argvec, UserContext *user_context_ptr) {
 
     // Free the filename string and arguments in the Kernel heap.
     free(heap_filename);
-    if (heap_argvec) { // why is load program consuming this???
+    if (heap_argvec) {
         int i;
         for (i = 0; i < num_args; i++) {
             char *heap_arg = heap_argvec[i];
@@ -212,10 +230,13 @@ void KernelExit(int status, UserContext *user_context) {
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> KernelExit(%p)\n", user_context);
     // If initial process, halt system
     if (current_proc->pid == INIT_PID) {
-        TracePrintf(TRACE_LEVEL_TERMINAL_PROBLEM, "Init Proc exited w/ status %d. Halting!\n", status);
+        TracePrintf(TRACE_LEVEL_TERMINAL_PROBLEM, "Init Proc exited w/ status %d. Halting!\n", 
+            status);
         Halt();
     }
 
+    // Release system resources and free datastructures
+    
     // Release any locks
     while(!ListEmpty(current_proc->owned_lock_ids)) {
         int lock_id = (int) ListPeak(current_proc->owned_lock_ids);
@@ -256,7 +277,7 @@ void KernelExit(int status, UserContext *user_context) {
         ListRemoveById(current_proc->live_parent->live_children, current_proc->pid);
         ListAppend(current_proc->live_parent->zombie_children, current_proc, current_proc->pid);
         // If parent is waiting_on_children, move parent proc to ready queue
-        // from blocked, and reset waiting_on_chilrden
+        // reset waiting_on_chilrden
         if (current_proc->live_parent->waiting_on_children) {
             current_proc->live_parent->waiting_on_children = false;
             ListAppend(ready_queue, current_proc->live_parent, current_proc->live_parent->pid);
@@ -277,7 +298,9 @@ int KernelWait(int *status_ptr, UserContext *user_context) {
         return ERROR;
     }
 
-    // If zombie children list is not empty, collect exit status of one, remove PCB from list, and free
+    // First check for any zombie children
+    // If zombie children list is not empty, collect exit status of one, 
+    // remove PCB from list, and free
     if (!ListEmpty(current_proc->zombie_children)) {
         PCB *child = (PCB *) ListDequeue(current_proc->zombie_children);
         *status_ptr = child->exit_status;
@@ -287,11 +310,14 @@ int KernelWait(int *status_ptr, UserContext *user_context) {
         return SUCCESS;
     }
 
+    // No zombies, so check for live children
     // If no live children, return error
     if (ListEmpty(current_proc->live_children)) {
         TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "No live or zombie children to wait for!\n");
         return ERROR;
     }
+
+    // Block and run the next proc
     current_proc->waiting_on_children = true;
     SwitchToNextProc(user_context);
 
@@ -325,7 +351,7 @@ int KernelBrk(void *addr) {
         return ERROR;
     }
 
-    if (new_user_brk_page > current_proc->user_brk_page) {
+    if (new_user_brk_page > current_proc->user_brk_page) { // growing the user heap...
         int rc = MapNewRegion1Pages(current_proc, current_proc->user_brk_page,
                 new_user_brk_page - current_proc->user_brk_page, PROT_READ | PROT_WRITE);
         if (rc == ERROR) {
@@ -333,14 +359,14 @@ int KernelBrk(void *addr) {
                     "MapNewRegion1Pages() failed.\n");
             return ERROR;
         }
-    } else if (new_user_brk_page < current_proc->user_brk_page) {
+    } else if (new_user_brk_page < current_proc->user_brk_page) { // shrinking the heap...
         UnmapRegion1Pages(current_proc, new_user_brk_page,
                 current_proc->user_brk_page - new_user_brk_page);
-    }
+    } // New page is the same as old, so do nothing!
 
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< KernelBrk()\n\n");
     current_proc->user_brk_page = new_user_brk_page;
-    return 0;
+    return SUCCESS;
 }
 
 int KernelDelay(int clock_ticks, UserContext *user_context) {
@@ -369,6 +395,7 @@ int KernelDelay(int clock_ticks, UserContext *user_context) {
 }
 
 int KernelTtyRead(int tty_id, void *buf, int len, UserContext *user_context) {
+    // Make sure the id exists!
     if (tty_id < 0 || tty_id >= NUM_TERMINALS) {
         TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "Program tried to read from invalid term\n");
         return ERROR;
@@ -378,7 +405,8 @@ int KernelTtyRead(int tty_id, void *buf, int len, UserContext *user_context) {
         return ERROR;
     }
     if (!ValidateUserArg((unsigned int) buf, len, PROT_WRITE)) {
-        TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "Buffer passed to KernelTtyRead() is not writable by the user program.\n");
+        TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, 
+            "Buffer passed to KernelTtyRead() is not writable by the user program.\n");
         return ERROR;
     }
     // Get the TTY state
@@ -388,7 +416,11 @@ int KernelTtyRead(int tty_id, void *buf, int len, UserContext *user_context) {
     LineBuffer *lb = (LineBuffer *) ListDequeue(term.line_buffers);
     if (lb) { // at least one line waiting to be consumed
         memcpy(buf, lb->buffer, len);
+
+        // Check if all the input was consumed or not
         if (lb->length > len) {
+            // Still input remaining, so make a new line buffer to push
+            // back into the terminals associated line buffers
             int leftovers_length = lb->length - len;
             char *leftovers = calloc(leftovers_length, sizeof(char));
             memcpy(leftovers, lb->buffer, leftovers_length);
@@ -398,6 +430,7 @@ int KernelTtyRead(int tty_id, void *buf, int len, UserContext *user_context) {
             ListPush(term.line_buffers, lb, 0);
             return len;
         } else {
+            // Consumed all of the available input
             int copied = lb->length;
             free(lb->buffer);
             free(lb);
@@ -419,6 +452,7 @@ int KernelTtyRead(int tty_id, void *buf, int len, UserContext *user_context) {
     return current_proc->tty_receive_len;
 }
 
+// "Internal" method does not validate the args! Can only be used by the Kernel!
 int KernelTtyWriteInternal(int tty_id, void *buf, int len, UserContext *user_context) {
     assert(tty_id >= 0 && tty_id <= NUM_TERMINALS);
     assert(len >= 0);
@@ -456,6 +490,7 @@ int KernelTtyWriteInternal(int tty_id, void *buf, int len, UserContext *user_con
     return len;
 }
 
+// Simply validate args then pass to internal method
 int KernelTtyWrite(int tty_id, void *buf, int len, UserContext *user_context) {
     if (tty_id < 0 || tty_id >= NUM_TERMINALS) {
         TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "Program tried to write to invalid term\n");
@@ -466,7 +501,8 @@ int KernelTtyWrite(int tty_id, void *buf, int len, UserContext *user_context) {
         return ERROR;
     }
     if (!ValidateUserArg((unsigned int) buf, len, PROT_READ)) {
-        TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "The buffer passed to KernelTtyWrite() is not readable by the user program.\n");
+        TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, 
+            "The buffer passed to KernelTtyWrite() is not readable by the user program.\n");
         return ERROR;
     }
 
@@ -504,13 +540,14 @@ int KernelPipeRead(int pipe_id, void *buf, int len, UserContext *user_context) {
     }
 
     if (!ValidateUserArg((unsigned int) buf, len, PROT_WRITE)) {
-        TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "The buffer passed to KernelPipeRead() is not writable by the user program.\n");
+        TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, 
+            "The buffer passed to KernelPipeRead() is not writable by the user program.\n");
         return ERROR;
     }
 
     // Get the pipe
     Pipe *p = (Pipe *) ListFindById(pipes, pipe_id);
-    if (!p) {
+    if (!p) { // check if pipe was found
         TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "No pipe exists for id %d\n", pipe_id);
         return ERROR;
     }
@@ -520,6 +557,8 @@ int KernelPipeRead(int pipe_id, void *buf, int len, UserContext *user_context) {
         ListAppend(p->waiting_to_read, current_proc, len);
         SwitchToNextProc(user_context);
     }
+
+    // Use Pipe helper method to copy from pipe into user buf
     return PipeCopyIntoUserBuffer(p, buf, len);
 }
 
@@ -532,34 +571,41 @@ int KernelPipeWrite(int pipe_id, void *buf, int len, UserContext *user_context) 
     }
 
     if (!ValidateUserArg((unsigned int) buf, sizeof(char) * len, PROT_READ)) {
-        TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "The buffer passed to KernelPipeRead() is not writable by the user program.\n");
+        TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, 
+            "The buffer passed to KernelPipeRead() is not writable by the user program.\n");
         return ERROR;
     }
 
     // Get the pipe
     Pipe *p = (Pipe *) ListFindById(pipes, pipe_id);
-    if (!p) {
+    if (!p) { // check if pipe was found
         TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "No pipe exists for id %d\n", pipe_id);
         return ERROR;
     }
 
     // Write into pipe's buffer, expanding buffer capacity if necessary
 
-    if (len > PipeSpotsRemaining(p)) { // need to increase size of buffer
+    if (len > PipeSpotsRemaining(p)) {
+        // Need to increase buffer size, so make one big enough to
+        // accomodate the new data and copy everything over
         int new_buffer_size = p->num_chars_available + len;
         void *new_buffer = calloc(new_buffer_size, sizeof(char));
+
+        // copy all unconsumed data from pipe
         memcpy(new_buffer, p->buffer_ptr, p->num_chars_available);
         p->buffer_ptr = new_buffer;
         free(p->buffer);
         p->buffer = new_buffer;
         p->buffer_capacity = new_buffer_size;
     }
-    assert(len <= PipeSpotsRemaining(p));
+    assert(len <= PipeSpotsRemaining(p)); // there should now be enough space
 
+    // copy given data into pipe
     PipeCopyIntoPipeBuffer(p, buf, len);
 
     // If another proc is waiting and enough characters available, move him to ready
-    PCB *next_proc = (PCB *) ListFindFirstLessThanIdAndRemove(p->waiting_to_read, p->num_chars_available);
+    PCB *next_proc = (PCB *) ListFindFirstLessThanIdAndRemove(p->waiting_to_read, 
+        p->num_chars_available);
     if (next_proc) {
         ListAppend(ready_queue, next_proc, next_proc->pid);
     }
@@ -570,7 +616,8 @@ int KernelPipeWrite(int pipe_id, void *buf, int len, UserContext *user_context) 
 
 int KernelLockInit(int *lock_idp) {
     if (!ValidateUserArg((unsigned int) lock_idp, sizeof(int), PROT_WRITE)){
-        TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "The int pointer passed to KernelLockInit() is not writable by the user process.\n");
+        TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, 
+            "The int pointer passed to KernelLockInit() is not writable by the user process.\n");
         return ERROR;
     }
 
@@ -641,9 +688,9 @@ int KernelRelease(int lock_id) {
         return ERROR;
     }
 
-    // should definitely be in there
+    // Remove lock from list of owned
     void *released_lock = ListRemoveById(current_proc->owned_lock_ids, lock->id);
-    assert(released_lock);
+    assert(released_lock); // If it wasn't in there, something went wrong!
 
     // If there are no processes waiting on the lock, mark it as available and return.
     if (ListEmpty(lock->waiting_procs)) {
@@ -756,11 +803,11 @@ int KernelReclaim(int id) {
     // Find appropriate struct in kernel lists, remove from list, and freeeeeeeeeeeee
     Lock *l = ListRemoveById(locks, id);
     if (l) { // resource was lock
-        if (l->acquired) {
+        if (l->acquired) { // ensure it is not currently held
             TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "Lock acquired, can't free\n");
             return ERROR;
         }
-        if (!ListEmpty(l->waiting_procs)) {
+        if (!ListEmpty(l->waiting_procs)) { // ensure no procs are waiting
             TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "Procs waiting on lock, can't free\n");
             return ERROR;
         }
@@ -769,7 +816,7 @@ int KernelReclaim(int id) {
 
     CVar *c = ListRemoveById(cvars, id);
     if (c) { // resource was cvar
-        if (!ListEmpty(c->waiting_procs)) {
+        if (!ListEmpty(c->waiting_procs)) { // ensure no procs are waiting
             TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "Procs waiting on cvar, can't free\n");
             return ERROR;
         }
@@ -778,7 +825,7 @@ int KernelReclaim(int id) {
 
     Pipe *p = ListRemoveById(pipes, id);
     if (p) { //resource was pipe
-        if (!ListEmpty(p->waiting_to_read)) {
+        if (!ListEmpty(p->waiting_to_read)) { // ensure no one is waiting to read
             TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM,
                 "Procs waiting to read on pipe, can't free\n");
             return ERROR;
