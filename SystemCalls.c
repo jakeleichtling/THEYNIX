@@ -413,16 +413,10 @@ int KernelTtyRead(int tty_id, void *buf, int len, UserContext *user_context) {
 
     // When control returns here, the process copies tty_recieve_buf to buf, frees tty_receive_buf,
     // and returns tty_receive_len.
-    memcpy(buf, current_proc->tty_receive_buffer, len);
-    int copied;
-    if (current_proc->tty_receive_len > len) {
-        copied = len;
-    } else {
-        copied = current_proc->tty_receive_len;
-    }
+    memcpy(buf, current_proc->tty_receive_buffer, current_proc->tty_receive_len);
     free(current_proc->tty_receive_buffer);
 
-    return copied;
+    return current_proc->tty_receive_len;
 }
 
 int KernelTtyWriteInternal(int tty_id, void *buf, int len, UserContext *user_context) {
@@ -459,7 +453,7 @@ int KernelTtyWriteInternal(int tty_id, void *buf, int len, UserContext *user_con
     SwitchToNextProc(user_context);
 
     // When control returns here, return success
-    return SUCCESS;
+    return len;
 }
 
 int KernelTtyWrite(int tty_id, void *buf, int len, UserContext *user_context) {
