@@ -459,7 +459,7 @@ int KernelTtyWriteInternal(int tty_id, void *buf, int len, UserContext *user_con
     SwitchToNextProc(user_context);
 
     // When control returns here, return success
-    return SUCCESS;
+    return len;
 }
 
 int KernelTtyWrite(int tty_id, void *buf, int len, UserContext *user_context) {
