@@ -29,6 +29,7 @@ int main(int argc, char *argv[]) {
 
     // Test reading with length greater than TERMINAL_MAX_LINE.
     TracePrintf(TRACE_LEVEL_TESTING_OUTPUT, "Testing reading a line longer than TERMINAL_MAX_LINE.\n");
+    TtyWrite(0, prompt_input_message, strlen(prompt_input_message));
     char *big_buffer = calloc(TERMINAL_MAX_LINE * 2, sizeof(char));
     int num_read = TtyRead(0, big_buffer, TERMINAL_MAX_LINE * 2);
     TracePrintf(TRACE_LEVEL_TESTING_OUTPUT, "%d characters were read.\n", num_read);
