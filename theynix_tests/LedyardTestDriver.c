@@ -47,8 +47,8 @@ void testCase0() {
   TracePrintf(TRACE_LEVEL_TESTING_OUTPUT, "\tsleeping for 1 second after getting on, and another second before getting off:\n");
   TracePrintf(TRACE_LEVEL_TESTING_OUTPUT, "---------------------------------------------------------------------------------------\n");
 
-  int num_cars_to_hanover = 5;
-  int num_cars_to_norwich = 5;
+  int num_cars_to_hanover = 7;
+  int num_cars_to_norwich = 1;
 
   char *pipe_id_str = calloc(16, sizeof(char));
   sprintf(pipe_id_str, "%d\0", pipe_id);
