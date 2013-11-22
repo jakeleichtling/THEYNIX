@@ -14,6 +14,7 @@
 
 #include <hardware.h>
 
+#include "Kernel.h"
 #include "PCB.h"
 
 int free_frames_head; // -1 if list is empty.
