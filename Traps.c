@@ -13,6 +13,11 @@
 #include "PCB.h"
 #include "SystemCalls.h"
 
+/*
+ * Traps.c
+ * Contains trap table initialization and trap functions.
+ */
+
 extern List *clock_block_procs;
 extern List *ready_queue;
 extern PCB *current_proc;
@@ -20,6 +25,7 @@ extern PCB *current_proc;
 void TrapKernel(UserContext *user_context) {
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> TrapKernel(%p)\n", user_context);
     int rc;
+    // Call approriate syscall based on code
     switch(user_context->code){
         case YALNIX_DELAY:
             rc = KernelDelay(user_context->regs[0], user_context);
@@ -96,12 +102,15 @@ void TrapKernel(UserContext *user_context) {
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< TrapKernel() rc=%d\n", rc);
 }
 
+// Method pased to ListMap on clock tick
+// decrements the number of ticks remaining for each proc that is waiting from Delay
 void DecrementTicksRemaining(void *_proc) {
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> DecrementTicksRemaining(%p)\n", _proc);
     PCB *proc = (PCB *) _proc;
     --proc->clock_ticks_until_ready;
     if (proc->clock_ticks_until_ready <= 0) {
-        TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> DecrementTicksRemaining: proc %p done waiting!\n",
+        TracePrintf(TRACE_LEVEL_FUNCTION_INFO, 
+            ">>> DecrementTicksRemaining: proc %p done waiting!\n",
              _proc);
 
         ListRemoveById(clock_block_procs, proc->pid);
@@ -112,17 +121,21 @@ void DecrementTicksRemaining(void *_proc) {
 
 void TrapClock(UserContext *user_context) {
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> TrapClock(%p)\n", user_context);
+    // Use Map interface to decrement the ticks remaining for each proc
     ListMap(clock_block_procs, &DecrementTicksRemaining);
 
+    // If the current proc is not the idle, place it in the ready queue
     if (current_proc->pid != IDLE_PID) {
         ListAppend(ready_queue, current_proc, current_proc->pid);
     }
 
+    // and switch to the next ready proc
     SwitchToNextProc(user_context);
 
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< TrapClock(%p)\n", user_context);
 }
 
+// Print error message and kill proc
 void TrapIllegal(UserContext *user_context) {
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> TrapIllegal(%p)\n", user_context);
     char *err_str = calloc(TERMINAL_MAX_LINE, sizeof(char));
@@ -138,7 +151,9 @@ void TrapMemory(UserContext *user_context) {
 
     unsigned int addr_int = (unsigned int) user_context->addr;
 
+    // check if addr is outside of region 1
     if (addr_int > VMEM_1_LIMIT || addr_int < VMEM_1_BASE) {
+        // Illegal mem addr, so kill
         char *err_str = calloc(TERMINAL_MAX_LINE, sizeof(char));
         sprintf(err_str, "Out of range memory access at %x by proc %d\n",
             user_context->addr, current_proc->pid);
@@ -146,6 +161,8 @@ void TrapMemory(UserContext *user_context) {
         free(err_str);
         KernelExit(ERROR, user_context);
     }
+
+    // get the appropriate page in region 1
     int addr_page = ADDR_TO_PAGE(user_context->addr - VMEM_1_BASE);
     if (current_proc->region_1_page_table[addr_page].valid != 1) { // "address not mapped"
 
@@ -154,8 +171,12 @@ void TrapMemory(UserContext *user_context) {
         if (below_current_stack && above_heap) { // valid stack growth
             TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Growing User stack\n");
 
+            // Allocate every page from the right below the current lowest user stack
+            // page down to the memory address hit
             unsigned int page_to_alloc = current_proc->lowest_user_stack_page - 1;
             while (page_to_alloc >= addr_page) {
+
+                // try to get a new frame, and handle error case
                 if (GetUnusedFrame(&(current_proc->region_1_page_table[page_to_alloc])) == ERROR) {
                     TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "GetUnusedFrame() failed.\n");
 
@@ -170,14 +191,16 @@ void TrapMemory(UserContext *user_context) {
                 }
                 assert(!current_proc->region_1_page_table[page_to_alloc].valid);
 
+                // set the pte data
                 current_proc->region_1_page_table[page_to_alloc].valid = 1;
                 current_proc->region_1_page_table[page_to_alloc].prot = PROT_READ | PROT_WRITE;
 
                 --page_to_alloc;
             }
 
+            // update pcb to reflect change
             current_proc->lowest_user_stack_page = addr_page;
-        } else if (!above_heap) { // OOM!
+        } else if (!above_heap) { // Stack grew into heap! OOM!
             TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM,
                 "Out of mem on stack growth at %p\n", user_context->addr);
             char *err_str = calloc(TERMINAL_MAX_LINE, sizeof(char));
@@ -187,7 +210,8 @@ void TrapMemory(UserContext *user_context) {
             free(err_str);
             KernelExit(ERROR, user_context);
         } else { // not below the user stack? should not happen!
-            TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "Somehow unmapped addr is above the bottom of the stack\n");
+            TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, 
+                "Somehow unmapped addr is above the bottom of the stack\n");
             char *err_str = calloc(TERMINAL_MAX_LINE, sizeof(char));
             sprintf(err_str, "Proc %d found an unmapped page in its stack. Sorry.\n",
                 current_proc->pid);
@@ -195,8 +219,10 @@ void TrapMemory(UserContext *user_context) {
             free(err_str);
             KernelExit(ERROR, user_context);
         }
-    } else { // Page was mapped and in range, so must be invalid permissions
-        TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "Proc %d accessed mem with invalid permissions\n", current_proc->pid);
+    } else { 
+        // Page was mapped and in range, so must be invalid permissions
+        TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, 
+            "Proc %d accessed mem with invalid permissions\n", current_proc->pid);
         char *err_str = calloc(TERMINAL_MAX_LINE, sizeof(char));
         sprintf(err_str, "Proc %d accessed %x with invalid permissions\n",
             current_proc->pid, user_context->addr);
@@ -207,6 +233,7 @@ void TrapMemory(UserContext *user_context) {
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< TrapMemory()\n\n");
 }
 
+// Print message and kill
 void TrapMath(UserContext *user_context) {
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> TrapMath(%p)\n", user_context);
     TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "Killing proc on trap math \n");
@@ -221,35 +248,48 @@ void TrapMath(UserContext *user_context) {
 void TrapTtyRecieve(UserContext *user_context) {
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> TrapTtyRecieve(%p)\n", user_context);
     int tty_id = user_context->code;
+    
+    // Find the proper terminal struct
     Tty term = ttys[tty_id];
-    if (ListEmpty(term.waiting_to_receive)) { // no waiting procs
+    if (ListEmpty(term.waiting_to_receive)) { 
+        // no waiting procs, so create line buffer and
+        // add to list
         LineBuffer *lb = calloc(1, sizeof(LineBuffer));
         lb->buffer = calloc(TERMINAL_MAX_LINE, sizeof(char));
         lb->length = TtyReceive(tty_id, lb->buffer, TERMINAL_MAX_LINE);
         ListEnqueue(term.line_buffers, lb, 0);
-    } else { // at least one proc waiting
+    } else { 
+        // at least one proc waiting
+        // create heap in kernel to use
         char *input = calloc(TERMINAL_MAX_LINE, sizeof(char));
-        char *input_ptr = input;
+        char *input_ptr = input; // point how far into the buffer we've read
         int input_length = TtyReceive(tty_id, input, TERMINAL_MAX_LINE);
         int input_remaining = input_length;
 
+        // Continue so long as procs are waiting and there is unconsumed input
         while (!ListEmpty(term.waiting_to_receive) && input_remaining > 0) {
             PCB *waiting_proc = (PCB *) ListDequeue(term.waiting_to_receive);
             assert(waiting_proc->tty_receive_buffer);
+
+            // put proc back into ready queue
             ListAppend(ready_queue, waiting_proc, waiting_proc->pid);
 
             if (input_remaining <= waiting_proc->tty_receive_len) {
+                // Consuming all the input
                 memcpy(waiting_proc->tty_receive_buffer, input_ptr, input_remaining);
                 waiting_proc->tty_receive_len = input_remaining;
                 input_remaining = 0;
             } else {
+                // Only consuming some of the input
                 memcpy(waiting_proc->tty_receive_buffer, input_ptr, waiting_proc->tty_receive_len);
                 input_remaining -= waiting_proc->tty_receive_len;
                 input_ptr += waiting_proc->tty_receive_len;
             }
         }
 
+        // Check if there is still input left after all the procs have been filled
         if (input_remaining > 0) {
+            // Create new line buffer and store
             char *remaining_buff = calloc(input_remaining, sizeof(char));
             memcpy(remaining_buff, input_ptr, input_remaining);
             LineBuffer *lb = calloc(1, sizeof(LineBuffer));
@@ -269,12 +309,15 @@ void TrapTtyTransmit(UserContext *user_context) {
     Tty term = ttys[tty_id];
     assert(!ListEmpty(term.waiting_to_transmit));
 
-    // Get the currently transmitting proc
+    // Get the currently transmitting proc (always at the front of the list)
     PCB *waiting_proc = (PCB *) ListPeak(term.waiting_to_transmit);
-    if (waiting_proc->tty_transmit_len > TERMINAL_MAX_LINE) { // not completely transmitted
+    if (waiting_proc->tty_transmit_len > TERMINAL_MAX_LINE) { 
+        // not completely transmitted, so handle pointer stuff and leave in
+        // front of the queue
         waiting_proc->tty_transmit_pointer += TERMINAL_MAX_LINE;
         waiting_proc->tty_transmit_len -= TERMINAL_MAX_LINE;
 
+        // transmit min(MAX_LINE, len)
         if (TERMINAL_MAX_LINE > waiting_proc->tty_transmit_len) {
             TtyTransmit(tty_id, waiting_proc->tty_transmit_pointer,
                 waiting_proc->tty_transmit_len);
@@ -298,6 +341,7 @@ void TrapTtyTransmit(UserContext *user_context) {
 
     // Get the next proc waiting to submit
     PCB *next_to_transmit = (PCB *) ListPeak(term.waiting_to_transmit);
+    // transmit min(MAX_LINE, len)
     if (TERMINAL_MAX_LINE > next_to_transmit->tty_transmit_len) {
         TtyTransmit(tty_id, next_to_transmit->tty_transmit_pointer,
             next_to_transmit->tty_transmit_len);
@@ -309,11 +353,13 @@ void TrapTtyTransmit(UserContext *user_context) {
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< TrapTtyTransmit(%p)\n", user_context);
 }
 
+// Kill the proc
 void TrapNotDefined(UserContext *user_context) {
     TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "Unknown TRAP call. Killing proc\n");
     KernelExit(ERROR, user_context);
 }
 
+// Set up the page table and write to the REG_VECTOR_BASE
 void TrapTableInit() {
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> TrapTableInit()\n");
 
@@ -338,4 +384,3 @@ void TrapTableInit() {
 
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< TrapTableInit()\n");
 }
-

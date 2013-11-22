@@ -3,6 +3,11 @@
 
 #include "include/hardware.h"
 
+/*
+ * Traps.h
+ * Contains trap table initialization and trap functions.
+ */
+
 void TrapTableInit();
 
 #endif
