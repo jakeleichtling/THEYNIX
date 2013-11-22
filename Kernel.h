@@ -18,6 +18,9 @@
 #define INIT_PID 1
 #define IDLE_PID 0
 
+#define SYNC_HASH_TABLE_SIZE 20
+#define CLOCK_BLOCKED_PROCS_HASH_SIZE 20
+
 /* Global Variables */
 
 List *locks;

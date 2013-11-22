@@ -4,12 +4,99 @@
 #include <assert.h>
 #include <stdio.h>
 
+// Internal hash table helper methods
+void ListAddToHashTable(List *list, ListNode *ln) {
+    assert(list->hash_table);
+
+    int hash_id = ln->id % list->hash_table_size;
+    ListNode *collision = list->hash_table[hash_id];
+    
+    // If no collision, than this will be null (as it should)
+    ln->hash_collission_next = collision;
+    list->hash_table[hash_id] = ln;
+}
+
+ListNode *ListFindFromHashTable(List *list, unsigned int id) {
+    assert(list->hash_table);
+
+    int hash_id = id % list->hash_table_size;
+    ListNode *value = list->hash_table[hash_id];
+
+    while (NULL != value && value->id != id) {
+        value = value->hash_collission_next;
+    }
+
+    return value;
+}
+
+ListNode *ListRemoveFromHashTable(List *list, unsigned int id) {
+    assert(list->hash_table);
+
+    int hash_id = id % list->hash_table_size;
+    ListNode *value = list->hash_table[hash_id];
+
+    if (NULL == value) {
+        return NULL;
+    } else if (id == value->id) {
+        list->hash_table[hash_id] = value->hash_collission_next;
+        return value;
+    }
+
+    while(NULL != value->hash_collission_next) {
+        ListNode *next = value->hash_collission_next;
+        if (next->id == id) {
+            value->hash_collission_next = next->hash_collission_next;
+            return next;
+        }
+        value = next;
+    }
+
+    return NULL;
+}
+
 void Increment(void *data) {
     ++*((int *)data);
 }
 
-bool ListTestList() {
-    List *list = ListNewList();
+bool ListTestListWithHash() {
+    List *list = ListNewList(10);
+
+    unsigned int ids[100];
+    int i;
+
+    for (i = 0; i < 100; i++) {
+        ids[i] = i;
+    }
+
+    for (i = 0; i < 100; i++) {
+        if (i % 2) {
+            ListEnqueue(list, &ids[i], ids[i]);
+        } else {
+            ListPush(list, &ids[i], ids[i]);
+        }
+    }
+
+    for (i = 0; i < 100; i++) {
+        unsigned int *result;
+        if (i % 2) {
+            result = (unsigned int *) ListRemoveById(list, ids[i]);
+        } else {
+            result = (unsigned int *) ListFindById(list, ids[i]);
+        }
+        assert(result);
+        assert(*result == ids[i]);
+    }
+
+    while(!ListEmpty(list)) {
+        ListDequeue(list);
+    }
+
+    assert(!ListFindById(list, 5));
+
+    return true;
+}
+bool ListTestListNoHash() {
+    List *list = ListNewList(0);
     assert(ListEmpty(list));
 
     int x = 5;
@@ -28,7 +115,7 @@ bool ListTestList() {
 
     // Test Delete
     int w = 9;
-    ListInsertByIdOrder(list, &w, w);
+    ListAppend(list, &w, w);
     int* w_delete_result = (int *) ListRemoveById(list, w);
     assert(*w_delete_result == w);
     assert(!ListFindById(list, w));
@@ -54,29 +141,17 @@ bool ListTestList() {
 
     assert(ListEmpty(list));
 
-    // Test in-order insertion
-    unsigned int first = 1;
-    unsigned int second = 2;
-    unsigned int third = 3;
-
-    ListInsertByIdOrder(list, &second, second);
-    ListInsertByIdOrder(list, &first, first);
-    ListInsertByIdOrder(list, &third, third);
-    unsigned int * first_dequeue = ListDequeue(list);
-    unsigned int * second_dequeue = ListDequeue(list);
-    unsigned int * third_dequeue = ListDequeue(list);
-
-    assert(*first_dequeue == first);
-    assert(*second_dequeue == second);
-    assert(*third_dequeue == third);
-
     // Test Map function
     assert(ListEmpty(list));
+    int first = 1;
+    int second = 2;
+    int *first_dequeue;
+    int *second_dequeue;
     ListAppend(list, &first, first);
     ListAppend(list, &second, second);
     ListMap(list, &Increment);
-    first_dequeue = ListDequeue(list);
-    second_dequeue = ListDequeue(list);
+    first_dequeue = (int *) ListDequeue(list);
+    second_dequeue = (int *)ListDequeue(list);
 
     assert(*first_dequeue == 2);
     assert(*second_dequeue == 3);
@@ -86,15 +161,32 @@ bool ListTestList() {
     return true;
 }
 
-List *ListNewList() {
+/*
+ * uncomment to test
+int main(int argc, char **argv) {
+    assert(ListTestListNoHash());
+    assert(ListTestListWithHash());
+
+    return 0;
+}
+*/
+
+List *ListNewList(int hash_table_size) {
     List *list = calloc(1, sizeof(List));
     list->sentinel = calloc(1, sizeof(ListNode));
     list->head = list->sentinel;
+    list->hash_table_size = hash_table_size;
+    if (hash_table_size > 0) {
+        list->hash_table = calloc(hash_table_size, sizeof(List*));
+    }
     return list;
 }
 
 void ListDestroy(List *list) {
     assert(ListEmpty(list));
+    if (list->hash_table_size > 0) {
+        free(list->hash_table);
+    }
     free(list->sentinel);
     free(list);
 }
@@ -113,6 +205,11 @@ void ListPush(List *list, void *data, unsigned int id) {
     list->head = ln;
     ln->id = id;
     ln->data = data;
+    ln->hash_collission_next = NULL;
+
+    if (list->hash_table_size) {
+        ListAddToHashTable(list, ln);
+    }
 }
 
 void *ListDequeue(List *list) {
@@ -120,8 +217,13 @@ void *ListDequeue(List *list) {
         return NULL;
     }
 
+
     ListNode *ln = list->head;
     void* data = ln->data;
+
+    if (list->hash_table_size) {
+        ListRemoveFromHashTable(list, ln->id);
+    }
 
     list->head = ln->next;
     list->head->prev = list->sentinel;
@@ -166,7 +268,13 @@ void *ListFindFirstLessThanIdAndRemove(List *list, unsigned int id) {
 }
 
 void *ListFindById(List *list, unsigned int id) {
-    ListNode *node = ListFindNodeById(list, id);
+    ListNode *node;
+    if (list->hash_table_size) { // using hash table
+        node =  ListFindFromHashTable(list, id);
+    } else { // no hash table, use iter lookup
+        node = ListFindNodeById(list, id);
+    }
+
     if (node) { // found
         return node->data;
     } else { // not found
@@ -175,7 +283,14 @@ void *ListFindById(List *list, unsigned int id) {
 }
 
 void *ListRemoveById(List *list, unsigned int id) {
-    ListNode *node = ListFindNodeById(list, id);
+
+    ListNode *node;
+    if (list->hash_table_size) { // using hash table
+        node = ListRemoveFromHashTable(list, id);
+    } else { // revert to normal lookup
+        node = ListFindNodeById(list, id);
+    }
+
     if (node) {
         if (node == list->head) {
             return ListDequeue(list);
@@ -189,30 +304,6 @@ void *ListRemoveById(List *list, unsigned int id) {
     } else {
         return NULL;
     }
-}
-
-void ListInsertByIdOrder(List *list, void *data, unsigned int id) {
-    assert(list);
-
-    // If list is empty or new id is smallest, simply put in front
-    if (ListEmpty(list) || list->head->id > id) {
-        ListPush(list, data, id);
-        return;
-    }
-
-    ListNode *current = list->head;
-    while (current->next != list->sentinel && id > current->next->id) {
-        current = current->next;
-    }
-
-    ListNode *ln = calloc(1, sizeof(ListNode));
-    ln->next = current->next;
-    ln->next->prev = ln;
-    current->next = ln;
-    ln->prev = current;
-
-    ln->id = id;
-    ln->data = data;
 }
 
 void ListEnqueue(List *list, void *data, unsigned int id) {
@@ -234,6 +325,11 @@ void ListAppend(List *list, void *data, unsigned int id) {
     ln->prev->next = ln;
     list->sentinel->prev = ln;
     ln->next = list->sentinel;
+    ln->hash_collission_next = NULL;
+
+    if (list->hash_table_size) {
+        ListAddToHashTable(list, ln);
+    }
 }
 
 void ListMap(List *list, void (*ftn) (void*)) {

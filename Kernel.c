@@ -383,11 +383,11 @@ void Idle() {
 }
 
 void InitBookkeepingStructs() {
-    locks = ListNewList();
-    cvars = ListNewList();
-    pipes = ListNewList();
-    ready_queue = ListNewList();
-    clock_block_procs = ListNewList();
+    locks = ListNewList(SYNC_HASH_TABLE_SIZE);
+    cvars = ListNewList(SYNC_HASH_TABLE_SIZE);
+    pipes = ListNewList(SYNC_HASH_TABLE_SIZE);
+    ready_queue = ListNewList(0);
+    clock_block_procs = ListNewList(CLOCK_BLOCKED_PROCS_HASH_SIZE);
 
     ttys = (Tty *) calloc(NUM_TERMINALS, sizeof(Tty));
     unsigned int i;

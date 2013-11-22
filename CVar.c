@@ -13,7 +13,7 @@ CVar *CVarNewCVar() {
     CVar *cvar = calloc(1, sizeof(CVar));
 
     cvar->id = next_synch_resource_id++;
-    cvar->waiting_procs = ListNewList();
+    cvar->waiting_procs = ListNewList(0);
 
     return cvar;
 }

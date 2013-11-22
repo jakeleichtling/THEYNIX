@@ -9,6 +9,9 @@
 
 #define NUM_KERNEL_PAGES KERNEL_STACK_MAXSIZE / PAGESIZE
 
+#define OWNED_LOCK_HASH_SIZE 10
+#define CHILD_LIST_HASH_SIZE 10
+
 /* Struct */
 
 /*
