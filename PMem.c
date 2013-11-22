@@ -127,7 +127,7 @@ void SetNextAndPrevFreeFrameNumbers(int frame_a, int next_frame_b, int prev_fram
 
   // Remap the first page of region 1.
   current_proc->region_1_page_table[0].pfn = actual_pfn;
-  WriteRegister(REG_TLB_FLISH, VMEM_1_BASE);
+  WriteRegister(REG_TLB_FLUSH, VMEM_1_BASE);
 }
 
 /*
@@ -154,7 +154,7 @@ int GetNextFreeFrameNumber(int frame_number) {
   // Map the frame into the first page of region 1.
   int actual_pfn = current_proc->region_1_page_table[0].pfn;
   current_proc->region_1_page_table[0].pfn = frame_number;
-  WriteRegister(REG_TLB_FLISH, VMEM_1_BASE);
+  WriteRegister(REG_TLB_FLUSH, VMEM_1_BASE);
 
   // Obtain the next free frame number at frame[0];
   int *frame_ptrs = (int *) VMEM_1_BASE;
@@ -162,7 +162,7 @@ int GetNextFreeFrameNumber(int frame_number) {
 
   // Remap the first page of region 1.
   current_proc->region_1_page_table[0].pfn = actual_pfn;
-  WriteRegister(REG_TLB_FLISH, VMEM_1_BASE);
+  WriteRegister(REG_TLB_FLUSH, VMEM_1_BASE);
 
   // Return the next free frame number.
   return next_frame_number;
