@@ -95,7 +95,7 @@ CPPFLAGS= -m32 -fno-builtin -I. -I$(INCDIR) -g -DLINUX -Wall
 all: $(ALL)
 
 clean:
-	rm -rf *.o *~ TTYLOG* TRACE $(YALNIX_OUTPUT) $(USER_APPS)  core.*
+	rm -f *.o *~ TTYLOG* TRACE $(YALNIX_OUTPUT) $(USER_APPS)  core.* theynix_tests/*.o cs58_tests/*.o
 
 new:
 	make clean
