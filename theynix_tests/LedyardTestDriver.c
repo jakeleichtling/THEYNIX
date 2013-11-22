@@ -119,7 +119,7 @@ void testCase0() {
     TracePrintf(TRACE_LEVEL_TESTING_OUTPUT, "Forking car %d.\n", i);
     rc = Fork();
     if (rc == 0) {
-    rc = Exec("LedyardBridge", argvec);
+    rc = Exec("theynix_tests/LedyardBridge", argvec);
       if (rc) {
         TracePrintf(TRACE_LEVEL_TESTING_OUTPUT, "Car %d exec failed.\n", i);
         exit(-1);
