@@ -119,10 +119,17 @@ durability under stress by the programs implemented in the cs58_tests and theyni
 directories. In theynix_tests there is a README file describing the different functionalities
 that we have tested and which programs test each case.
 
-When running our tests, one should specify the tracing levels -lk 3 -lu 5. When running the OS
-not for testing purposes, one should specify the kernel tracing level -lk 2 so that only problems
+When running our tests, the output is designed to be most useful/distilled
+with user trace level 0 and kernel trace level 1. When running the OS
+not for testing purposes, one should specify kernel trace level 0 so that only problems
 resulting in OS termination are printed.
 
+
+Note: You may encounter assert statements throughout our codebase. We used these as
+part of the development process to validate invariants that should always be true throughout
+the execution of the operating system. Provided the OS implementation is correct, the assert
+statements should have no effect on the OS regardless of what user code is executed. The OS
+functionality should be unchanged by compiling without them.
 
 Best,
 Team THEYNIX
