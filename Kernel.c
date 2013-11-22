@@ -13,35 +13,34 @@
 #include "VMem.h"
 #include "SystemCalls.h"
 
+/* 
+ * Kernel.c
+ * Contains internal Kernel operations, such as SetKernelBrk,
+ * KernelStart, etc. Also initaializes all system data structures.
+ */
+
 /* Function Prototypes */
 
-/*
-  Copies the given kernel stack page table into the region 0 page table. Does not flush the TLB.
-*/
+// Copies the given kernel stack page table into the region 0 page table. Does not flush the TLB.
 void UseKernelStackForProc(PCB *pcb);
 
-/*
-  Infinite loop that calls Pause() on each iteration.
-*/
-void Idle();
-
-/*
-  Allocate some Kernel Data structures for Tty, process, and synchronization bookkeeping.
-*/
+// Allocate some Kernel Data structures for Tty, process, and synchronization bookkeeping.
 void InitBookkeepingStructs();
 
+// Method that is passed to KernelContextSwitch
+// Saves the currently running KernelContext into the current_pcb.
+// Note: next_pcb doesn't matter here
 KernelContext *SaveCurrentKernelContext(KernelContext *kernel_context, void *current_pcb, void *next_pcb);
 
+// Method that is passed to KernelContextSwitch
+// Saves the current state into current_pcb, then begins running next_pcb
 KernelContext *SaveKernelContextAndSwitch(KernelContext *kernel_context, void *current_pcb, void *next_pcb);
 
-/*
-  Copies the data in the region 0 source page number to the frame mapped by the region 0 dest page number.
-*/
+// Copies the data in the region 0 source page number to the frame mapped by the region 0 dest page number.
 void CopyRegion0PageData(unsigned int source_page_number, unsigned int dest_page_number);
 
-/*
-  Copies the data in the region 1 source page number to the frame mapped by the region 1 dest page number.
-*/
+
+// Copies the data in the region 1 source page number to the frame mapped by the region 1 dest page number.
 void CopyRegion1PageData(unsigned int source_page_number, unsigned int dest_page_number);
 
 /* Function Implementations */
@@ -95,6 +94,7 @@ void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {
 
         idle_proc->kernel_stack_page_table[i].prot = PROT_READ | PROT_WRITE;
     }
+    // Load this new page table
     UseKernelStackForProc(idle_proc);
     idle_proc->kernel_context_initialized = true;
 
@@ -123,7 +123,7 @@ void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {
     int rc = LoadProgram("idle", NULL, idle_proc);
     if (rc != SUCCESS) {
         TracePrintf(TRACE_LEVEL_TERMINAL_PROBLEM, "KernelStart: FAILED TO LOAD IDLE!!\n");
-        exit(-1);
+        Halt();
     }
 
     // Load the init program.
@@ -138,7 +138,7 @@ void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {
     rc = LoadProgram(init_program_name, cmd_args, init_proc);
     if (rc != SUCCESS) {
         TracePrintf(TRACE_LEVEL_TERMINAL_PROBLEM, "KernelStart: FAILED TO LOAD INIT!!\n");
-        exit(ERROR);
+        Halt();
     }
 
     // Make idle the current proc.
@@ -146,6 +146,8 @@ void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {
     WriteRegister(REG_PTBR1, (unsigned int) idle_proc->region_1_page_table);
     WriteRegister(REG_TLB_FLUSH, TLB_FLUSH_1);
 
+    // Place the init proc in the ready queue.
+    // On the first clock tick, the init process will be initialized and ran.
     ListAppend(ready_queue, init_proc, init_proc->pid);
 
     // Use the idle proc's user context after returning from KernelStart().
@@ -168,7 +170,7 @@ int SetKernelBrk(void *addr) {
     // If virtual memory is enabled, give the kernel heap more frames or take some away.
     if (virtual_memory_enabled) {
         unsigned int kernel_stack_base_frame = ADDR_TO_PAGE(KERNEL_STACK_BASE);
-        if (new_kernel_brk_page > kernel_brk_page) {
+        if (new_kernel_brk_page > kernel_brk_page) { // Heap should grow
             unsigned int new_page;
             for (new_page = kernel_brk_page;
                     new_page < new_kernel_brk_page && new_page < kernel_stack_base_frame;
@@ -180,7 +182,7 @@ int SetKernelBrk(void *addr) {
                     return -1;
                 }
             }
-        } else if (new_kernel_brk_page < kernel_brk_page) {
+        } else if (new_kernel_brk_page < kernel_brk_page) { // Heap should shrink
             unsigned int page_to_free;
             for (page_to_free = kernel_brk_page - 1;
                     page_to_free >= new_kernel_brk_page;
@@ -189,7 +191,7 @@ int SetKernelBrk(void *addr) {
                     UnmapUsedRegion0Page(page_to_free);
                 }
             }
-        }
+        } // new_kernel_brk_page == kernel_brk_page, do nothing
     }
 
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< Brk()\n\n");
@@ -377,21 +379,20 @@ void CopyRegion1PageData(unsigned int source_page_number, unsigned int dest_page
 }
 
 /*
-  Infinite loop that calls Pause() on each iteration.
+  Allocate the kernel datastructures
 */
-void Idle() {
-    TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> Idle()\n");
-    while (true) {
-        Pause();
-    }
-}
-
 void InitBookkeepingStructs() {
+    // Initializing the synchronization primitives with hash-mapped backed
+    // lists because they frequently look up by id
     locks = ListNewList(SYNC_HASH_TABLE_SIZE);
     cvars = ListNewList(SYNC_HASH_TABLE_SIZE);
     pipes = ListNewList(SYNC_HASH_TABLE_SIZE);
+
+    // Always use ready_queue as a queue, so don't need hash map
     ready_queue = ListNewList(0);
-    clock_block_procs = ListNewList(CLOCK_BLOCKED_PROCS_HASH_SIZE);
+
+    // In general, we don't look up by id for procs waiting on the clock
+    clock_block_procs = ListNewList(0);
 
     ttys = (Tty *) calloc(NUM_TERMINALS, sizeof(Tty));
     unsigned int i;
@@ -400,12 +401,19 @@ void InitBookkeepingStructs() {
     }
 }
 
+
+// Context switch to the next process in the ready queue.
+// The next process's context will be loaded into the param user_context.
+// NOTE: place the current proc into the correct queue before calling
+// (e.g., ready queue, clock blocked queue)
 void SwitchToNextProc(UserContext *user_context) {
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> SwitchToNextProc()\n");
+
+    // Get the proc at the front of the queue
     PCB *next_proc = ListDequeue(ready_queue);
     if (next_proc) {
         SwitchToProc(next_proc, user_context);
-    } else {
+    } else { // No procs waiting, so just switch to the idle proc
         TracePrintf(TRACE_LEVEL_DETAIL_INFO, "No waiting procs, idling\n");
         SwitchToProc(idle_proc, user_context);
     }
@@ -413,6 +421,8 @@ void SwitchToNextProc(UserContext *user_context) {
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< SwitchToNextProc()\n");
 }
 
+// Begin executing the specified proc.
+// NOTE: place the current proc into the correct queue before calling
 void SwitchToProc(PCB *next_proc, UserContext *user_context) {
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> SwitchToProc()\n");
     assert(user_context);
@@ -448,6 +458,7 @@ void SwitchToProc(PCB *next_proc, UserContext *user_context) {
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, "<<< SwitchToProc()\n");
 }
 
+// Get a copy of the currently running Kernel Context and save it in the current pcb
 KernelContext *SaveCurrentKernelContext(KernelContext *kernel_context, void *current_pcb,
         void *next_pcb) {
     TracePrintf(TRACE_LEVEL_FUNCTION_INFO, ">>> SaveCurrentKernelContext()\n");

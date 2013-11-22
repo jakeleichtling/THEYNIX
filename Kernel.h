@@ -9,6 +9,12 @@
 #include "PMem.h"
 #include "Tty.h"
 
+/* 
+ * Kernel.h
+ * Contains internal Kernel operations, such as SetKernelBrk,
+ * KernelStart, etc. Also initaializes all system data structures.
+ */
+
 /* Macros */
 
 #define ADDR_TO_PAGE(addr) (((unsigned int) addr) >> PAGESHIFT)
@@ -19,7 +25,6 @@
 #define IDLE_PID 0
 
 #define SYNC_HASH_TABLE_SIZE 20
-#define CLOCK_BLOCKED_PROCS_HASH_SIZE 20
 
 /* Global Variables */
 
@@ -40,6 +45,7 @@ bool virtual_memory_enabled;
 // kernel_data_start_page and covering up to, but not including, this page should have
 // PROT_READ | PROT_WRITE permissions.
 unsigned int kernel_brk_page;
+
 // The lowest page number used by the kernel's data segment. The pages up to,
 // but not including, this page is the text, and thus should have
 // PROT_READ | PROT_EXEC permissions.
@@ -47,6 +53,8 @@ unsigned int kernel_data_start_page;
 
 struct pte *region_0_page_table;
 
+// Use this id for the next allocated resource.
+// In theory, this will overflow eventually, but we aren't concerned about that :)
 unsigned int next_synch_resource_id;
 
 /* Function Prototypes */
@@ -66,8 +74,14 @@ void SaveKernelContext();
 // (e.g., ready queue, clock blocked queue)
 void SwitchToNextProc(UserContext *user_context);
 
+// Begin executing the specified proc.
+// NOTE: place the current proc into the correct queue before calling
+void SwitchToProc(PCB *next_proc, UserContext *user_context);
+
+// Copy the contents of the page table from the source PCB to that of the
+// dest PCB. This includes copying the page table info as well as the
+// actual data in the frames. 
 int CopyRegion1PageTableAndData(PCB *source, PCB *dest);
 
-void SwitchToProc(PCB *next_proc, UserContext *user_context);
 
 #endif
