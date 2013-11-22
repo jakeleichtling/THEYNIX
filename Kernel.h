@@ -31,7 +31,6 @@ PCB *idle_proc;
 List *ready_queue;
 List *clock_block_procs;
 
-UnusedFrames unused_frames;
 bool virtual_memory_enabled;
 
 // The lowest page number not in use by the kernel's data segment. Starting at

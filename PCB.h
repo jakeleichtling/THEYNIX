@@ -65,6 +65,6 @@ PCB *NewBlankPCB(UserContext model_user_context);
   Same as above but allocates page tables and frames for kernel stack. Returns NULL if there are
   not enough physical frames to complete this request.
 */
-PCB *NewBlankPCBWithPageTables(UserContext model_user_context, UnusedFrames unused_frames);
+PCB *NewBlankPCBWithPageTables(UserContext model_user_context);
 
 #endif

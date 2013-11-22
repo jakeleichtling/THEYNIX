@@ -22,8 +22,6 @@ THEYNIX
 #include "Log.h"
 #include "VMem.h"
 
-extern UnusedFrames unused_frames;
-
 /*
  *  Load a program into an existing address space.  The program comes from
  *  the Linux file named "name", and its arguments come from the array at
@@ -196,7 +194,7 @@ LoadProgram(char *name, char *args[], PCB *proc)
   ==>> deallocate a few pages to fit the size of memory to the requirements
   ==>> of the new process.
   */
-  FreeRegion1PageTable(proc, unused_frames);
+  FreeRegion1PageTable(proc);
 
   /*
   ==>> Allocate "li.t_npg" physical pages and map them starting at
@@ -204,7 +202,7 @@ LoadProgram(char *name, char *args[], PCB *proc)
   ==>> These pages should be marked valid, with a protection of
   ==>> (PROT_READ | PROT_WRITE).
   */
-if (MapNewRegion1Pages(proc, unused_frames, text_pg1, li.t_npg, PROT_READ | PROT_WRITE) == ERROR) {
+if (MapNewRegion1Pages(proc, text_pg1, li.t_npg, PROT_READ | PROT_WRITE) == ERROR) {
   TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "MapNewRegion1Pages() for text failed.\n");
   return ERROR;
 }
@@ -215,7 +213,7 @@ if (MapNewRegion1Pages(proc, unused_frames, text_pg1, li.t_npg, PROT_READ | PROT
   ==>> These pages should be marked valid, with a protection of
   ==>> (PROT_READ | PROT_WRITE).
   */
-if (MapNewRegion1Pages(proc, unused_frames, data_pg1, data_npg, PROT_READ | PROT_WRITE) == ERROR) {
+if (MapNewRegion1Pages(proc, data_pg1, data_npg, PROT_READ | PROT_WRITE) == ERROR) {
   TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "MapNewRegion1Pages() for data failed.\n");
   return ERROR;
 }
@@ -231,7 +229,7 @@ if (MapNewRegion1Pages(proc, unused_frames, data_pg1, data_npg, PROT_READ | PROT
   */
   unsigned int bottom_stack_page = ADDR_TO_PAGE(VMEM_1_LIMIT) - stack_npg;
   bottom_stack_page -= VMEM_1_BASE >> PAGESHIFT;
-if (MapNewRegion1Pages(proc, unused_frames, bottom_stack_page, stack_npg,
+if (MapNewRegion1Pages(proc, bottom_stack_page, stack_npg,
       PROT_READ | PROT_WRITE) == ERROR) {
     TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "MapNewRegion1Pages() for stack failed.\n");
     return ERROR;

@@ -48,7 +48,6 @@ void SetKernelData(void *_KernelDataStart, void *_KernelDataEnd) {
 }
 
 void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {
-    unused_frames = NewUnusedFrames(pmem_size);
     virtual_memory_enabled = false;
 
     next_synch_resource_id = 1;
@@ -76,7 +75,6 @@ void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {
     for (i = 0; i < kernel_brk_page; i++) {
         region_0_page_table[i].valid = 1;
         region_0_page_table[i].pfn = i;
-        MarkFrameAsUsed(unused_frames, i);
 
         if (i < kernel_data_start_page) { // Text section.
             region_0_page_table[i].prot = PROT_READ | PROT_EXEC;
@@ -90,7 +88,6 @@ void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {
     for (i = 0; i < NUM_KERNEL_PAGES; i++) {
         idle_proc->kernel_stack_page_table[i].valid = 1;
         idle_proc->kernel_stack_page_table[i].pfn = i + kernel_stack_base_page;
-        MarkFrameAsUsed(unused_frames, i + kernel_stack_base_page);
 
         idle_proc->kernel_stack_page_table[i].prot = PROT_READ | PROT_WRITE;
     }
@@ -110,6 +107,9 @@ void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {
     virtual_memory_enabled = true;
     WriteRegister(REG_VM_ENABLE, 1);
 
+    // Initialize the physical memory management data structures. Then, initialize the
+    // kernel book keeping structs.
+    InitializePhysicalMemoryManagement(pmem_size);
     InitBookkeepingStructs();
 
     int rc = LoadProgram("idle", NULL, idle_proc);
@@ -124,7 +124,7 @@ void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {
         init_program_name = cmd_args[0];
     }
     // Load the init program, but first make sure we are pointing to its region 1 page table.
-    PCB *init_proc = NewBlankPCBWithPageTables(model_user_context, unused_frames);
+    PCB *init_proc = NewBlankPCBWithPageTables(model_user_context);
     WriteRegister(REG_PTBR1, (unsigned int) init_proc->region_1_page_table);
     WriteRegister(REG_TLB_FLUSH, TLB_FLUSH_1);
     rc = LoadProgram(init_program_name, cmd_args, init_proc);
@@ -165,7 +165,7 @@ int SetKernelBrk(void *addr) {
             for (new_page = kernel_brk_page;
                     new_page < new_kernel_brk_page && new_page < kernel_stack_base_frame;
                     new_page++) {
-                int rc = MapNewRegion0Page(new_page, unused_frames);
+                int rc = MapNewRegion0Page(new_page);
                 if (rc == ERROR) {
                     TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM,
                             "MapNewRegion0Page(%u) failed.\n", new_page);
@@ -178,7 +178,7 @@ int SetKernelBrk(void *addr) {
                     page_to_free >= new_kernel_brk_page;
                     page_to_free--) {
                 if (page_to_free < kernel_stack_base_frame) {
-                    UnmapUsedRegion0Page(page_to_free, unused_frames);
+                    UnmapUsedRegion0Page(page_to_free);
                 }
             }
         }
@@ -266,13 +266,13 @@ int CopyRegion1PageTableAndData(PCB *source, PCB *dest) { // make sure dest has 
             dest->region_1_page_table[i].valid = 1;
             dest->region_1_page_table[i].prot = PROT_WRITE;
 
-            if (GetUnusedFrame(unused_frames, &(dest->region_1_page_table[i])) == ERROR) {
+            if (GetUnusedFrame(&(dest->region_1_page_table[i])) == ERROR) {
                 // Not enough physical frames, so released the ones we used and return error.
                 int j;
                 for (j = 0; j < i; j++) {
                     if (dest->region_1_page_table[j].valid) {
                         dest->region_1_page_table[j].valid = false;
-                        ReleaseUsedFrame(unused_frames, dest->region_1_page_table[j].pfn);
+                        ReleaseUsedFrame(dest->region_1_page_table[j].pfn);
                     }
                 }
 

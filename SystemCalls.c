@@ -14,7 +14,6 @@
 #include "VMem.h"
 #include "Pipe.h"
 
-extern UnusedFrames unused_frames;
 extern List *clock_block_procs;
 extern List *waiting_on_children_procs;
 extern List *ready_queue;
@@ -81,7 +80,7 @@ int KernelFork(UserContext *user_context) {
     current_proc->user_context = *user_context;
 
     // Make a new child PCB with the same user context as the parent.
-    PCB *child_pcb = NewBlankPCBWithPageTables(current_proc->user_context, unused_frames);
+    PCB *child_pcb = NewBlankPCBWithPageTables(current_proc->user_context);
 
     if (!child_pcb) {
         TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "Error creating fork child PCB.\n");
@@ -246,10 +245,10 @@ void KernelExit(int status, UserContext *user_context) {
     free(current_proc->tty_transmit_buffer);
 
     // Free all frames
-    FreeRegion1PageTable(current_proc, unused_frames);
+    FreeRegion1PageTable(current_proc);
     free(current_proc->region_1_page_table);
 
-    FreeRegion0StackPages(current_proc, unused_frames);
+    FreeRegion0StackPages(current_proc);
     free(current_proc->kernel_stack_page_table);
 
     // If has a parent, move proc to zombie_children list of parent
@@ -327,7 +326,7 @@ int KernelBrk(void *addr) {
     }
 
     if (new_user_brk_page > current_proc->user_brk_page) {
-        int rc = MapNewRegion1Pages(current_proc, unused_frames, current_proc->user_brk_page,
+        int rc = MapNewRegion1Pages(current_proc, current_proc->user_brk_page,
                 new_user_brk_page - current_proc->user_brk_page, PROT_READ | PROT_WRITE);
         if (rc == ERROR) {
             TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM,
@@ -335,7 +334,7 @@ int KernelBrk(void *addr) {
             return ERROR;
         }
     } else if (new_user_brk_page < current_proc->user_brk_page) {
-        UnmapRegion1Pages(current_proc, unused_frames, new_user_brk_page,
+        UnmapRegion1Pages(current_proc, new_user_brk_page,
                 current_proc->user_brk_page - new_user_brk_page);
     }
 
@@ -371,7 +370,7 @@ int KernelDelay(int clock_ticks, UserContext *user_context) {
 
 int KernelTtyRead(int tty_id, void *buf, int len, UserContext *user_context) {
     if (tty_id < 0 || tty_id >= NUM_TERMINALS) {
-        TracePrintf(TRACE_LEVEL_TERMINAL_PROBLEM, "Program tried to read from invalid term\n");
+        TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "Program tried to read from invalid term\n");
         return ERROR;
     }
     if (len < 0) {
@@ -465,7 +464,7 @@ int KernelTtyWriteInternal(int tty_id, void *buf, int len, UserContext *user_con
 
 int KernelTtyWrite(int tty_id, void *buf, int len, UserContext *user_context) {
     if (tty_id < 0 || tty_id >= NUM_TERMINALS) {
-        TracePrintf(TRACE_LEVEL_TERMINAL_PROBLEM, "Program tried to write to invalid term\n");
+        TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM, "Program tried to write to invalid term\n");
         return ERROR;
     }
     if (len < 0) {
