@@ -5,6 +5,8 @@
   Code for keeping track of physical memory.
 */
 
+#include <hardware.h>
+
 /*
   Initializes the data structure for keeping track of physical memory:
 
