@@ -42,10 +42,10 @@ int main(int argc, char **argv) {
  5 cars going in each direction, all released at the same time.
  */
 void testCase0() {
-  TracePrintf(TRACE_LEVEL_DETAIL_INFO, "---------------------------------------------------------------------------------------\n");
-  TracePrintf(TRACE_LEVEL_DETAIL_INFO, "5 cars going in each direction, all released at the same time,\n");
-  TracePrintf(TRACE_LEVEL_DETAIL_INFO, "\tsleeping for 1 second after getting on, and another second before getting off:\n");
-  TracePrintf(TRACE_LEVEL_DETAIL_INFO, "---------------------------------------------------------------------------------------\n");
+  TracePrintf(TRACE_LEVEL_TESTING_OUTPUT, "---------------------------------------------------------------------------------------\n");
+  TracePrintf(TRACE_LEVEL_TESTING_OUTPUT, "5 cars going in each direction, all released at the same time,\n");
+  TracePrintf(TRACE_LEVEL_TESTING_OUTPUT, "\tsleeping for 1 second after getting on, and another second before getting off:\n");
+  TracePrintf(TRACE_LEVEL_TESTING_OUTPUT, "---------------------------------------------------------------------------------------\n");
 
   int num_cars_to_hanover = 5;
   int num_cars_to_norwich = 5;
@@ -80,16 +80,16 @@ void testCase0() {
     sprintf(direction, "%d\0", direction_names[i]->direction);
     sprintf(name, "%d\0", direction_names[i]->name);
     sprintf(sleep_duration, "%d\0", direction_names[i]->sleep_duration);
-    TracePrintf(TRACE_LEVEL_DETAIL_INFO, "~~~ Sleep duration set for %s --> %s\n", name, sleep_duration);
+    TracePrintf(TRACE_LEVEL_TESTING_OUTPUT, "~~~ Sleep duration set for %s --> %s\n", name, sleep_duration);
 
     char *argvec[] = { "LedyardBridge", direction, name, sleep_duration, pipe_id_str,
         lock_id_str, cvar_0_id_str, cvar_1_id_str,  NULL };
-    TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Forking car %d.\n", i);
+    TracePrintf(TRACE_LEVEL_TESTING_OUTPUT, "Forking car %d.\n", i);
     rc = Fork();
     if (rc == 0) {
       rc = Exec("theynix_tests/LedyardBridge", argvec);
       if (rc) {
-        TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Car %d exec failed.\n", i);
+        TracePrintf(TRACE_LEVEL_TESTING_OUTPUT, "Car %d exec failed.\n", i);
         exit(-1);
       }
     }
@@ -112,16 +112,16 @@ void testCase0() {
     sprintf(direction, "%d\0", direction_names[i]->direction);
     sprintf(name, "%d\0", direction_names[i]->name);
     sprintf(sleep_duration, "%d\0", direction_names[i]->sleep_duration);
-    TracePrintf(TRACE_LEVEL_DETAIL_INFO, "~~~ Sleep duration set for %s --> %s\n", name, sleep_duration);
+    TracePrintf(TRACE_LEVEL_TESTING_OUTPUT, "~~~ Sleep duration set for %s --> %s\n", name, sleep_duration);
 
     char *argvec[] = { "LedyardBridge", direction, name, sleep_duration, pipe_id_str,
         lock_id_str, cvar_0_id_str, cvar_1_id_str,  NULL };
-    TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Forking car %d.\n", i);
+    TracePrintf(TRACE_LEVEL_TESTING_OUTPUT, "Forking car %d.\n", i);
     rc = Fork();
     if (rc == 0) {
     rc = Exec("LedyardBridge", argvec);
       if (rc) {
-        TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Car %d exec failed.\n", i);
+        TracePrintf(TRACE_LEVEL_TESTING_OUTPUT, "Car %d exec failed.\n", i);
         exit(-1);
       }
     }
@@ -135,7 +135,7 @@ void testCase0() {
     Wait(&rc);
 
     if (rc) {
-       TracePrintf(TRACE_LEVEL_DETAIL_INFO, "pthread_join failed at i = %d\n", i);
+       TracePrintf(TRACE_LEVEL_TESTING_OUTPUT, "pthread_join failed at i = %d\n", i);
       exit(-1);
     }
 
@@ -147,14 +147,14 @@ void testCase0() {
   free(cvar_0_id_str);
   free(cvar_1_id_str);
 
-  TracePrintf(TRACE_LEVEL_DETAIL_INFO, "---------------------------------------------------------------------------------------\n");
+  TracePrintf(TRACE_LEVEL_TESTING_OUTPUT, "---------------------------------------------------------------------------------------\n");
 }
 
 void testCase1() {
-  TracePrintf(TRACE_LEVEL_DETAIL_INFO, "---------------------------------------------------------------------------------------\n");
-  TracePrintf(TRACE_LEVEL_DETAIL_INFO, "10 cars going in random directions, all released at the same time,\n");
-  TracePrintf(TRACE_LEVEL_DETAIL_INFO, "\tsleeping for 0 <= t <= 5 seconds after getting on, and another t seconds before getting off:\n");
-  TracePrintf(TRACE_LEVEL_DETAIL_INFO, "---------------------------------------------------------------------------------------\n");
+  TracePrintf(TRACE_LEVEL_TESTING_OUTPUT, "---------------------------------------------------------------------------------------\n");
+  TracePrintf(TRACE_LEVEL_TESTING_OUTPUT, "10 cars going in random directions, all released at the same time,\n");
+  TracePrintf(TRACE_LEVEL_TESTING_OUTPUT, "\tsleeping for 0 <= t <= 5 seconds after getting on, and another t seconds before getting off:\n");
+  TracePrintf(TRACE_LEVEL_TESTING_OUTPUT, "---------------------------------------------------------------------------------------\n");
 
   int num_cars = 10;
   DirectionNameSleep *direction_names[num_cars];
@@ -178,14 +178,14 @@ void testCase1() {
     sprintf(direction, "%d\0", direction_names[i]->direction);
     sprintf(name, "%d\0", direction_names[i]->name);
     sprintf(sleep_duration, "%d\0", direction_names[i]->sleep_duration);
-    TracePrintf(TRACE_LEVEL_DETAIL_INFO, "~~~ Sleep duration set for %s --> %s\n", name, sleep_duration);
+    TracePrintf(TRACE_LEVEL_TESTING_OUTPUT, "~~~ Sleep duration set for %s --> %s\n", name, sleep_duration);
 
     char *argvec[] = { "LedyardBridge", direction, name, sleep_duration };
     rc = Fork();
     if (rc == 0) {
       rc = Exec("theynix_tests/LedyardBridge", argvec);
       if (rc) {
-        TracePrintf(TRACE_LEVEL_DETAIL_INFO, "Car %d exec failed.\n", i);
+        TracePrintf(TRACE_LEVEL_TESTING_OUTPUT, "Car %d exec failed.\n", i);
         exit(-1);
       }
     }
@@ -196,12 +196,12 @@ void testCase1() {
     Wait(&rc);
 
     if (rc) {
-       TracePrintf(TRACE_LEVEL_DETAIL_INFO, "pthread_join failed at i = %d\n", i);
+       TracePrintf(TRACE_LEVEL_TESTING_OUTPUT, "pthread_join failed at i = %d\n", i);
       exit(-1);
     }
 
     free(direction_names[i]);
   }
 
-  TracePrintf(TRACE_LEVEL_DETAIL_INFO, "---------------------------------------------------------------------------------------\n");
+  TracePrintf(TRACE_LEVEL_TESTING_OUTPUT, "---------------------------------------------------------------------------------------\n");
 }
