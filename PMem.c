@@ -141,6 +141,10 @@ void SetNextAndPrevFreeFrameNumbers(int frame_a, int next_frame_b, int prev_fram
   Appends the given frame to the linked list, making it the new tail.
 */
 void AddToLinkedList(int frame_number) {
+  if (free_frames_head < 0) { // Linked list was empty.
+    free_frames_head = free_frames_tail = frame_number;
+  }
+
   int prev_tail = free_frames_tail;
 
   SetNextAndPrevFreeFrameNumbers(free_frames_tail, frame_number, -1);
