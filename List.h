@@ -10,6 +10,8 @@ struct ListNode {
     struct ListNode *next;
     struct ListNode *prev;
 
+    struct ListNode *hash_collission_next;
+
     unsigned int id;
     void *data;
 };
@@ -19,13 +21,15 @@ typedef struct ListNode ListNode;
 struct List {
     ListNode *sentinel;
     ListNode *head;
+    ListNode **hash_table;
+    int hash_table_size;
 };
 
 typedef struct List List;
 
 // Initializes an empty list.
 // User must call ListDestroy() to free.
-List *ListNewList();
+List *ListNewList(int hash_table_size);
 
 // Free internal structure of list.
 // The list must be empty first.
@@ -50,10 +54,6 @@ void *ListRemoveById(List *list, unsigned int id);
 // element is removed
 void *ListFindFirstLessThanIdAndRemove(List *list, unsigned int id);
 
-// Insert immediately before the first element that has a greater ID.
-// List will be in sorted order if only this method is used to add elements.
-void ListInsertByIdOrder(List *list, void *data, unsigned int id);
-
 // Append to end of list
 void ListAppend(List *list, void *data, unsigned int id);
 
@@ -66,8 +66,5 @@ void ListMap(List *list, void (*ftn) (void*));
 
 // Returns the head element but does not remove!
 void *ListPeak(List *list);
-
-// Test driver. Returns true on success.
-bool ListTestList();
 
 #endif
