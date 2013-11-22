@@ -22,7 +22,11 @@ int free_frames_tail; // -1 if list is empty.
 
 // From Kernel.h
 extern PCB *current_proc;
-extern int kernel_brk_page;
+extern unsigned int kernel_brk_page;
+
+/*    Private Function Prototypes     */
+void AddToLinkedList(int frame_number);
+void SetNextAndPrevFreeFrameNumbers(int frame_A, int next_frame_B, int prev_frame_C);
 
 /*
   Initialize the data structures for keeping track of physical memory.
