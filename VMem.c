@@ -5,6 +5,11 @@
 
 #include "Log.h"
 
+/*
+ * VMem.c
+ * Datastructures and helper methods for managed virtual memory.
+ */
+
 extern PCB *current_proc;
 extern struct pte *region_0_page_table;
 
@@ -35,16 +40,18 @@ int MapNewRegion1Pages(PCB *pcb, unsigned int start_page_num,
         assert(page_num < NUM_PAGES_REG_1);
         assert(!(pcb->region_1_page_table[page_num].valid));
 
+        // get a new frame for each page
         if (GetUnusedFrame(&pcb->region_1_page_table[page_num]) == ERROR) {
             TracePrintf(TRACE_LEVEL_NON_TERMINAL_PROBLEM,
                     "Not enough unused physical frames to complete request.\n");
 
-            // Unmap pages that were mapped.
+            // Unmap pages that were mapped to rollback changes made thus far
             UnmapRegion1Pages(pcb, start_page_num, page_num - start_page_num);
 
             return ERROR;
         }
 
+        // setup pte info
         pcb->region_1_page_table[page_num].prot = prot;
         pcb->region_1_page_table[page_num].valid = 1;
     }
@@ -158,6 +165,10 @@ void FreeRegion1PageTable(PCB *pcb) {
     }
 }
 
+/*
+  Frees the physical frames used by the valid region 0 stack page table entries,
+  and marks them as invalid.
+*/
 void FreeRegion0StackPages(PCB *pcb) {
     int i;
     for (i = 0; i < NUM_KERNEL_PAGES; i++) {
