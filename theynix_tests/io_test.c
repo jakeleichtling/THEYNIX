@@ -4,6 +4,8 @@
 #include <string.h>
 #include <hardware.h>
 
+#include "Log.h"
+
 int main(int argc, char *argv[]) {
     // Test normal write behavior.
     TracePrintf(TRACE_LEVEL_TESTING_OUTPUT, "Testing normal write behavior.\n");
