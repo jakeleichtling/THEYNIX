@@ -109,6 +109,10 @@ void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {
 
     // Initialize the physical memory management data structures. Then, initialize the
     // kernel book keeping structs.
+
+    // Make idle the current proc since it has a region 1 page table that this call can use.
+    current_proc = idle_proc;
+
     InitializePhysicalMemoryManagement(pmem_size);
     InitBookkeepingStructs();
 
@@ -133,14 +137,14 @@ void KernelStart(char *cmd_args[], unsigned int pmem_size, UserContext *uctxt) {
         exit(ERROR);
     }
 
-    // Make init the current proc.
+    // Make idle the current proc.
     current_proc = idle_proc;
     WriteRegister(REG_PTBR1, (unsigned int) idle_proc->region_1_page_table);
     WriteRegister(REG_TLB_FLUSH, TLB_FLUSH_1);
 
     ListAppend(ready_queue, init_proc, init_proc->pid);
 
-    // Use the init proc's user context after returning from KernelStart().
+    // Use the idle proc's user context after returning from KernelStart().
     *uctxt = idle_proc->user_context;
 }
 
